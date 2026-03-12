@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { InvoicePreview } from "@/components/invoice/invoice-preview";
+import { ShareDialog } from "@/components/invoice/share-dialog";
+import { SidebarNav } from "@/components/layout/sidebar-nav";
+import { Button } from "@/components/ui/button";
 import { VoiceButton } from "@/components/voice/voice-button";
 import { VoiceTranscript } from "@/components/voice/voice-transcript";
-import { ShareDialog } from "@/components/invoice/share-dialog";
 import { useInvoiceStore } from "@/stores/invoice-store";
 import { useSettingsStore } from "@/stores/settings-store";
-import { Button } from "@/components/ui/button";
-import { RotateCcw, Send, WifiOff } from "lucide-react";
 import type { InvoiceItem } from "@/types";
+import { RotateCcw, Send, WifiOff } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -88,7 +89,7 @@ export default function DashboardPage() {
   const hasContent = items.length > 0 || customerName;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-3.5rem)]">
+    <div className="flex flex-col h-[calc(100vh-3.5rem)] md:h-full">
       {!isOnline && (
         <div className="bg-amber-100 text-amber-800 px-4 py-2 text-sm flex items-center justify-center gap-2">
           <WifiOff className="h-4 w-4" />
@@ -97,13 +98,20 @@ export default function DashboardPage() {
       )}
 
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
-        {/* Left Column: Voice Interaction Section */}
-        <div className="w-full md:w-5/12 border-b md:border-b-0 md:border-r bg-background p-4 md:p-8 flex flex-col justify-between overflow-y-auto">
-          <div className="max-w-md mx-auto w-full space-y-8">
-            <div>
-              <h1 className="text-3xl font-black tracking-tight mb-2">Assistant Vocal</h1>
+        {/* Left Column: Navbar + Voice Interaction Section */}
+        <div className="w-full md:w-1/2 border-b md:border-b-0 md:border-r bg-background p-4 md:p-8 flex flex-col overflow-y-auto">
+          <div className="hidden md:block mb-12 max-w-md mx-auto w-full">
+            <SidebarNav businessName={businessName} />
+          </div>
+
+          <div className="max-w-md mx-auto w-full space-y-8 flex-1 flex flex-col justify-center">
+            <div className="md:hidden">
+              <h1 className="text-3xl font-black tracking-tight mb-2">
+                Assistant Vocal
+              </h1>
               <p className="text-muted-foreground font-medium">
-                Dictez votre devis ou facture, l'assistant s'occupe du reste.
+                Dictez votre devis ou facture, l&apos;assistant s&apos;occupe du
+                reste.
               </p>
             </div>
 
@@ -173,7 +181,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Right Column: Invoice Preview Section */}
-        <div className="w-full md:w-7/12 flex-1 overflow-auto p-4 md:p-8 bg-muted/30">
+        <div className="w-full md:w-2/3 flex-1 overflow-auto p-4 md:p-8 bg-muted/30">
           <div className="max-w-2xl mx-auto">
             <InvoicePreview
               customerName={customerName}
