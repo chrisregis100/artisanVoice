@@ -181,7 +181,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Right Column: Invoice Preview Section */}
-        <div className="w-full md:w-2/3 flex-1 overflow-auto p-4 md:p-8 bg-muted/30">
+        <div className="w-full md:w-1/2 flex-1 overflow-auto p-4 md:p-8 bg-muted/30">
           <div className="max-w-2xl mx-auto">
             <InvoicePreview
               customerName={customerName}

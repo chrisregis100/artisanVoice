@@ -42,11 +42,11 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col md:flex-row h-[calc(100vh-3.5rem)] md:h-full">
-      <div className="hidden md:block w-5/12 max-w-md border-r bg-background p-8 overflow-y-auto">
+      <div className="hidden md:block w-1/2 max-w-md border-r bg-background p-8 overflow-y-auto">
         <SidebarNav businessName={businessName || "Test Artisan"} />
       </div>
 
-      <div className="flex-1 overflow-auto p-4 md:p-8 bg-muted/30">
+      <div className="flex-1 w-full md:w-1/2 overflow-auto p-4 md:p-8 bg-muted/30">
         <div className="max-w-2xl mx-auto space-y-6 pb-12">
           <h1 className="text-3xl font-black tracking-tight mb-8 uppercase">Paramètres</h1>
 
