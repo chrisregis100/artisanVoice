@@ -1,0 +1,7 @@
+{"sessionId":"657efa","location":"middleware.ts:60","message":"Middleware hit","data":{"pathname":"/","hasUser":false},"timestamp":1773323495234,"hypothesisId":"H1-H2"}
+{"sessionId":"657efa","location":"(dashboard)/page.tsx:15","message":"DashboardPage rendered","data":{"route":"/ (dashboard group)"},"timestamp":1773323502166,"hypothesisId":"H4"}
+{"sessionId":"657efa","location":"middleware.ts:60","message":"Middleware hit","data":{"pathname":"/invoices","hasUser":false},"timestamp":1773323502367,"hypothesisId":"H1-H2"}
+{"sessionId":"657efa","location":"middleware.ts:60","message":"Middleware hit","data":{"pathname":"/settings","hasUser":false},"timestamp":1773323505523,"hypothesisId":"H1-H2"}
+{"sessionId":"657efa","location":"middleware.ts:60","message":"Middleware hit","data":{"pathname":"/welcome","hasUser":false},"timestamp":1773323506117,"hypothesisId":"H1-H2"}
+{"sessionId":"657efa","location":"middleware.ts:60","message":"Middleware hit","data":{"pathname":"/login","hasUser":false},"timestamp":1773323506750,"hypothesisId":"H1-H2"}
+{"sessionId":"657efa","location":"middleware.ts:60","message":"Middleware hit","data":{"pathname":"/dashboard","hasUser":false},"timestamp":1773323507331,"hypothesisId":"H1-H2"}
