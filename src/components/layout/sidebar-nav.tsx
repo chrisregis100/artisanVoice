@@ -34,25 +34,25 @@ export function SidebarNav({ businessName }: { businessName?: string }) {
     <div className="flex flex-col gap-6 h-full">
       <div className="flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-            <Mic className="w-5 h-5 text-background" />
+          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary">
+            <Mic className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-black text-xl tracking-tight uppercase">
+          <span className="font-semibold text-xl tracking-tight">
             ArtisanVoice
           </span>
         </Link>
       </div>
 
-      <nav className="flex flex-col gap-2">
+      <nav className="flex flex-col gap-1">
         {navItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             className={cn(
-              "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-bold transition-all border-2",
+              "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
               pathname === item.href
-                ? "bg-foreground text-background border-foreground shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] translate-x-[-2px] translate-y-[-2px]"
-                : "bg-white text-foreground border-transparent hover:border-foreground hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px]"
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
             )}
           >
             <item.icon className="h-5 w-5" />
@@ -61,15 +61,15 @@ export function SidebarNav({ businessName }: { businessName?: string }) {
         ))}
       </nav>
 
-      <div className="mt-auto pt-6 border-t-4 border-foreground">
+      <div className="mt-auto pt-6 border-t">
         {businessName && (
-          <p className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4 truncate">
+          <p className="text-sm font-medium text-muted-foreground mb-4 truncate">
             {businessName}
           </p>
         )}
         <Button
           variant="outline"
-          className="w-full justify-start gap-3 border-2 border-foreground font-bold hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all"
+          className="w-full justify-start gap-3"
           onClick={handleSignOut}
         >
           <LogOut className="h-4 w-4" />

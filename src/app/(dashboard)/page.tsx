@@ -26,16 +26,11 @@ import { useSettingsStore } from "@/stores/settings-store";
 import type { InvoiceItem } from "@/types";
 import {
   ChevronDown,
-  LogOut,
-  Mic,
   RotateCcw,
   Send,
   WifiOff,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 
 export default function DashboardPage() {
   const [isShareOpen, setIsShareOpen] = useState(false);
@@ -43,14 +38,6 @@ export default function DashboardPage() {
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState("assistant");
   const [itemIdToFocus, setItemIdToFocus] = useState<string | null>(null);
-  const router = useRouter();
-
-  const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
-  };
 
   const {
     customerName,
@@ -253,47 +240,6 @@ export default function DashboardPage() {
     </div>
   );
 
-  const desktopNav = (
-    <div className="hidden md:flex items-center justify-between p-6 border-b border-border/80 bg-muted/20">
-      <div className="flex items-center gap-2">
-        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary text-primary-foreground">
-          <Mic className="w-4 h-4" />
-        </div>
-        <span className="font-semibold text-lg">ArtisanVoice</span>
-      </div>
-      <div className="flex items-center gap-4 flex-wrap">
-        <Link
-          href="/"
-          className="text-sm font-medium text-foreground hover:underline"
-        >
-          Nouveau devis
-        </Link>
-        <Link
-          href="/invoices"
-          className="text-sm font-medium text-muted-foreground hover:text-foreground hover:underline"
-        >
-          Mes documents
-        </Link>
-        <Link
-          href="/settings"
-          className="text-sm font-medium text-muted-foreground hover:text-foreground hover:underline"
-        >
-          Paramètres
-        </Link>
-        <div className="w-px h-4 bg-border mx-1" />
-        <button
-          type="button"
-          onClick={handleSignOut}
-          className="text-sm font-medium text-muted-foreground hover:text-destructive flex items-center gap-1.5 transition-colors"
-          aria-label="Se déconnecter"
-        >
-          <LogOut className="w-4 h-4" />
-          <span className="hidden lg:inline">Se déconnecter</span>
-        </button>
-      </div>
-    </div>
-  );
-
   return (
     <div className="flex flex-col h-[calc(100vh-3.5rem)] md:h-full">
       {!isOnline && (
@@ -306,7 +252,6 @@ export default function DashboardPage() {
 
       <div className="hidden md:flex flex-row flex-1 overflow-hidden bg-background">
         <div className="w-1/2 border-r border-border/80 flex flex-col bg-muted/10 min-h-0">
-          {desktopNav}
           <div className="flex-1 flex flex-col overflow-y-auto p-6 md:p-8">
             {assistantInner}
           </div>

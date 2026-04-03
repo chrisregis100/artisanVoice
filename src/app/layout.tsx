@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <head>
-        <link rel="apple-touch-icon" href="/icon-192.png" />
+        <link rel="apple-touch-icon" href="/icon-192.svg" type="image/svg+xml" />
       </head>
       <body className={inter.className}>{children}</body>
     </html>

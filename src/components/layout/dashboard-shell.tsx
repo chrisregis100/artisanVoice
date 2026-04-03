@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { Mic, Menu, X } from "lucide-react";
-import { navItems } from "./sidebar-nav";
+import { navItems, SidebarNav } from "./sidebar-nav";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -75,7 +75,12 @@ export function DashboardShell({ children, businessName }: DashboardShellProps) 
         )}
       </header>
 
-      {/* Main content area - pages will handle their own desktop layouts */}
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:flex flex-col w-64 shrink-0 border-r bg-background p-4">
+        <SidebarNav businessName={businessName} />
+      </aside>
+
+      {/* Main content area */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {children}
       </main>
