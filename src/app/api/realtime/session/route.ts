@@ -1,12 +1,22 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function POST() {
-  const apiKey = process.env.OPENAI_API_KEY;
+export async function POST(request: NextRequest) {
+  let apiKey: string | undefined;
+
+  try {
+    const body = await request.json();
+    apiKey = typeof body?.apiKey === "string" ? body.apiKey.trim() : undefined;
+  } catch {
+    // Malformed JSON body — treat as missing key
+  }
 
   if (!apiKey) {
     return NextResponse.json(
-      { error: "OpenAI API key not configured" },
-      { status: 500 }
+      {
+        error:
+          "Clé API OpenAI manquante. Configurez-la dans Paramètres → Clé API.",
+      },
+      { status: 400 }
     );
   }
 

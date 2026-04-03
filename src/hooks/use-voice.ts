@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useEffect } from "react";
 import { useInvoiceStore } from "@/stores/invoice-store";
+import { useSettingsStore } from "@/stores/settings-store";
 import { RealtimeClient } from "@/lib/openai/realtime-client";
 
 interface UseVoiceReturn {
@@ -15,6 +16,8 @@ export function useVoice(): UseVoiceReturn {
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioQueueRef = useRef<ArrayBuffer[]>([]);
   const isPlayingRef = useRef(false);
+
+  const { openaiApiKey } = useSettingsStore();
 
   const {
     setListening,
@@ -109,13 +112,24 @@ export function useVoice(): UseVoiceReturn {
 
   const initializeClient = useCallback(async () => {
     try {
-      // Get session token from our API
+      if (!openaiApiKey) {
+        throw new Error(
+          "Clé API OpenAI non configurée. Rendez-vous dans Paramètres → Clé API."
+        );
+      }
+
+      // Get ephemeral session token from our API route (key is not stored server-side)
       const response = await fetch("/api/realtime/session", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey: openaiApiKey }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create session");
+        const data = await response.json().catch(() => ({}));
+        throw new Error(
+          data.error ?? "Impossible de créer la session vocale"
+        );
       }
 
       const { token } = await response.json();
@@ -160,6 +174,7 @@ export function useVoice(): UseVoiceReturn {
       throw error;
     }
   }, [
+    openaiApiKey,
     appendAssistantDelta,
     handleFunctionCall,
     playAudioQueue,

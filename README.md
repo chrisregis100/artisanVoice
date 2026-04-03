@@ -48,10 +48,11 @@ npm run dev
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
-
-# OpenAI
-OPENAI_API_KEY=your_openai_api_key
 ```
+
+> **Note :** La clé API OpenAI n'est plus configurée via les variables d'environnement.
+> Rendez-vous dans **Paramètres → Clé API** de l'application pour la saisir.
+> Elle est stockée localement dans votre navigateur (localStorage).
 
 ### Base de données Supabase
 

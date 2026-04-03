@@ -192,8 +192,10 @@ export default function SettingsPage() {
                   className="border-2 border-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] focus-visible:ring-0 focus-visible:ring-offset-0"
                 />
                 <p className="text-xs font-medium text-muted-foreground mt-2">
-                  Votre clé est stockée localement sur votre appareil et n&apos;est
-                  jamais envoyée à nos serveurs.
+                  Votre clé est stockée localement dans votre navigateur. Elle
+                  est transmise uniquement à votre propre serveur lors de la
+                  création d&apos;une session vocale pour obtenir un jeton
+                  éphémère, puis n&apos;est pas conservée.
                 </p>
               </div>
             </CardContent>
