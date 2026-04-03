@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { InvoiceItem, DocumentType } from "@/types";
+import type { ConversationMessage, InvoiceItem, DocumentType } from "@/types";
 import { generateId, calculateTotal } from "@/lib/utils";
 
 interface InvoiceState {
@@ -10,7 +10,7 @@ interface InvoiceState {
   total: number;
   type: DocumentType;
   highlightedItemId: string | null;
-  transcript: string;
+  conversationMessages: ConversationMessage[];
   isListening: boolean;
   isProcessing: boolean;
   isConnected: boolean;
@@ -19,12 +19,13 @@ interface InvoiceState {
 
 interface InvoiceActions {
   setCustomer: (name: string, phone?: string) => void;
-  addItem: (description: string, quantity: number, unitPrice: number) => void;
+  addItem: (description: string, quantity: number, unitPrice: number) => string;
   removeItem: (index: number) => void;
   updateItem: (id: string, updates: Partial<InvoiceItem>) => void;
   setType: (type: DocumentType) => void;
   setHighlightedItem: (id: string | null) => void;
-  setTranscript: (transcript: string) => void;
+  pushUserMessage: (text: string) => void;
+  appendAssistantDelta: (delta: string) => void;
   setListening: (isListening: boolean) => void;
   setProcessing: (isProcessing: boolean) => void;
   setConnected: (isConnected: boolean) => void;
@@ -40,14 +41,14 @@ const initialState: InvoiceState = {
   total: 0,
   type: "quote",
   highlightedItemId: null,
-  transcript: "",
+  conversationMessages: [],
   isListening: false,
   isProcessing: false,
   isConnected: false,
   error: null,
 };
 
-export const useInvoiceStore = create<InvoiceState & InvoiceActions>((set, get) => ({
+export const useInvoiceStore = create<InvoiceState & InvoiceActions>((set) => ({
   ...initialState,
 
   setCustomer: (name, phone) => {
@@ -71,17 +72,17 @@ export const useInvoiceStore = create<InvoiceState & InvoiceActions>((set, get) 
       };
     });
 
-    // Clear highlight after animation
     setTimeout(() => {
       set({ highlightedItemId: null });
     }, 2000);
+
+    return newItem.id;
   },
 
   removeItem: (index) => {
     set((state) => {
-      // Handle negative index (e.g., -1 for last item)
       const actualIndex = index < 0 ? state.items.length + index : index;
-      
+
       if (actualIndex < 0 || actualIndex >= state.items.length) {
         return state;
       }
@@ -115,7 +116,41 @@ export const useInvoiceStore = create<InvoiceState & InvoiceActions>((set, get) 
 
   setHighlightedItem: (id) => set({ highlightedItemId: id }),
 
-  setTranscript: (transcript) => set({ transcript }),
+  pushUserMessage: (text) => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    set((state) => ({
+      conversationMessages: [
+        ...state.conversationMessages,
+        {
+          id: generateId(),
+          role: "user",
+          content: trimmed,
+        },
+      ],
+    }));
+  },
+
+  appendAssistantDelta: (delta) => {
+    if (!delta) return;
+    set((state) => {
+      const messages = [...state.conversationMessages];
+      const last = messages[messages.length - 1];
+      if (last?.role === "assistant") {
+        messages[messages.length - 1] = {
+          ...last,
+          content: last.content + delta,
+        };
+      } else {
+        messages.push({
+          id: generateId(),
+          role: "assistant",
+          content: delta,
+        });
+      }
+      return { conversationMessages: messages };
+    });
+  },
 
   setListening: (isListening) => set({ isListening }),
 

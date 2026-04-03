@@ -20,7 +20,8 @@ export function useVoice(): UseVoiceReturn {
     setListening,
     setProcessing,
     setConnected,
-    setTranscript,
+    pushUserMessage,
+    appendAssistantDelta,
     setError,
     addItem,
     removeItem,
@@ -125,8 +126,11 @@ export function useVoice(): UseVoiceReturn {
 
       // Create and connect the client
       const client = new RealtimeClient({
-        onTranscript: (text) => {
-          setTranscript(text);
+        onUserTranscript: (text) => {
+          pushUserMessage(text);
+        },
+        onAssistantTranscriptDelta: (delta) => {
+          appendAssistantDelta(delta);
         },
         onFunctionCall: handleFunctionCall,
         onAudioResponse: (audio) => {
@@ -155,12 +159,20 @@ export function useVoice(): UseVoiceReturn {
       setError("Impossible de se connecter au serveur vocal");
       throw error;
     }
-  }, [handleFunctionCall, playAudioQueue, setConnected, setError, setListening, setProcessing, setTranscript]);
+  }, [
+    appendAssistantDelta,
+    handleFunctionCall,
+    playAudioQueue,
+    pushUserMessage,
+    setConnected,
+    setError,
+    setListening,
+    setProcessing,
+  ]);
 
   const startListening = useCallback(async () => {
     try {
       setError(null);
-      setTranscript("");
 
       // Request microphone access first
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -212,7 +224,7 @@ export function useVoice(): UseVoiceReturn {
       }
       console.error("Start listening error:", error);
     }
-  }, [initializeClient, setError, setListening, setTranscript]);
+  }, [initializeClient, setError, setListening]);
 
   const stopListening = useCallback(() => {
     setListening(false);

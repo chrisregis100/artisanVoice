@@ -1,17 +1,18 @@
 import { voiceFunctions, systemPrompt } from "./functions";
 
 export interface RealtimeConfig {
-  onTranscript: (text: string) => void;
+  onUserTranscript: (text: string) => void;
+  onAssistantTranscriptDelta: (delta: string) => void;
   onFunctionCall: (name: string, args: Record<string, unknown>) => void;
   onAudioResponse: (audio: ArrayBuffer) => void;
   onError: (error: string) => void;
   onConnectionChange: (connected: boolean) => void;
+  onResponseDone?: () => void;
 }
 
 export class RealtimeClient {
   private ws: WebSocket | null = null;
   private config: RealtimeConfig;
-  private audioContext: AudioContext | null = null;
   private isSessionConfigured = false;
 
   constructor(config: RealtimeConfig) {
@@ -39,7 +40,7 @@ export class RealtimeClient {
         this.isSessionConfigured = false;
       };
 
-      this.ws.onerror = (event) => {
+      this.ws.onerror = () => {
         this.config.onError("Erreur de connexion WebSocket");
         reject(new Error("WebSocket connection failed"));
       };
@@ -53,7 +54,6 @@ export class RealtimeClient {
   private configureSession(): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
 
-    // Configure the session with our system prompt and functions
     this.send({
       type: "session.update",
       session: {
@@ -91,25 +91,21 @@ export class RealtimeClient {
       switch (message.type) {
         case "session.created":
         case "session.updated":
-          // Session is ready
           break;
 
         case "conversation.item.input_audio_transcription.completed":
-          // User's speech was transcribed
           if (message.transcript) {
-            this.config.onTranscript(message.transcript);
+            this.config.onUserTranscript(message.transcript);
           }
           break;
 
         case "response.audio_transcript.delta":
-          // AI is responding with text
           if (message.delta) {
-            this.config.onTranscript(message.delta);
+            this.config.onAssistantTranscriptDelta(message.delta);
           }
           break;
 
         case "response.audio.delta":
-          // AI audio response chunk
           if (message.delta) {
             const audioData = this.base64ToArrayBuffer(message.delta);
             this.config.onAudioResponse(audioData);
@@ -117,13 +113,11 @@ export class RealtimeClient {
           break;
 
         case "response.function_call_arguments.done":
-          // Function call completed
           if (message.name && message.arguments) {
             try {
               const args = JSON.parse(message.arguments);
               this.config.onFunctionCall(message.name, args);
 
-              // Send function result back
               this.sendFunctionResult(message.call_id, { success: true });
             } catch {
               console.error("Failed to parse function arguments");
@@ -132,7 +126,7 @@ export class RealtimeClient {
           break;
 
         case "response.done":
-          // Response completed
+          this.config.onResponseDone?.();
           break;
 
         case "error":
@@ -162,7 +156,6 @@ export class RealtimeClient {
       type: "input_audio_buffer.commit",
     });
 
-    // Request a response
     this.send({
       type: "response.create",
     });
@@ -178,7 +171,6 @@ export class RealtimeClient {
       },
     });
 
-    // Continue the response
     this.send({
       type: "response.create",
     });

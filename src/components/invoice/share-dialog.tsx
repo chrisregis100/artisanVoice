@@ -63,6 +63,15 @@ export function ShareDialog({
     customerPhone,
   };
 
+  const formatShareError = (err: unknown, context: "pdf" | "whatsapp") => {
+    console.error("Share error:", err);
+    const base =
+      context === "pdf"
+        ? "Le partage du PDF a échoué."
+        : "L’envoi WhatsApp a échoué.";
+    return `${base} Réessayez, vérifiez le numéro au format international, ou téléchargez le PDF pour l’envoyer autrement.`;
+  };
+
   const handleShare = async (method: ShareMethod) => {
     setIsSharing(true);
     setError(null);
@@ -71,8 +80,7 @@ export function ShareDialog({
       await shareWithPDF(shareParams, method);
       onOpenChange(false);
     } catch (err) {
-      setError("Erreur lors du partage");
-      console.error("Share error:", err);
+      setError(formatShareError(err, "pdf"));
     } finally {
       setIsSharing(false);
     }
@@ -86,8 +94,7 @@ export function ShareDialog({
       await shareViaWhatsApp(shareParams, customerPhone);
       onOpenChange(false);
     } catch (err) {
-      setError("Erreur lors du partage");
-      console.error("Share error:", err);
+      setError(formatShareError(err, "whatsapp"));
     } finally {
       setIsSharing(false);
     }
@@ -124,7 +131,13 @@ export function ShareDialog({
           </div>
 
           {error && (
-            <p className="text-sm text-destructive text-center">{error}</p>
+            <p
+              role="alert"
+              aria-live="assertive"
+              className="text-sm text-destructive text-left rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2"
+            >
+              {error}
+            </p>
           )}
 
           {/* Share buttons */}
@@ -132,6 +145,7 @@ export function ShareDialog({
             <Button
               onClick={() => handleShare("whatsapp")}
               disabled={isSharing}
+              aria-busy={isSharing}
               className="w-full justify-start h-12 bg-green-600 hover:bg-green-700"
             >
               {isSharing ? (
@@ -145,6 +159,7 @@ export function ShareDialog({
             <Button
               onClick={handleWhatsAppOnly}
               disabled={isSharing}
+              aria-busy={isSharing}
               variant="outline"
               className="w-full justify-start h-12"
             >
@@ -160,6 +175,7 @@ export function ShareDialog({
               <Button
                 onClick={() => handleShare("native")}
                 disabled={isSharing}
+                aria-busy={isSharing}
                 variant="outline"
                 className="w-full justify-start h-12"
               >
@@ -175,6 +191,7 @@ export function ShareDialog({
             <Button
               onClick={() => handleShare("download")}
               disabled={isSharing}
+              aria-busy={isSharing}
               variant="secondary"
               className="w-full justify-start h-12"
             >

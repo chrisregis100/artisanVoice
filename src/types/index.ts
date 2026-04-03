@@ -36,11 +36,17 @@ export interface Invoice {
   sentAt: string | null;
 }
 
+export interface ConversationMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+}
+
 export interface VoiceState {
   isListening: boolean;
   isProcessing: boolean;
   isConnected: boolean;
-  transcript: string;
+  conversationMessages: ConversationMessage[];
   error: string | null;
 }
 
