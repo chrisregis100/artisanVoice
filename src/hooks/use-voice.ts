@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useEffect } from "react";
+import { toast } from "sonner";
 import { useInvoiceStore } from "@/stores/invoice-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { RealtimeClient } from "@/lib/openai/realtime-client";
@@ -135,7 +136,9 @@ export function useVoice(): UseVoiceReturn {
       const { token } = await response.json();
 
       if (!token) {
-        throw new Error("No token received");
+        throw new Error(
+          "Jeton de session manquant. Réessayez ou vérifiez votre clé API dans Paramètres."
+        );
       }
 
       // Create and connect the client
@@ -167,10 +170,20 @@ export function useVoice(): UseVoiceReturn {
       await client.connect(token);
       clientRef.current = client;
 
+      toast.success("Connexion établie", {
+        description: "Le serveur vocal est prêt.",
+      });
+
       return client;
     } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Impossible de se connecter au serveur vocal";
+      toast.error("Erreur de connexion", {
+        description: message,
+      });
       console.error("Failed to initialize client:", error);
-      setError("Impossible de se connecter au serveur vocal");
       throw error;
     }
   }, [
@@ -232,11 +245,16 @@ export function useVoice(): UseVoiceReturn {
       mediaRecorderRef.current = { stream, processor, source } as unknown as MediaRecorder;
     } catch (error) {
       setListening(false);
+      let errorMessage = "Erreur lors du démarrage de l'enregistrement";
       if (error instanceof DOMException && error.name === "NotAllowedError") {
-        setError("Accès au microphone refusé");
-      } else {
-        setError("Erreur lors du démarrage de l'enregistrement");
+        errorMessage = "Accès au microphone refusé";
+      } else if (error instanceof Error && error.message) {
+        errorMessage = error.message;
       }
+      setError(errorMessage);
+      toast.error("Erreur", {
+        description: errorMessage,
+      });
       console.error("Start listening error:", error);
     }
   }, [initializeClient, setError, setListening]);

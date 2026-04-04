@@ -1,22 +1,31 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useEffect } from "react";
+import Link from "next/link";
 import { Mic, MicOff, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useInvoiceStore } from "@/stores/invoice-store";
 import { useVoice } from "@/hooks/use-voice";
 
+function isApiKeyError(error: string): boolean {
+  const lower = error.toLowerCase();
+  return lower.includes("clé api") || lower.includes("api key");
+}
+
 function getErrorDescription(error: string): string {
+  const lower = error.toLowerCase();
   if (
-    error.includes("microphone") ||
-    error.includes("Microphone") ||
-    error.includes("micro") ||
-    error.includes("Micro")
+    lower.includes("microphone") ||
+    lower.includes("micro")
   ) {
-    return `${error} — Dans les paramètres du navigateur, autorisez l’accès au microphone pour ce site.`;
+    return `${error} — Dans les paramètres du navigateur, autorisez l'accès au microphone pour ce site.`;
   }
-  if (error.includes("connexion") || error.includes("WebSocket")) {
+  if (lower.includes("connexion") || lower.includes("websocket")) {
     return `${error} — Vérifiez votre connexion internet, puis réessayez.`;
+  }
+  if (isApiKeyError(error) && !error.includes("Paramètres")) {
+    return `${error} — Rendez-vous dans Paramètres → Clé API.`;
   }
   return error;
 }
@@ -34,6 +43,25 @@ export function VoiceButton() {
   );
 
   const errorText = error ? getErrorDescription(error) : null;
+  const showApiKeyLink = error ? isApiKeyError(error) : false;
+
+  // Show toast notification for errors (complements inline alert)
+  useEffect(() => {
+    if (error) {
+      toast.error("Erreur", {
+        description: getErrorDescription(error),
+      });
+    }
+  }, [error]);
+
+  // Show toast when successfully connected
+  useEffect(() => {
+    if (isConnected && !error) {
+      toast.success("Connecté", {
+        description: "Le serveur vocal est prêt.",
+      });
+    }
+  }, [isConnected, error]);
 
   const handleClick = useCallback(() => {
     if (isListening) {
@@ -73,7 +101,9 @@ export function VoiceButton() {
           disabled={isProcessing}
           tabIndex={0}
           aria-label={
-            isListening ? "Arrêter l'enregistrement" : "Commencer l'enregistrement"
+            isListening
+              ? "Arrêter l'enregistrement"
+              : "Commencer l'enregistrement"
           }
           aria-pressed={isListening}
           className={cn(
@@ -105,12 +135,21 @@ export function VoiceButton() {
       </div>
 
       {errorText && (
-        <p
-          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[20rem] text-center text-xs text-destructive px-2"
+        <div
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[22rem] text-center px-2"
           role="alert"
+          aria-live="assertive"
         >
-          {errorText}
-        </p>
+          <p className="text-xs text-destructive leading-snug">{errorText}</p>
+          {showApiKeyLink && (
+            <Link
+              href="/settings"
+              className="mt-1 inline-block text-xs font-medium text-primary underline underline-offset-2 hover:text-primary/80 focus:outline-none focus:ring-2 focus:ring-primary/40 rounded"
+            >
+              Aller dans Paramètres
+            </Link>
+          )}
+        </div>
       )}
     </div>
   );

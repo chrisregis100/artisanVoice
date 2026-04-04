@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
   if (!apiKey) {
     return NextResponse.json(
       {
+        code: "MISSING_API_KEY",
         error:
           "Clé API OpenAI manquante. Configurez-la dans Paramètres → Clé API.",
       },
@@ -38,10 +39,36 @@ export async function POST(request: NextRequest) {
     );
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error("OpenAI session error:", error);
+      const errorText = await response.text();
+      console.error("OpenAI session error:", errorText);
+
+      if (response.status === 401) {
+        return NextResponse.json(
+          {
+            code: "INVALID_API_KEY",
+            error:
+              "Clé API OpenAI invalide. Vérifiez votre clé dans Paramètres → Clé API.",
+          },
+          { status: 401 }
+        );
+      }
+
+      if (response.status === 429) {
+        return NextResponse.json(
+          {
+            code: "QUOTA_EXCEEDED",
+            error:
+              "Quota OpenAI dépassé. Vérifiez votre compte OpenAI puis réessayez.",
+          },
+          { status: 429 }
+        );
+      }
+
       return NextResponse.json(
-        { error: "Failed to create session" },
+        {
+          code: "SESSION_ERROR",
+          error: "Impossible de créer la session vocale. Réessayez.",
+        },
         { status: response.status }
       );
     }
@@ -57,7 +84,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Session creation error:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { code: "INTERNAL_ERROR", error: "Erreur interne du serveur. Réessayez." },
       { status: 500 }
     );
   }
