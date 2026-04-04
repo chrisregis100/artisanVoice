@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { Mic, Menu, X } from "lucide-react";
 import { navItems, SidebarNav } from "./sidebar-nav";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -45,6 +46,7 @@ export function DashboardShell({ children, businessName }: DashboardShellProps) 
               <span className="font-semibold text-lg">ArtisanVoice</span>
             </Link>
           </div>
+          <ThemeToggle />
         </div>
 
         {isMobileMenuOpen && (

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/utils";
 import {
   Mic,
@@ -41,6 +42,7 @@ export function SidebarNav({ businessName }: { businessName?: string }) {
             ArtisanVoice
           </span>
         </Link>
+        <ThemeToggle />
       </div>
 
       <nav className="flex flex-col gap-1">
