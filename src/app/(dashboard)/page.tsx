@@ -2,7 +2,6 @@
 
 import { InvoicePreview } from "@/components/invoice/invoice-preview";
 import { ShareDialog } from "@/components/invoice/share-dialog";
-import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,6 +12,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
@@ -24,12 +24,7 @@ import { VoiceConversation } from "@/components/voice/voice-conversation";
 import { useInvoiceStore } from "@/stores/invoice-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import type { InvoiceItem } from "@/types";
-import {
-  ChevronDown,
-  RotateCcw,
-  Send,
-  WifiOff,
-} from "lucide-react";
+import { ChevronDown, RotateCcw, Send, WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
@@ -169,13 +164,13 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      <button
+      {/* <button
         type="button"
         onClick={handleManualEntryClick}
         className="text-sm text-primary font-medium underline underline-offset-4 hover:text-primary/80 text-left mb-4"
       >
         Préférez-vous tout saisir à la main ?
-      </button>
+      </button> */}
 
       <div className="flex-1 flex flex-col min-h-0 gap-4">
         <VoiceConversation
@@ -227,9 +222,7 @@ export default function DashboardPage() {
               size="lg"
               className="flex-1"
               onClick={handleSend}
-              disabled={
-                isListening || isProcessing || items.length === 0
-              }
+              disabled={isListening || isProcessing || items.length === 0}
             >
               <Send className="h-5 w-5 mr-2" />
               Partager le document
@@ -292,9 +285,7 @@ export default function DashboardPage() {
             value="document"
             className="flex-1 overflow-y-auto mt-3 pb-4 data-[state=inactive]:hidden"
           >
-            <div id="document-preview-mobile">
-              {invoicePreview}
-            </div>
+            <div id="document-preview-mobile">{invoicePreview}</div>
           </TabsContent>
         </Tabs>
       </div>
