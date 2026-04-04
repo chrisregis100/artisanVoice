@@ -107,20 +107,20 @@ export function VoiceButton() {
           }
           aria-pressed={isListening}
           className={cn(
-            "relative flex items-center justify-center w-20 h-20 rounded-full transition-all duration-200 border-2 border-primary/30 shadow-md",
+            "relative flex items-center justify-center w-24 h-24 rounded-full transition-all duration-300 border border-primary/20",
             "focus:outline-none focus:ring-4 focus:ring-primary/40",
             isListening
-              ? "bg-destructive text-destructive-foreground scale-105"
-              : "bg-primary hover:bg-primary/90 text-primary-foreground",
+              ? "bg-destructive text-destructive-foreground scale-[1.02] shadow-[0_0_30px_rgba(239,68,68,0.4)]"
+              : "bg-primary hover:bg-primary/90 text-primary-foreground hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/30 shadow-lg",
             isProcessing && "opacity-70 cursor-not-allowed"
           )}
         >
           {isProcessing ? (
-            <Loader2 className="w-8 h-8 text-primary-foreground animate-spin" />
+            <Loader2 className="w-10 h-10 text-primary-foreground animate-spin" />
           ) : isListening ? (
-            <MicOff className="w-8 h-8" />
+            <MicOff className="w-10 h-10" />
           ) : (
-            <Mic className="w-8 h-8" />
+            <Mic className="w-10 h-10" />
           )}
         </button>
 
