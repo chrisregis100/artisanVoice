@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { Mic, MicOff, Loader2 } from "lucide-react";
+import { Mic, MicOff, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useInvoiceStore } from "@/stores/invoice-store";
@@ -82,7 +82,35 @@ export function VoiceButton() {
   );
 
   return (
-    <div className="relative flex flex-col items-center pb-10">
+    <div className="flex flex-col items-center pb-6">
+      {errorText && (
+        <div
+          className="mb-4 w-full max-w-sm"
+          role="alert"
+          aria-live="assertive"
+        >
+          <div className="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 shadow-sm">
+            <AlertCircle
+              className="mt-0.5 h-4 w-4 shrink-0 text-destructive"
+              aria-hidden="true"
+            />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-destructive leading-snug">
+                {errorText}
+              </p>
+              {showApiKeyLink && (
+                <Link
+                  href="/settings"
+                  className="mt-1.5 inline-flex items-center text-sm font-medium text-primary underline underline-offset-2 hover:text-primary/80 focus:outline-none focus:ring-2 focus:ring-primary/40 rounded-sm"
+                >
+                  Aller dans Paramètres
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="relative">
         {isListening && (
           <>
@@ -133,24 +161,6 @@ export function VoiceButton() {
           role="status"
         />
       </div>
-
-      {errorText && (
-        <div
-          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[22rem] text-center px-2"
-          role="alert"
-          aria-live="assertive"
-        >
-          <p className="text-xs text-destructive leading-snug">{errorText}</p>
-          {showApiKeyLink && (
-            <Link
-              href="/settings"
-              className="mt-1 inline-block text-xs font-medium text-primary underline underline-offset-2 hover:text-primary/80 focus:outline-none focus:ring-2 focus:ring-primary/40 rounded"
-            >
-              Aller dans Paramètres
-            </Link>
-          )}
-        </div>
-      )}
     </div>
   );
 }

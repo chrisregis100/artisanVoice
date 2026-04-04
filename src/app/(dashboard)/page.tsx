@@ -150,7 +150,7 @@ export default function DashboardPage() {
   );
 
   const assistantInner = (
-    <div className="flex flex-col flex-1 min-h-0">
+    <div className="flex flex-col justify-between flex-1 min-h-full">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
           Assistant vocal
