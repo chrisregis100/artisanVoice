@@ -28,7 +28,9 @@ export default function SettingsPage() {
     businessName,
     businessPhone,
     businessAddress,
+    quotePrefix,
     invoicePrefix,
+    vatRatePercent,
     legalMentions,
     currency,
     openaiApiKey,
@@ -125,6 +127,17 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-5 pt-6">
               <div className="space-y-2">
+                <Label htmlFor="quotePrefix">Préfixe numéro de devis</Label>
+                <Input
+                  id="quotePrefix"
+                  placeholder="Ex: DV-"
+                  value={quotePrefix ?? "DV-"}
+                  onChange={(e) =>
+                    updateSettings({ quotePrefix: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="invoicePrefix">Préfixe numéro de facture</Label>
                 <Input
                   id="invoicePrefix"
@@ -134,6 +147,26 @@ export default function SettingsPage() {
                     updateSettings({ invoicePrefix: e.target.value })
                   }
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="vatRatePercent">Taux de TVA (%)</Label>
+                <Input
+                  id="vatRatePercent"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step={0.5}
+                  value={vatRatePercent ?? 20}
+                  onChange={(e) =>
+                    updateSettings({
+                      vatRatePercent: Number(e.target.value) || 0,
+                    })
+                  }
+                />
+                <p className="text-xs text-muted-foreground">
+                  Utilisé pour calculer la TVA et le total TTC sur les devis et
+                  factures.
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="legalMentions">Mentions légales</Label>

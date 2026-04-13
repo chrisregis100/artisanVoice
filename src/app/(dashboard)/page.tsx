@@ -37,6 +37,8 @@ export default function DashboardPage() {
   const {
     customerName,
     customerPhone,
+    customerAddress,
+    documentDate,
     items,
     total,
     type,
@@ -45,6 +47,8 @@ export default function DashboardPage() {
     isListening,
     isProcessing,
     setCustomer,
+    setCustomerAddress,
+    setDocumentDate,
     updateItem,
     removeItem,
     reset,
@@ -52,7 +56,14 @@ export default function DashboardPage() {
     addItem,
   } = useInvoiceStore();
 
-  const { businessName, businessPhone } = useSettingsStore();
+  const {
+    businessName,
+    businessPhone,
+    businessAddress,
+    quotePrefix,
+    invoicePrefix,
+    vatRatePercent,
+  } = useSettingsStore();
 
   useEffect(() => {
     setIsOnline(navigator.onLine);
@@ -118,12 +129,22 @@ export default function DashboardPage() {
   const invoicePreview = (
     <InvoicePreview
       customerName={customerName}
+      customerPhone={customerPhone}
+      customerAddress={customerAddress}
+      documentDate={documentDate}
       items={items}
       total={total}
       type={type}
       businessName={businessName || "Mon Entreprise"}
+      businessAddress={businessAddress}
+      businessPhone={businessPhone}
+      quotePrefix={quotePrefix || "DV-"}
+      invoicePrefix={invoicePrefix || "FAC-"}
+      vatRatePercent={vatRatePercent ?? 20}
       highlightedItemId={highlightedItemId}
       onCustomerNameChange={handleCustomerNameChange}
+      onCustomerAddressChange={setCustomerAddress}
+      onDocumentDateChange={setDocumentDate}
       onItemUpdate={handleItemUpdate}
       onItemRemove={handleItemRemove}
       onTypeChange={setType}
@@ -263,11 +284,17 @@ export default function DashboardPage() {
         onOpenChange={setIsShareOpen}
         customerName={customerName}
         customerPhone={customerPhone}
+        customerAddress={customerAddress}
         items={items}
         total={total}
         type={type}
         businessName={businessName}
         businessPhone={businessPhone}
+        businessAddress={businessAddress}
+        documentDate={documentDate}
+        quotePrefix={quotePrefix || "DV-"}
+        invoicePrefix={invoicePrefix || "FAC-"}
+        vatRatePercent={vatRatePercent ?? 20}
       />
 
       <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>

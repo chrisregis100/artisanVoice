@@ -31,11 +31,17 @@ interface ShareDialogProps {
   onOpenChange: (open: boolean) => void;
   customerName: string;
   customerPhone?: string;
+  customerAddress?: string;
   items: InvoiceItem[];
   total: number;
   type: "quote" | "invoice";
   businessName: string;
   businessPhone?: string;
+  businessAddress?: string;
+  documentDate: string;
+  quotePrefix: string;
+  invoicePrefix: string;
+  vatRatePercent: number;
 }
 
 export function ShareDialog({
@@ -43,11 +49,17 @@ export function ShareDialog({
   onOpenChange,
   customerName,
   customerPhone: initialPhone,
+  customerAddress,
   items,
   total,
   type,
   businessName,
   businessPhone,
+  businessAddress,
+  documentDate,
+  quotePrefix,
+  invoicePrefix,
+  vatRatePercent,
 }: ShareDialogProps) {
   const [isSharing, setIsSharing] = useState(false);
   const [customerPhone, setCustomerPhone] = useState(initialPhone || "");
@@ -55,11 +67,17 @@ export function ShareDialog({
 
   const shareParams = {
     customerName,
+    customerAddress,
     items,
     total,
     type,
     businessName,
     businessPhone,
+    businessAddress,
+    documentDate,
+    quotePrefix,
+    invoicePrefix,
+    vatRatePercent,
     customerPhone,
   };
 

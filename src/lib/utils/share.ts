@@ -2,17 +2,24 @@
 
 import { generatePDF, downloadPDF, generateFilename } from "./pdf";
 import type { InvoiceItem } from "@/types";
+import { calculateTotalTtc, calculateVatAmount } from "@/lib/utils";
 
 export type ShareMethod = "whatsapp" | "download" | "native";
 
 interface ShareParams {
   customerName: string;
+  customerPhone?: string;
+  customerAddress?: string;
   items: InvoiceItem[];
   total: number;
   type: "quote" | "invoice";
   businessName: string;
   businessPhone?: string;
-  customerPhone?: string;
+  businessAddress?: string;
+  documentDate: Date | string;
+  quotePrefix: string;
+  invoicePrefix: string;
+  vatRatePercent: number;
 }
 
 function formatCurrency(amount: number): string {
@@ -20,13 +27,23 @@ function formatCurrency(amount: number): string {
 }
 
 function generateShareMessage(params: ShareParams): string {
-  const { customerName, total, type, businessName } = params;
+  const {
+    customerName,
+    total,
+    type,
+    businessName,
+    vatRatePercent,
+  } = params;
   const documentType = type === "quote" ? "Devis" : "Facture";
+  const vatAmount = calculateVatAmount(total, vatRatePercent);
+  const totalTtc = calculateTotalTtc(total, vatRatePercent);
 
   return `${documentType} de ${businessName}
 
 Client: ${customerName || "—"}
-Total: ${formatCurrency(total)}
+Sous-total HT: ${formatCurrency(total)}
+TVA (${vatRatePercent} %): ${formatCurrency(vatAmount)}
+Total TTC: ${formatCurrency(totalTtc)}
 
 Merci pour votre confiance!`;
 }

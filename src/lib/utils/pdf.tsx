@@ -4,22 +4,24 @@ import { pdf } from "@react-pdf/renderer";
 import { InvoicePDF } from "@/components/invoice/invoice-pdf";
 import type { InvoiceItem } from "@/types";
 
-interface GeneratePDFParams {
+export interface GeneratePDFParams {
   customerName: string;
+  customerPhone?: string;
+  customerAddress?: string;
   items: InvoiceItem[];
   total: number;
   type: "quote" | "invoice";
   businessName: string;
   businessPhone?: string;
+  businessAddress?: string;
+  documentDate: Date | string;
+  quotePrefix: string;
+  invoicePrefix: string;
+  vatRatePercent: number;
 }
 
 export async function generatePDF(params: GeneratePDFParams): Promise<Blob> {
-  const document = (
-    <InvoicePDF
-      {...params}
-      date={new Date()}
-    />
-  );
+  const document = <InvoicePDF {...params} />;
 
   const blob = await pdf(document).toBlob();
   return blob;

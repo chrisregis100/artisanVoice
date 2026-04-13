@@ -1,11 +1,19 @@
 import { create } from "zustand";
 import type { ConversationMessage, InvoiceItem, DocumentType } from "@/types";
-import { generateId, calculateTotal } from "@/lib/utils";
+import {
+  generateId,
+  calculateTotal,
+  getTodayIsoDateString,
+} from "@/lib/utils";
 
 interface InvoiceState {
   id: string;
   customerName: string;
   customerPhone: string;
+  /** Adresse du client (texte multiligne). */
+  customerAddress: string;
+  /** Date du document (yyyy-MM-dd). */
+  documentDate: string;
   items: InvoiceItem[];
   total: number;
   type: DocumentType;
@@ -19,6 +27,8 @@ interface InvoiceState {
 
 interface InvoiceActions {
   setCustomer: (name: string, phone?: string) => void;
+  setCustomerAddress: (address: string) => void;
+  setDocumentDate: (isoDate: string) => void;
   addItem: (description: string, quantity: number, unitPrice: number) => string;
   removeItem: (index: number) => void;
   updateItem: (id: string, updates: Partial<InvoiceItem>) => void;
@@ -33,20 +43,26 @@ interface InvoiceActions {
   reset: () => void;
 }
 
-const initialState: InvoiceState = {
-  id: generateId(),
-  customerName: "",
-  customerPhone: "",
-  items: [],
-  total: 0,
-  type: "quote",
-  highlightedItemId: null,
-  conversationMessages: [],
-  isListening: false,
-  isProcessing: false,
-  isConnected: false,
-  error: null,
-};
+function buildInitialInvoiceState(): InvoiceState {
+  return {
+    id: generateId(),
+    customerName: "",
+    customerPhone: "",
+    customerAddress: "",
+    documentDate: getTodayIsoDateString(),
+    items: [],
+    total: 0,
+    type: "quote",
+    highlightedItemId: null,
+    conversationMessages: [],
+    isListening: false,
+    isProcessing: false,
+    isConnected: false,
+    error: null,
+  };
+}
+
+const initialState: InvoiceState = buildInitialInvoiceState();
 
 export const useInvoiceStore = create<InvoiceState & InvoiceActions>((set) => ({
   ...initialState,
@@ -54,6 +70,10 @@ export const useInvoiceStore = create<InvoiceState & InvoiceActions>((set) => ({
   setCustomer: (name, phone) => {
     set({ customerName: name, customerPhone: phone || "" });
   },
+
+  setCustomerAddress: (address) => set({ customerAddress: address }),
+
+  setDocumentDate: (isoDate) => set({ documentDate: isoDate }),
 
   addItem: (description, quantity, unitPrice) => {
     const newItem: InvoiceItem = {
@@ -160,5 +180,5 @@ export const useInvoiceStore = create<InvoiceState & InvoiceActions>((set) => ({
 
   setError: (error) => set({ error }),
 
-  reset: () => set({ ...initialState, id: generateId() }),
+  reset: () => set({ ...buildInitialInvoiceState() }),
 }));
