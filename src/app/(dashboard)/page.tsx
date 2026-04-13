@@ -1,6 +1,7 @@
 "use client";
 
 import { InvoicePreview } from "@/components/invoice/invoice-preview";
+import { PreviewModal } from "@/components/invoice/preview-modal";
 import { ShareDialog } from "@/components/invoice/share-dialog";
 import {
   AlertDialog,
@@ -13,22 +14,18 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VoiceButton } from "@/components/voice/voice-button";
 import { VoiceConversation } from "@/components/voice/voice-conversation";
 import { useInvoiceStore } from "@/stores/invoice-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import type { InvoiceItem } from "@/types";
-import { RotateCcw, Send, WifiOff, Mic } from "lucide-react";
+import { WifiOff, Mic, Eye } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState("assistant");
@@ -103,6 +100,10 @@ export default function DashboardPage() {
     setIsShareOpen(true);
   };
 
+  const handlePreview = () => {
+    setIsPreviewOpen(true);
+  };
+
   const handleCustomerNameChange = (name: string) => {
     setCustomer(name, customerPhone);
   };
@@ -125,6 +126,22 @@ export default function DashboardPage() {
   };
 
   const hasContent = items.length > 0 || Boolean(customerName);
+
+  const sharedDocumentProps = {
+    customerName,
+    customerPhone,
+    customerAddress,
+    documentDate,
+    items,
+    total,
+    type,
+    businessName: businessName || "Mon Entreprise",
+    businessAddress,
+    businessPhone,
+    quotePrefix: quotePrefix || "DV-",
+    invoicePrefix: invoicePrefix || "FAC-",
+    vatRatePercent: vatRatePercent ?? 20,
+  };
 
   const invoicePreview = (
     <InvoicePreview
@@ -230,7 +247,17 @@ export default function DashboardPage() {
                     Tout effacer
                   </Button>
                   <Button
-                    className="rounded-lg bg-[#2e3165] text-white hover:bg-[#1f2144] shadow-sm ml-2"
+                    variant="outline"
+                    onClick={handlePreview}
+                    disabled={!hasContent}
+                    aria-label="Aperçu du document"
+                    className="gap-2 rounded-lg border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+                  >
+                    <Eye className="h-4 w-4" aria-hidden />
+                    Aperçu
+                  </Button>
+                  <Button
+                    className="rounded-lg bg-[#2e3165] text-white hover:bg-[#1f2144] shadow-sm"
                     onClick={handleSend}
                     disabled={isListening || isProcessing || items.length === 0}
                   >
@@ -274,10 +301,33 @@ export default function DashboardPage() {
             value="document"
             className="flex-1 overflow-y-auto mt-3 pb-4 data-[state=inactive]:hidden"
           >
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium text-muted-foreground">
+                Document en cours
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePreview}
+                disabled={!hasContent}
+                aria-label="Aperçu du document"
+                className="gap-1.5"
+              >
+                <Eye className="h-3.5 w-3.5" aria-hidden />
+                Aperçu
+              </Button>
+            </div>
             <div id="document-preview-mobile">{invoicePreview}</div>
           </TabsContent>
         </Tabs>
       </div>
+
+      <PreviewModal
+        open={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+        onShare={handleSend}
+        {...sharedDocumentProps}
+      />
 
       <ShareDialog
         open={isShareOpen}
