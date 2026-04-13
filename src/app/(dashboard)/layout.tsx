@@ -14,7 +14,10 @@ export default async function DashboardLayout({
   const businessName = user?.user_metadata?.business_name || user?.user_metadata?.name || null;
 
   return (
-    <DashboardShell businessName={businessName}>
+    <DashboardShell
+      businessName={businessName}
+      userEmail={user?.email ?? null}
+    >
       {children}
     </DashboardShell>
   );

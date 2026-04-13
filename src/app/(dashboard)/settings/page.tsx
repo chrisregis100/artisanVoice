@@ -41,15 +41,22 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-[calc(100vh-3.5rem)] md:h-full">
-      <div className="flex-1 w-full md:w-1/2 overflow-auto p-4 md:p-8 bg-muted/30">
-        <div className="max-w-2xl mx-auto space-y-6 pb-12">
-          <h1 className="text-3xl font-semibold tracking-tight mb-8">
+    <div className="h-full min-h-0 flex-1 overflow-y-auto bg-muted/20">
+      <div className="mx-auto w-full max-w-2xl space-y-6 px-4 py-8 pb-16 md:px-8 lg:py-10">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/90">
+            Compte
+          </p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
             Paramètres
           </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Informations affichées sur vos devis et préférences vocales.
+          </p>
+        </div>
 
           {/* Section 1: Business Info */}
-          <Card className="border shadow-sm rounded-lg">
+          <Card className="rounded-xl border shadow-sm">
             <CardHeader className="border-b pb-4">
               <div className="flex items-center gap-3">
                 <Building2 className="h-6 w-6 text-foreground" />
@@ -104,7 +111,7 @@ export default function SettingsPage() {
           </Card>
 
           {/* Section 2: Invoice Customization */}
-          <Card className="border shadow-sm rounded-lg">
+          <Card className="rounded-xl border shadow-sm">
             <CardHeader className="border-b pb-4">
               <div className="flex items-center gap-3">
                 <FileText className="h-6 w-6 text-foreground" />
@@ -169,7 +176,7 @@ export default function SettingsPage() {
           </Card>
 
           {/* Section 3: API Key */}
-          <Card className="border shadow-sm rounded-lg">
+          <Card className="rounded-xl border shadow-sm">
             <CardHeader className="border-b pb-4">
               <div className="flex items-center gap-3">
                 <Key className="h-6 w-6 text-foreground" />
@@ -220,7 +227,6 @@ export default function SettingsPage() {
               )}
             </Button>
           </div>
-        </div>
       </div>
     </div>
   );

@@ -24,7 +24,7 @@ import { VoiceConversation } from "@/components/voice/voice-conversation";
 import { useInvoiceStore } from "@/stores/invoice-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import type { InvoiceItem } from "@/types";
-import { ChevronDown, RotateCcw, Send, WifiOff } from "lucide-react";
+import { RotateCcw, Send, WifiOff, Mic } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
@@ -113,22 +113,6 @@ export default function DashboardPage() {
     setItemIdToFocus(null);
   };
 
-  const handleManualEntryClick = () => {
-    const isMobile = window.matchMedia("(max-width: 767px)").matches;
-    if (isMobile) {
-      setMobileTab("document");
-      requestAnimationFrame(() => {
-        document
-          .getElementById("document-preview-mobile")
-          ?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    } else {
-      document
-        .getElementById("document-preview")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  };
-
   const hasContent = items.length > 0 || Boolean(customerName);
 
   const invoicePreview = (
@@ -150,86 +134,44 @@ export default function DashboardPage() {
   );
 
   const assistantInner = (
-    <div className="flex flex-col justify-between flex-1 min-h-full">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Assistant vocal
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Parler ou saisir → vérifier le document → partager
-        </p>
-        <p className="text-xs text-muted-foreground mt-3 max-w-md">
-          Le PDF est généré sur votre appareil avant l’envoi ; le contenu du
-          document reste sous votre contrôle.
-        </p>
+    <div className="flex min-h-full flex-1 flex-col justify-between">
+      <div className="mb-4">
+        <div className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#2e3165] py-8 text-white shadow-sm">
+          <Mic className="h-6 w-6" />
+          <h2 className="text-xl font-bold tracking-wide">ArtisanVoice</h2>
+        </div>
       </div>
 
-      {/* <button
-        type="button"
-        onClick={handleManualEntryClick}
-        className="text-sm text-primary font-medium underline underline-offset-4 hover:text-primary/80 text-left mb-4"
-      >
-        Préférez-vous tout saisir à la main ?
-      </button> */}
-
-      <div className="flex-1 flex flex-col min-h-0 gap-4">
+      <div className="flex min-h-0 flex-1 flex-col gap-5">
         <VoiceConversation
           messages={conversationMessages}
           isListening={isListening}
           isProcessing={isProcessing}
         />
 
-        <div className="flex justify-center py-2">
-          <VoiceButton />
-        </div>
-
-        <Collapsible className="group border border-border/80 rounded-lg bg-muted/30 px-3 py-2">
-          <CollapsibleTrigger className="flex w-full items-center justify-between text-sm font-medium text-foreground py-2">
-            Voir des exemples de phrases
-            <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180" />
-          </CollapsibleTrigger>
-          <CollapsibleContent className="space-y-2 pb-3">
+        <div className="flex flex-col gap-3 mt-4 px-2">
+          <div className="flex flex-col gap-2 mx-auto w-full max-w-md mb-2">
+           <div className="flex justify-center gap-2 flex-wrap">
             {[
-              "« Ajoute 3 tables à 15000 francs »",
-              "« C'est pour Monsieur Kossi »",
-              "« Envoie la facture sur WhatsApp »",
+              "Ajouter prestation peinture...",
+              "Supprimer l'article 2...",
+              "Afficher les factures..."
             ].map((example) => (
-              <div
+              <button
                 key={example}
-                className="text-sm p-3 bg-background border border-border rounded-lg text-foreground"
+                className="rounded-full border border-border/80 bg-gray-50 px-4 py-1.5 text-xs text-gray-600 hover:bg-gray-100 transition-colors shadow-sm"
               >
                 {example}
-              </div>
+              </button>
             ))}
-          </CollapsibleContent>
-        </Collapsible>
-      </div>
-
-      {hasContent && (
-        <div className="max-w-md mx-auto w-full mt-auto pt-6 border-t border-border">
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => setResetDialogOpen(true)}
-              className="flex-1"
-              disabled={isListening || isProcessing}
-            >
-              <RotateCcw className="h-5 w-5 mr-2" />
-              Tout effacer
-            </Button>
-            <Button
-              size="lg"
-              className="flex-1"
-              onClick={handleSend}
-              disabled={isListening || isProcessing || items.length === 0}
-            >
-              <Send className="h-5 w-5 mr-2" />
-              Partager le document
-            </Button>
+           </div>
+          </div>
+          
+          <div className="flex justify-center w-full">
+            <VoiceButton />
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 
@@ -243,17 +185,43 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="hidden md:flex flex-row flex-1 overflow-hidden bg-background">
-        <div className="w-1/2 border-r border-border/80 flex flex-col bg-muted/10 min-h-0">
-          <div className="flex-1 flex flex-col overflow-y-auto p-6 md:p-8">
+      <div className="hidden flex-1 flex-row overflow-hidden bg-[#f4f4f5] md:flex">
+        <div className="flex min-h-0 w-1/2 min-w-0 flex-col bg-white">
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 md:p-6 lg:p-8">
             {assistantInner}
           </div>
         </div>
         <div
           id="document-preview"
-          className="w-1/2 flex-1 overflow-auto p-4 md:p-8 bg-muted/20"
+          className="min-h-0 w-1/2 min-w-0 flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 border-l border-border/40"
         >
-          <div className="max-w-2xl mx-auto">{invoicePreview}</div>
+          <div className="mx-auto max-w-4xl flex flex-col h-full">
+             <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                <h2 className="text-2xl font-bold text-gray-900">Document Preview</h2>
+                
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setResetDialogOpen(true)}
+                    className="rounded-lg border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+                    disabled={isListening || isProcessing || !hasContent}
+                  >
+                    Tout effacer
+                  </Button>
+                  <Button
+                    className="rounded-lg bg-[#2e3165] text-white hover:bg-[#1f2144] shadow-sm ml-2"
+                    onClick={handleSend}
+                    disabled={isListening || isProcessing || items.length === 0}
+                  >
+                    Partager le document
+                  </Button>
+                </div>
+             </div>
+            
+            <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+               {invoicePreview}
+            </div>
+          </div>
         </div>
       </div>
 

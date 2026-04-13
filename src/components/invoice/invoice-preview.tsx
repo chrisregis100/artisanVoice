@@ -68,7 +68,7 @@ export function InvoicePreview({
   };
 
   return (
-    <Card className="relative p-6 sm:p-8 bg-white dark:bg-card border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none ring-1 ring-border/50 rounded-2xl overflow-hidden">
+    <Card className="relative overflow-hidden rounded-2xl border border-border/60 bg-white p-6 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/60 dark:border-border dark:bg-card dark:shadow-none dark:ring-border sm:p-10">
       {onTypeChange && (
         <div
           className="flex flex-wrap gap-2 mb-6"
@@ -96,22 +96,26 @@ export function InvoicePreview({
         </div>
       )}
 
-      <div className="flex justify-between items-start mb-8 border-b border-border/60 pb-6">
+      <div className="mb-8 flex items-start justify-between gap-4 border-b border-border/50 pb-6">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             {documentTitle}
           </h2>
-          <p className="text-sm font-medium text-muted-foreground mt-2">
+          <p className="mt-2 text-sm font-medium text-muted-foreground">
             {formatDate(new Date())}
           </p>
         </div>
-        <div className="text-right">
-          <p className="text-lg font-semibold text-foreground">{businessName}</p>
+        <div className="max-w-[55%] text-right">
+          <p className="text-base font-semibold leading-snug text-foreground sm:text-lg">
+            {businessName}
+          </p>
         </div>
       </div>
 
-      <div className="mb-8 p-4 bg-slate-50/50 dark:bg-muted/10 border border-border/40 rounded-xl">
-        <p className="text-xs uppercase tracking-wider font-semibold text-muted-foreground mb-2">Client</p>
+      <div className="mb-8 rounded-xl border border-border/50 bg-slate-50/80 p-4 dark:bg-muted/10">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Client
+        </p>
         {onCustomerNameChange ? (
           <Input
             value={customerName}
@@ -128,7 +132,7 @@ export function InvoicePreview({
       </div>
 
       <div className="mb-6">
-        <div className="grid grid-cols-12 gap-2 text-xs uppercase tracking-wider font-semibold text-muted-foreground border-b border-border/60 pb-3 mb-4">
+        <div className="mb-4 grid grid-cols-12 gap-2 border-b border-border/50 pb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           <div className="col-span-5">Description</div>
           <div className="col-span-2 text-center">Qté</div>
           <div className="col-span-2 text-right">P.U.</div>
@@ -137,7 +141,7 @@ export function InvoicePreview({
         </div>
 
         {items.length === 0 ? (
-          <div className="py-12 border border-dashed border-border/60 rounded-xl text-center bg-slate-50/50 dark:bg-muted/10">
+          <div className="rounded-xl border border-dashed border-border/60 bg-slate-50/70 py-12 text-center dark:bg-muted/10">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
               <Plus className="w-6 h-6 text-primary/60" />
             </div>
@@ -292,11 +296,13 @@ export function InvoicePreview({
         )}
       </div>
 
-      <div className="bg-primary/5 dark:bg-primary/10 border border-primary/20 p-6 rounded-2xl mt-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-primary/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
-        <div className="flex justify-between items-center relative z-10">
-          <span className="text-xl font-semibold tracking-tight text-primary">Total HT</span>
-          <span className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+      <div className="relative mt-8 overflow-hidden rounded-2xl border border-primary/25 bg-gradient-to-br from-primary/5 to-primary/10 p-6 dark:from-primary/10 dark:to-primary/5">
+        <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-primary/15 blur-3xl" />
+        <div className="relative z-10 flex items-center justify-between gap-4">
+          <span className="text-lg font-semibold tracking-tight text-primary sm:text-xl">
+            Total HT
+          </span>
+          <span className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {formatCurrency(total)}
           </span>
         </div>

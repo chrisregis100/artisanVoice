@@ -29,10 +29,10 @@ export function VoiceConversation({
         : null;
 
   return (
-    <div className="flex flex-col gap-3 min-h-[12rem] max-h-[min(50vh,28rem)] w-full">
+    <div className="flex min-h-[12rem] max-h-[min(50vh,30rem)] w-full flex-col gap-3">
       {statusLabel && (
         <p
-          className="text-sm font-medium text-muted-foreground px-1"
+          className="px-1 text-sm font-medium text-primary"
           aria-live="polite"
         >
           {statusLabel}
@@ -40,14 +40,14 @@ export function VoiceConversation({
       )}
 
       <div
-        className="flex-1 overflow-y-auto rounded-xl border border-border/80 bg-muted/40 px-3 py-3 space-y-3"
+        className="flex-1 space-y-3 overflow-y-auto rounded-2xl border border-border/70 bg-card/90 px-3 py-4 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:shadow-none"
         role="log"
         aria-label="Conversation avec l’assistant"
         aria-live="polite"
         aria-relevant="additions text"
       >
         {messages.length === 0 && !isListening && !isProcessing && (
-          <p className="text-sm text-muted-foreground text-center py-8 px-2">
+          <p className="px-2 py-10 text-center text-sm text-muted-foreground">
             Votre échange avec l’assistant apparaîtra ici.
           </p>
         )}
@@ -56,19 +56,19 @@ export function VoiceConversation({
           <div
             key={msg.id}
             className={cn(
-              "flex flex-col gap-1 max-w-[92%]",
+              "flex max-w-[92%] flex-col gap-1",
               msg.role === "user" ? "ml-auto items-end" : "mr-auto items-start"
             )}
           >
-            <span className="text-xs font-medium text-muted-foreground px-1">
+            <span className="px-1 text-xs font-medium text-muted-foreground">
               {msg.role === "user" ? "Vous" : "Assistant"}
             </span>
             <div
               className={cn(
                 "rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm",
                 msg.role === "user"
-                  ? "bg-primary text-primary-foreground rounded-br-md"
-                  : "bg-background border border-border text-foreground rounded-bl-md"
+                  ? "rounded-br-md bg-primary text-primary-foreground"
+                  : "rounded-bl-md border border-border/80 bg-muted/40 text-foreground"
               )}
             >
               {msg.content || (

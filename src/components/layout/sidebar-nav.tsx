@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { cn } from "@/lib/utils";
 import {
   Mic,
@@ -12,15 +11,27 @@ import {
   Settings,
   LogOut,
   Home,
+  HelpCircle,
+  Users,
+  FolderOpen,
+  ChevronRight,
+  ChevronLeft
 } from "lucide-react";
 
 export const navItems = [
-  { href: "/", label: "Nouveau devis", icon: Home },
-  { href: "/invoices", label: "Mes documents", icon: FileText },
+  { href: "/", label: "Accueil", icon: Home },
+  { href: "/customers", label: "Clients", icon: Users },
+  { href: "/invoices", label: "Documents", icon: FolderOpen },
   { href: "/settings", label: "Paramètres", icon: Settings },
 ];
 
-export function SidebarNav({ businessName }: { businessName?: string }) {
+interface SidebarNavProps {
+  businessName?: string;
+  isExpanded: boolean;
+  onToggle: () => void;
+}
+
+export function SidebarNav({ businessName, isExpanded, onToggle }: SidebarNavProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -32,51 +43,89 @@ export function SidebarNav({ businessName }: { businessName?: string }) {
   };
 
   return (
-    <div className="flex flex-col gap-6 h-full">
-      <div className="flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary">
-            <Mic className="w-5 h-5 text-primary-foreground" />
+    <div className="flex h-full flex-col gap-6 w-full">
+      <div className="flex px-1 mt-2 mb-4 justify-between items-center">
+        <Link href="/" className="flex items-center gap-3 min-w-0 overflow-hidden">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2e3165] shadow-sm">
+            <Mic className="h-5 w-5 text-white" />
           </div>
-          <span className="font-semibold text-xl tracking-tight">
+          <span
+            className={cn(
+              "text-lg font-bold tracking-tight text-[#2e3165] whitespace-nowrap transition-all duration-300",
+              isExpanded ? "opacity-100 translate-x-0 w-auto" : "opacity-0 -translate-x-4 w-0"
+            )}
+          >
             ArtisanVoice
           </span>
         </Link>
-        <ThemeToggle />
       </div>
 
-      <nav className="flex flex-col gap-1">
+      <nav className="flex flex-col gap-2" aria-label="Navigation principale">
         {navItems.map((item) => (
           <Link
             key={item.href}
             href={item.href}
             className={cn(
-              "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+              "flex items-center gap-3 rounded-xl p-3 text-sm font-medium transition-all duration-200 group overflow-hidden whitespace-nowrap",
               pathname === item.href
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                ? "bg-indigo-50/80 text-[#2e3165]"
+                : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
             )}
+            title={!isExpanded ? item.label : undefined}
           >
-            <item.icon className="h-5 w-5" />
-            {item.label}
+            <item.icon className={cn("h-6 w-6 shrink-0", pathname === item.href ? "text-[#2e3165]" : "text-muted-foreground")} strokeWidth={2} />
+            <span
+              className={cn(
+                "transition-all duration-300",
+                isExpanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 w-0"
+              )}
+            >
+              {item.label}
+            </span>
           </Link>
         ))}
       </nav>
 
-      <div className="mt-auto pt-6 border-t">
-        {businessName && (
-          <p className="text-sm font-medium text-muted-foreground mb-4 truncate">
-            {businessName}
-          </p>
-        )}
-        <Button
-          variant="outline"
-          className="w-full justify-start gap-3"
-          onClick={handleSignOut}
+      <div className="mt-auto flex flex-col gap-2 border-t border-border/60 pt-4 pb-2">
+        <Link
+          href="/help"
+          className="flex items-center gap-3 rounded-xl p-3 text-sm font-medium text-muted-foreground hover:bg-muted/80 hover:text-foreground transition-all duration-200 overflow-hidden whitespace-nowrap"
+          title={!isExpanded ? "Aide" : undefined}
         >
-          <LogOut className="h-4 w-4" />
-          Se déconnecter
-        </Button>
+          <HelpCircle className="h-6 w-6 shrink-0" strokeWidth={2} />
+          <span
+            className={cn(
+              "transition-all duration-300",
+              isExpanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 w-0"
+            )}
+          >
+            Aide
+          </span>
+        </Link>
+
+        <button
+          className="flex w-full items-center gap-3 rounded-xl p-3 text-sm font-medium text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-all duration-200 overflow-hidden whitespace-nowrap"
+          onClick={handleSignOut}
+          title={!isExpanded ? "Déconnexion" : undefined}
+        >
+          <LogOut className="h-6 w-6 shrink-0" strokeWidth={2} />
+          <span
+            className={cn(
+              "transition-all duration-300",
+              isExpanded ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-4 w-0"
+            )}
+          >
+            Déconnexion
+          </span>
+        </button>
+
+        <button
+          onClick={onToggle}
+          className="flex w-full items-center justify-center gap-3 rounded-xl p-3 text-sm font-medium text-muted-foreground hover:bg-muted/80 transition-all duration-200 mt-2"
+          aria-label={isExpanded ? "Réduire le menu" : "Agrandir le menu"}
+        >
+          {isExpanded ? <ChevronLeft className="h-5 w-5 shrink-0" /> : <ChevronRight className="h-5 w-5 shrink-0" />}
+        </button>
       </div>
     </div>
   );

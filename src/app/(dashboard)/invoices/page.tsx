@@ -44,14 +44,19 @@ export default async function InvoicesPage() {
     "Mon espace";
 
   return (
-    <div className=" min-w-full md:w-1/2 overflow-auto mx-auto h-screen flex items-center justify-center p-4 md:p-8 bg-muted/35">
-      <div className=" mx-auto">
-        <h1 className="text-3xl font-semibold tracking-tight mb-8">
+    <div className="h-full min-h-0 flex-1 overflow-y-auto bg-muted/20">
+      <div className="mx-auto w-full max-w-3xl px-4 py-8 md:px-8 lg:py-10">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/90">
+          Documents
+        </p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight">
           Mes documents
         </h1>
+        <p className="mt-2 text-sm text-muted-foreground">{displayBusinessName}</p>
+        <div className="mt-8">
 
         {typedInvoices.length === 0 ? (
-          <Card className="border shadow-sm rounded-lg">
+          <Card className="rounded-xl border shadow-sm">
             <CardContent className="py-16 text-center">
               <FileText className="h-16 w-16 mx-auto text-foreground mb-6" />
               <p className="text-xl font-semibold text-foreground">
@@ -75,7 +80,7 @@ export default async function InvoicesPage() {
               return (
                 <Card
                   key={invoice.id}
-                  className="cursor-pointer border shadow-sm hover:shadow-md transition-shadow rounded-lg"
+                  className="cursor-pointer rounded-xl border shadow-sm transition-shadow hover:shadow-md"
                 >
                   <CardContent className="p-5">
                     <div className="flex items-center justify-between">
@@ -110,6 +115,7 @@ export default async function InvoicesPage() {
             })}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

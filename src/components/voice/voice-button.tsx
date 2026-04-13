@@ -45,6 +45,11 @@ export function VoiceButton() {
   const errorText = error ? getErrorDescription(error) : null;
   const showApiKeyLink = error ? isApiKeyError(error) : false;
 
+  const errorParts = errorText?.split(" — ");
+  const errorTitle = errorParts?.[0] ?? "";
+  const errorDetail =
+    errorParts && errorParts.length > 1 ? errorParts.slice(1).join(" — ") : null;
+
   // Show toast notification for errors (complements inline alert)
   useEffect(() => {
     if (error) {
@@ -82,26 +87,33 @@ export function VoiceButton() {
   );
 
   return (
-    <div className="flex flex-col items-center pb-6">
+    <div className="flex flex-col items-center pb-2">
       {errorText && (
         <div
-          className="mb-4 w-full max-w-sm"
+          className="mb-6 w-full max-w-md px-1"
           role="alert"
           aria-live="assertive"
         >
-          <div className="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/10 px-4 py-3 shadow-sm">
-            <AlertCircle
-              className="mt-0.5 h-4 w-4 shrink-0 text-destructive"
+          <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 pl-3 pr-4 py-3 shadow-sm ring-1 ring-destructive/10 border-l-4 border-l-destructive">
+            <div
+              className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-destructive/15"
               aria-hidden="true"
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-destructive leading-snug">
-                {errorText}
+            >
+              <AlertCircle className="h-4 w-4 text-destructive" />
+            </div>
+            <div className="flex-1 min-w-0 pt-0.5 space-y-1.5">
+              <p className="text-sm font-semibold text-destructive leading-snug">
+                {errorTitle}
               </p>
+              {errorDetail && (
+                <p className="text-sm text-foreground/85 leading-snug">
+                  {errorDetail}
+                </p>
+              )}
               {showApiKeyLink && (
                 <Link
                   href="/settings"
-                  className="mt-1.5 inline-flex items-center text-sm font-medium text-primary underline underline-offset-2 hover:text-primary/80 focus:outline-none focus:ring-2 focus:ring-primary/40 rounded-sm"
+                  className="inline-flex items-center text-sm font-medium text-primary underline underline-offset-2 hover:text-primary/80 focus:outline-none focus:ring-2 focus:ring-primary/40 rounded-sm"
                 >
                   Aller dans Paramètres
                 </Link>
@@ -131,24 +143,25 @@ export function VoiceButton() {
           aria-label={
             isListening
               ? "Arrêter l'enregistrement"
-              : "Commencer l'enregistrement"
+              : "Commencer l'enregistrement vocal"
           }
           aria-pressed={isListening}
           className={cn(
-            "relative flex items-center justify-center w-24 h-24 rounded-full transition-all duration-300 border border-primary/20",
-            "focus:outline-none focus:ring-4 focus:ring-primary/40",
+            "relative flex h-28 w-28 items-center justify-center rounded-full border-4 border-background transition-all duration-300",
+            "shadow-[0_12px_40px_-8px_hsl(var(--primary)/0.45)]",
+            "focus:outline-none focus-visible:ring-4 focus-visible:ring-primary/45",
             isListening
-              ? "bg-destructive text-destructive-foreground scale-[1.02] shadow-[0_0_30px_rgba(239,68,68,0.4)]"
-              : "bg-primary hover:bg-primary/90 text-primary-foreground hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/30 shadow-lg",
-            isProcessing && "opacity-70 cursor-not-allowed"
+              ? "scale-[1.02] bg-destructive text-destructive-foreground shadow-[0_0_36px_rgba(239,68,68,0.45)]"
+              : "bg-primary text-primary-foreground hover:-translate-y-0.5 hover:bg-primary/90 hover:shadow-[0_16px_44px_-10px_hsl(var(--primary)/0.5)]",
+            isProcessing && "cursor-not-allowed opacity-70"
           )}
         >
           {isProcessing ? (
-            <Loader2 className="w-10 h-10 text-primary-foreground animate-spin" />
+            <Loader2 className="h-11 w-11 animate-spin text-primary-foreground" />
           ) : isListening ? (
-            <MicOff className="w-10 h-10" />
+            <MicOff className="h-11 w-11" />
           ) : (
-            <Mic className="w-10 h-10" />
+            <Mic className="h-11 w-11" strokeWidth={1.75} />
           )}
         </button>
 

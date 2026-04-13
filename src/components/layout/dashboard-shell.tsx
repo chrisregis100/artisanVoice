@@ -8,16 +8,23 @@ import { cn } from "@/lib/utils";
 import { Mic, Menu, X } from "lucide-react";
 import { navItems, SidebarNav } from "./sidebar-nav";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { DashboardHeader } from "./dashboard-header";
 
 interface DashboardShellProps {
   children: React.ReactNode;
   businessName?: string;
+  userEmail?: string | null;
 }
 
-export function DashboardShell({ children, businessName }: DashboardShellProps) {
+export function DashboardShell({
+  children,
+  businessName,
+  userEmail,
+}: DashboardShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDesktopExpanded, setIsDesktopExpanded] = useState(true);
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -50,26 +57,30 @@ export function DashboardShell({ children, businessName }: DashboardShellProps) 
         </div>
 
         {isMobileMenuOpen && (
-          <nav className="border-t p-2 flex flex-col gap-1">
+          <nav
+            className="flex flex-col gap-1 border-t border-border/60 bg-background p-2"
+            aria-label="Navigation principale"
+          >
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors",
                   pathname === item.href
                     ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
-                <item.icon className="h-5 w-5" />
+                <item.icon className="h-5 w-5 shrink-0" />
                 {item.label}
               </Link>
             ))}
             <button
+              type="button"
               onClick={handleSignOut}
-              className="flex items-center gap-3 px-3 py-3 rounded-md text-sm font-medium text-destructive hover:bg-destructive/10 transition-colors w-full text-left mt-2 border-t"
+              className="mt-2 flex w-full items-center gap-3 rounded-lg border-t border-border/60 px-3 py-3 text-left text-sm font-medium text-destructive transition-colors hover:bg-muted"
             >
               Se déconnecter
             </button>
@@ -78,14 +89,24 @@ export function DashboardShell({ children, businessName }: DashboardShellProps) 
       </header>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 shrink-0 border-r bg-background p-4">
-        <SidebarNav businessName={businessName} />
+      <aside
+        className={cn(
+          "hidden md:flex md:shrink-0 md:flex-col md:border-r md:border-border/60 md:bg-white md:p-3 md:text-foreground transition-all duration-300 ease-in-out",
+          isDesktopExpanded ? "md:w-64" : "md:w-[4.5rem]"
+        )}
+      >
+        <SidebarNav
+          businessName={businessName}
+          isExpanded={isDesktopExpanded}
+          onToggle={() => setIsDesktopExpanded(!isDesktopExpanded)}
+        />
       </aside>
 
-      {/* Main content area */}
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {children}
-      </main>
+      {/* Main column: header + content */}
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-[#f4f4f5]">
+        <DashboardHeader userEmail={userEmail} businessName={businessName} />
+        <main className="min-h-0 flex-1 overflow-hidden">{children}</main>
+      </div>
     </div>
   );
 }
