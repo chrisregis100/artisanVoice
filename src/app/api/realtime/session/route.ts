@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/api/auth";
 import { getActiveProvider } from "@/lib/ai/provider";
-import { rateLimit, getClientIp } from "@/lib/utils/rate-limit";
+import { rateLimit } from "@/lib/utils/rate-limit";
+import { env } from "@/lib/env";
+import { realtimeSessionSchema } from "@/lib/api/schemas";
 
 const limiter = rateLimit({ interval: 60_000, maxRequests: 10 });
 
 export async function POST(request: NextRequest) {
-  const ip = getClientIp(request);
-  const { success } = limiter(ip);
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
+
+  const { success } = limiter(auth.user.id);
   if (!success) {
     return NextResponse.json(
       { code: "RATE_LIMITED", error: "Trop de requêtes. Réessayez dans une minute." },
@@ -15,25 +19,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json(
-      { code: "UNAUTHORIZED", error: "Authentification requise." },
-      { status: 401 }
-    );
-  }
-
   let userApiKey: string | undefined;
   try {
-    const body = await request.json();
-    const raw = typeof body?.userApiKey === "string" ? body.userApiKey.trim() : "";
-    userApiKey = raw || undefined;
+    const rawBody = await request.json();
+    const bodyResult = realtimeSessionSchema.safeParse(rawBody);
+    if (bodyResult.success) {
+      userApiKey = bodyResult.data.userApiKey || undefined;
+    }
   } catch {
-    // Missing or malformed body — use server key
+    // Body is optional — fall through to use server key
   }
 
   try {
@@ -42,8 +36,8 @@ export async function POST(request: NextRequest) {
     const apiKey =
       userApiKey ??
       (provider.name === "gemini"
-        ? process.env.GEMINI_API_KEY
-        : process.env.OPENAI_API_KEY);
+        ? env.GEMINI_API_KEY
+        : env.OPENAI_API_KEY);
 
     if (!apiKey) {
       return NextResponse.json(

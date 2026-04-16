@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { env } from "@/lib/env";
 
 interface FlutterwavePaymentParams {
   amount: number;
@@ -52,10 +53,7 @@ interface FlutterwaveVerifyResponse {
 export const initiateFlutterwavePayment = async (
   params: FlutterwavePaymentParams,
 ): Promise<{ paymentUrl: string }> => {
-  const secretKey = process.env.FLUTTERWAVE_SECRET_KEY;
-  if (!secretKey) {
-    throw new Error("FLUTTERWAVE_SECRET_KEY is not configured");
-  }
+  const secretKey = env.FLUTTERWAVE_SECRET_KEY;
 
   const txRef = `artisan-${params.userId}-${params.planId}-${Date.now()}`;
 
@@ -107,10 +105,7 @@ export const initiateFlutterwavePayment = async (
 export const verifyFlutterwavePayment = async (
   transactionId: string,
 ): Promise<{ success: boolean; txRef: string | null; amount: number | null }> => {
-  const secretKey = process.env.FLUTTERWAVE_SECRET_KEY;
-  if (!secretKey) {
-    throw new Error("FLUTTERWAVE_SECRET_KEY is not configured");
-  }
+  const secretKey = env.FLUTTERWAVE_SECRET_KEY;
 
   const response = await fetch(
     `https://api.flutterwave.com/v3/transactions/${transactionId}/verify`,
@@ -147,22 +142,17 @@ export const verifyFlutterwavePayment = async (
 };
 
 export const verifyFlutterwaveWebhookHash = (
-  payload: string,
+  _payload: string,
   signature: string,
 ): boolean => {
-  const webhookSecret = process.env.FLUTTERWAVE_WEBHOOK_SECRET;
-  if (!webhookSecret) return false;
+  const webhookSecret = env.FLUTTERWAVE_WEBHOOK_SECRET;
 
-  const expectedHash = crypto
-    .createHmac("sha256", webhookSecret)
-    .update(payload)
-    .digest("hex");
+  const a = Buffer.from(signature);
+  const b = Buffer.from(webhookSecret);
+  if (a.length !== b.length) return false;
 
   try {
-    return crypto.timingSafeEqual(
-      Buffer.from(expectedHash, "hex"),
-      Buffer.from(signature, "hex"),
-    );
+    return crypto.timingSafeEqual(a, b);
   } catch {
     return false;
   }

@@ -1,56 +1,44 @@
-import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/lib/api/auth";
 import {
   commitDocumentExport,
   precheckDocumentExport,
 } from "@/lib/subscription/check-limits";
+import { documentExportSchema } from "@/lib/api/schemas";
 
-export async function POST(request: Request) {
-  const supabase = createClient();
+export async function POST(request: NextRequest) {
+  const auth = await requireAuth(request);
+  if (!auth.ok) return auth.response;
+  const { user } = auth;
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-  }
-
-  let body: unknown;
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
-    return NextResponse.json({ error: "Corps JSON invalide" }, { status: 400 });
+    return NextResponse.json({ error: "Corps JSON invalide." }, { status: 400 });
   }
 
-  const raw = body as Record<string, unknown>;
-  const documentId =
-    typeof raw.documentId === "string" ? raw.documentId.trim() : "";
-  const phase = raw.phase;
-
-  if (!documentId) {
-    return NextResponse.json({ error: "documentId requis" }, { status: 400 });
+  const bodyResult = documentExportSchema.safeParse(rawBody);
+  if (!bodyResult.success) {
+    return NextResponse.json(
+      { error: "Données invalides.", details: bodyResult.error.flatten() },
+      { status: 400 },
+    );
   }
+
+  const { documentId, phase } = bodyResult.data;
 
   if (phase === "precheck") {
     const result = await precheckDocumentExport(user.id, documentId);
     return NextResponse.json(result);
   }
 
-  if (phase === "commit") {
-    const outcome = await commitDocumentExport(user.id, documentId);
-    if (outcome === "quota_exceeded") {
-      return NextResponse.json(
-        { error: "quota_exceeded", outcome },
-        { status: 403 },
-      );
-    }
-    return NextResponse.json({ outcome });
+  const outcome = await commitDocumentExport(user.id, documentId);
+  if (outcome === "quota_exceeded") {
+    return NextResponse.json(
+      { error: "quota_exceeded", outcome },
+      { status: 403 },
+    );
   }
-
-  return NextResponse.json(
-    { error: "phase invalide (precheck | commit)" },
-    { status: 400 },
-  );
+  return NextResponse.json({ outcome });
 }

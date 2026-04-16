@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    name: Lint, Typecheck & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Build
+        run: npm run build
+        env:
+          # NEXT_PUBLIC_* vars are validated at import time — provide dummy values
+          # so the client env schema passes during the build.
+          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: placeholder-anon-key
+          NEXT_PUBLIC_APP_URL: https://placeholder.example.com
+          # Server env vars are validated lazily (on first access at runtime),
+          # so they are not required during the build step.
+          # Provide stubs here only to silence any static-analysis warnings;
+          # they are never evaluated during next build.
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'placeholder' }}
+          FLUTTERWAVE_SECRET_KEY: ${{ secrets.FLUTTERWAVE_SECRET_KEY || 'placeholder' }}
+          FLUTTERWAVE_WEBHOOK_SECRET: ${{ secrets.FLUTTERWAVE_WEBHOOK_SECRET || 'placeholder' }}
+          FEDAPAY_SECRET_KEY: ${{ secrets.FEDAPAY_SECRET_KEY || 'placeholder' }}
+          FEDAPAY_WEBHOOK_SECRET: ${{ secrets.FEDAPAY_WEBHOOK_SECRET || 'placeholder' }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL || 'admin@example.com' }}

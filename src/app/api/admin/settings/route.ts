@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/api/auth";
 import { rateLimit, getClientIp } from "@/lib/utils/rate-limit";
+import { env } from "@/lib/env";
+import { adminPlanUpdateSchema, adminSettingKeyValueSchema } from "@/lib/api/schemas";
+import type { Json } from "@/lib/supabase/types";
 
 const limiter = rateLimit({ interval: 60_000, maxRequests: 20 });
 
-async function verifyAdmin(
+async function verifyAdminWithRateLimit(
   request: NextRequest
 ): Promise<{ ok: true } | { ok: false; response: NextResponse }> {
   const ip = getClientIp(request);
@@ -20,33 +23,7 @@ async function verifyAdmin(
     };
   }
 
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return {
-      ok: false,
-      response: NextResponse.json(
-        { error: "Non autorisé." },
-        { status: 401 }
-      ),
-    };
-  }
-
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (!adminEmail || user.email !== adminEmail) {
-    return {
-      ok: false,
-      response: NextResponse.json(
-        { error: "Accès refusé." },
-        { status: 403 }
-      ),
-    };
-  }
-
-  return { ok: true };
+  return requireAdmin(request);
 }
 
 function maskApiKey(key: string | undefined): string {
@@ -55,9 +32,12 @@ function maskApiKey(key: string | undefined): string {
 }
 
 export async function GET(request: NextRequest) {
-  const check = await verifyAdmin(request);
+  const check = await verifyAdminWithRateLimit(request);
   if (!check.ok) return check.response;
 
+  // Admin client is intentional: this route queries aggregate data across ALL users
+  // (total user count, all invoices, all active subscriptions) — cross-user reads that
+  // require bypassing RLS. Access is gated behind requireAdmin() above.
   const admin = createAdminClient();
 
   const [settingsResult, plansResult, usersResult, invoicesResult, subsResult] =
@@ -96,84 +76,58 @@ export async function GET(request: NextRequest) {
       monthlyRevenue,
     },
     serverKeys: {
-      openai: maskApiKey(process.env.OPENAI_API_KEY),
-      gemini: maskApiKey(process.env.GEMINI_API_KEY),
+      openai: maskApiKey(env.OPENAI_API_KEY),
+      gemini: maskApiKey(env.GEMINI_API_KEY),
     },
   });
 }
 
 export async function PUT(request: NextRequest) {
-  const check = await verifyAdmin(request);
+  const check = await verifyAdminWithRateLimit(request);
   if (!check.ok) return check.response;
 
-  let body: unknown;
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Corps de requête invalide." }, { status: 400 });
   }
 
+  // Admin client is intentional: mutates admin-only tables (`plans`, `admin_settings`)
+  // that regular users must not be able to write to. Access is gated behind requireAdmin() above.
   const admin = createAdminClient();
 
   // Handle plan updates: { type: "plan", id: string, updates: { price_amount?, invoice_limit? } }
-  if (
-    body &&
-    typeof body === "object" &&
-    !Array.isArray(body) &&
-    "type" in body &&
-    (body as { type: unknown }).type === "plan"
-  ) {
-    const planBody = body as unknown as {
-      id: string;
-      updates: { price_amount?: number; invoice_limit?: number };
-    };
-    const { id, updates } = planBody;
-
-    if (!id || typeof id !== "string") {
-      return NextResponse.json({ error: "id requis." }, { status: 400 });
-    }
-
-    const { error } = await admin
-      .from("plans")
-      .update(updates)
-      .eq("id", id);
-
+  const planResult = adminPlanUpdateSchema.safeParse(rawBody);
+  if (planResult.success) {
+    const { id, updates } = planResult.data;
+    const { error } = await admin.from("plans").update(updates).eq("id", id);
     if (error) {
       console.error("Plan update error:", error);
       return NextResponse.json({ error: "Erreur lors de la mise à jour." }, { status: 500 });
     }
-
     return NextResponse.json({ ok: true });
   }
 
   // Handle admin_settings update: { key: string, value: unknown }
-  if (
-    body &&
-    typeof body === "object" &&
-    !Array.isArray(body) &&
-    "key" in body &&
-    "value" in body
-  ) {
-    const { key, value } = body as { key: string; value: unknown };
-
-    if (!key || typeof key !== "string") {
-      return NextResponse.json({ error: "key requis." }, { status: 400 });
-    }
-
+  const kvResult = adminSettingKeyValueSchema.safeParse(rawBody);
+  if (kvResult.success) {
+    const { key, value } = kvResult.data;
     const { error } = await admin
       .from("admin_settings")
       .upsert(
-        { key, value: value as import("@/lib/supabase/types").Json, updated_at: new Date().toISOString() },
+        { key, value: value as Json, updated_at: new Date().toISOString() },
         { onConflict: "key" }
       );
-
     if (error) {
       console.error("Admin settings update error:", error);
       return NextResponse.json({ error: "Erreur lors de la mise à jour." }, { status: 500 });
     }
-
     return NextResponse.json({ ok: true });
   }
 
-  return NextResponse.json({ error: "Format de requête invalide." }, { status: 400 });
+  return NextResponse.json(
+    { error: "Données invalides.", details: planResult.error.flatten() },
+    { status: 400 }
+  );
 }

@@ -1,30 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { verifyFedaPayPayment, verifyFedaPayWebhookSignature } from "@/lib/payment/fedapay";
-
-interface FedaPayWebhookPayload {
-  name: string;
-  object: string;
-  data: {
-    object: {
-      id: number;
-      klass: string;
-      reference: string;
-      amount: number;
-      status: string;
-      metadata: {
-        user_id?: string;
-        plan_id?: string;
-      } | null;
-      customer?: {
-        id: number;
-        email: string;
-        firstname: string;
-        lastname: string;
-      };
-    };
-  };
-}
+import { fedapayWebhookSchema } from "@/lib/api/schemas";
 
 export async function POST(request: NextRequest) {
   const rawBody = await request.text();
@@ -37,25 +14,30 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let payload: FedaPayWebhookPayload;
+  let parsedJson: unknown;
   try {
-    payload = JSON.parse(rawBody);
+    parsedJson = JSON.parse(rawBody);
   } catch {
-    return NextResponse.json(
-      { error: "Corps invalide" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Corps invalide." }, { status: 400 });
   }
 
+  const payloadResult = fedapayWebhookSchema.safeParse(parsedJson);
+  if (!payloadResult.success) {
+    console.error("Invalid FedaPay webhook payload:", payloadResult.error.flatten());
+    return NextResponse.json({ error: "Payload invalide." }, { status: 400 });
+  }
+
+  const { name, data } = payloadResult.data;
+
   const isApprovalEvent =
-    payload.name === "transaction.approved" ||
-    payload.name === "transaction.payment.created";
+    name === "transaction.approved" ||
+    name === "transaction.payment.created";
 
   if (!isApprovalEvent) {
     return NextResponse.json({ received: true });
   }
 
-  const transaction = payload.data?.object;
+  const transaction = data.object;
 
   if (!transaction || transaction.status !== "approved") {
     return NextResponse.json({ received: true });

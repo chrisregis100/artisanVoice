@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Settings } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { env } from "@/lib/env";
 
 export default async function AdminLayout({
   children,
@@ -17,8 +18,7 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (!adminEmail || user.email !== adminEmail) {
+  if (user.email !== env.ADMIN_EMAIL) {
     redirect("/dashboard");
   }
 

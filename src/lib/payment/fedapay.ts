@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { env } from "@/lib/env";
 
 interface FedaPaymentParams {
   amount: number;
@@ -57,12 +58,8 @@ interface FedaPayVerifyResponse {
 const FEDAPAY_BASE_URL = "https://api.fedapay.com/v1";
 
 const getFedaPayHeaders = (): HeadersInit => {
-  const secretKey = process.env.FEDAPAY_SECRET_KEY;
-  if (!secretKey) {
-    throw new Error("FEDAPAY_SECRET_KEY is not configured");
-  }
   return {
-    Authorization: `Bearer ${secretKey}`,
+    Authorization: `Bearer ${env.FEDAPAY_SECRET_KEY}`,
     "Content-Type": "application/json",
     "FedaPay-Version": "2018-02-01",
   };
@@ -158,8 +155,7 @@ export const verifyFedaPayWebhookSignature = (
   payload: string,
   signature: string,
 ): boolean => {
-  const webhookSecret = process.env.FEDAPAY_WEBHOOK_SECRET;
-  if (!webhookSecret) return false;
+  const webhookSecret = env.FEDAPAY_WEBHOOK_SECRET;
 
   const expectedSignature = crypto
     .createHmac("sha256", webhookSecret)

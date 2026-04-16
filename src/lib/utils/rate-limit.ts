@@ -1,3 +1,5 @@
+import { type NextRequest } from "next/server";
+
 interface RateLimitEntry {
   count: number;
   resetTime: number;
@@ -15,6 +17,14 @@ interface RateLimitOptions {
   maxRequests: number;
 }
 
+/**
+ * In-memory fixed-window rate limit store.
+ *
+ * ⚠️ Serverless caveat: each function instance maintains its own isolated
+ * store, so limits are not enforced globally across concurrent instances
+ * (e.g. Vercel). This is acceptable as a basic abuse guard. For strict
+ * global enforcement, replace with a distributed store such as Redis/Upstash.
+ */
 const store = new Map<string, RateLimitEntry>();
 
 /** Purge entries that have already expired to prevent unbounded memory growth. */
@@ -58,12 +68,12 @@ export const rateLimit = (options: RateLimitOptions) => {
   };
 };
 
-/** Extract the best-effort client IP from a Next.js request. */
-export const getClientIp = (request: Request): string => {
-  const forwarded = (request.headers as Headers).get("x-forwarded-for");
+/** Extract the best-effort client IP from a Next.js / Vercel request. */
+export const getClientIp = (request: NextRequest): string => {
+  const forwarded = request.headers.get("x-forwarded-for");
   if (forwarded) return forwarded.split(",")[0].trim();
 
-  const realIp = (request.headers as Headers).get("x-real-ip");
+  const realIp = request.headers.get("x-real-ip");
   if (realIp) return realIp.trim();
 
   return "unknown";

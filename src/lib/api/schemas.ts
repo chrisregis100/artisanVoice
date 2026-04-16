@@ -1,0 +1,97 @@
+import { z } from "zod";
+
+// admin/settings PUT — plan update
+export const adminPlanUpdateSchema = z.object({
+  type: z.literal("plan"),
+  id: z.string().min(1),
+  updates: z.object({
+    price_amount: z.number().optional(),
+    invoice_limit: z.number().optional(),
+  }),
+});
+
+// admin/settings PUT — key-value setting update
+export const adminSettingKeyValueSchema = z.object({
+  key: z.string().min(1),
+  value: z.unknown(),
+});
+
+// subscription/create POST
+export const subscriptionCreateSchema = z.object({
+  planName: z.enum(["free", "pro"]),
+  provider: z.enum(["flutterwave", "fedapay"]).optional(),
+});
+
+// subscription/document-export POST
+export const documentExportSchema = z.object({
+  documentId: z.string().min(1),
+  phase: z.enum(["precheck", "commit"]),
+});
+
+// realtime/session POST (body is optional)
+export const realtimeSessionSchema = z.object({
+  userApiKey: z.string().trim().optional(),
+});
+
+// webhooks/flutterwave POST
+export const flutterwaveWebhookSchema = z.object({
+  event: z.string(),
+  data: z.object({
+    id: z.number(),
+    tx_ref: z.string(),
+    flw_ref: z.string(),
+    amount: z.number(),
+    currency: z.string(),
+    charged_amount: z.number(),
+    status: z.string(),
+    payment_type: z.string(),
+    meta: z
+      .object({
+        user_id: z.string().optional(),
+        plan_id: z.string().optional(),
+      })
+      .nullable(),
+    customer: z.object({
+      id: z.number(),
+      name: z.string(),
+      phone_number: z.string().nullable(),
+      email: z.string(),
+    }),
+  }),
+});
+
+// webhooks/fedapay POST
+export const fedapayWebhookSchema = z.object({
+  name: z.string(),
+  object: z.string(),
+  data: z.object({
+    object: z.object({
+      id: z.number(),
+      klass: z.string(),
+      reference: z.string(),
+      amount: z.number(),
+      status: z.string(),
+      metadata: z
+        .object({
+          user_id: z.string().optional(),
+          plan_id: z.string().optional(),
+        })
+        .nullable(),
+      customer: z
+        .object({
+          id: z.number(),
+          email: z.string(),
+          firstname: z.string(),
+          lastname: z.string(),
+        })
+        .optional(),
+    }),
+  }),
+});
+
+export type AdminPlanUpdate = z.infer<typeof adminPlanUpdateSchema>;
+export type AdminSettingKeyValue = z.infer<typeof adminSettingKeyValueSchema>;
+export type SubscriptionCreateBody = z.infer<typeof subscriptionCreateSchema>;
+export type DocumentExportBody = z.infer<typeof documentExportSchema>;
+export type FlutterwaveWebhookPayload = z.infer<typeof flutterwaveWebhookSchema>;
+export type FedapayWebhookPayload = z.infer<typeof fedapayWebhookSchema>;

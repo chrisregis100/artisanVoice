@@ -80,6 +80,9 @@ export function getAIProvider(providerName?: string): AIRealtimeProvider {
 
 export async function getActiveProvider(): Promise<AIRealtimeProvider> {
   try {
+    // Admin client is intentional: `admin_settings` is a system-level config table that
+    // has no user session context here (called from cookie-less server utility functions).
+    // Regular server client requires cookies; this path is invoked before any user context exists.
     const supabase = createAdminClient();
     const { data } = await supabase
       .from("admin_settings")
@@ -96,8 +99,8 @@ export async function getActiveProvider(): Promise<AIRealtimeProvider> {
       const providerValue = (data.value as { provider: string }).provider;
       return getAIProvider(providerValue);
     }
-  } catch {
-    // Fall through to default provider
+  } catch (error) {
+    console.error("Failed to load AI provider from database, falling back to default:", error);
   }
 
   return new OpenAIProvider();

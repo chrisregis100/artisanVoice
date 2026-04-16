@@ -1,30 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { verifyFlutterwavePayment, verifyFlutterwaveWebhookHash } from "@/lib/payment/flutterwave";
-
-interface FlutterwaveWebhookPayload {
-  event: string;
-  data: {
-    id: number;
-    tx_ref: string;
-    flw_ref: string;
-    amount: number;
-    currency: string;
-    charged_amount: number;
-    status: string;
-    payment_type: string;
-    meta: {
-      user_id?: string;
-      plan_id?: string;
-    } | null;
-    customer: {
-      id: number;
-      name: string;
-      phone_number: string | null;
-      email: string;
-    };
-  };
-}
+import { flutterwaveWebhookSchema } from "@/lib/api/schemas";
 
 export async function POST(request: NextRequest) {
   const rawBody = await request.text();
@@ -37,21 +14,24 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  let payload: FlutterwaveWebhookPayload;
+  let parsedJson: unknown;
   try {
-    payload = JSON.parse(rawBody);
+    parsedJson = JSON.parse(rawBody);
   } catch {
-    return NextResponse.json(
-      { error: "Corps invalide" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Corps invalide." }, { status: 400 });
   }
 
-  if (payload.event !== "charge.completed") {
+  const payloadResult = flutterwaveWebhookSchema.safeParse(parsedJson);
+  if (!payloadResult.success) {
+    console.error("Invalid Flutterwave webhook payload:", payloadResult.error.flatten());
+    return NextResponse.json({ error: "Payload invalide." }, { status: 400 });
+  }
+
+  const { event, data: paymentData } = payloadResult.data;
+
+  if (event !== "charge.completed") {
     return NextResponse.json({ received: true });
   }
-
-  const { data: paymentData } = payload;
 
   if (paymentData.status !== "successful") {
     return NextResponse.json({ received: true });
