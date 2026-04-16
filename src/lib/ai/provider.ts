@@ -1,0 +1,104 @@
+import { createAdminClient } from "@/lib/supabase/admin";
+import { voiceFunctions, systemPrompt as openaiSystemPrompt } from "@/lib/openai/functions";
+import {
+  geminiVoiceFunctions,
+  systemPrompt as geminiSystemPrompt,
+} from "@/lib/gemini/functions";
+
+export interface AIRealtimeProvider {
+  name: "openai" | "gemini";
+  createSession(apiKey: string): Promise<{ url: string; token: string; model: string }>;
+  getSystemPrompt(): string;
+  getTools(): unknown[];
+}
+
+class OpenAIProvider implements AIRealtimeProvider {
+  readonly name = "openai" as const;
+
+  async createSession(
+    apiKey: string
+  ): Promise<{ url: string; token: string; model: string }> {
+    const model = "gpt-4o-realtime-preview-2024-12-17";
+
+    const response = await fetch("https://api.openai.com/v1/realtime/sessions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ model, voice: "alloy" }),
+    });
+
+    if (!response.ok) {
+      const status = response.status;
+      if (status === 401) throw new Error("INVALID_API_KEY");
+      if (status === 429) throw new Error("QUOTA_EXCEEDED");
+      throw new Error("SESSION_ERROR");
+    }
+
+    const data = await response.json();
+    return {
+      url: `wss://api.openai.com/v1/realtime?model=${model}`,
+      token: data.client_secret?.value ?? "",
+      model,
+    };
+  }
+
+  getSystemPrompt(): string {
+    return openaiSystemPrompt;
+  }
+
+  getTools(): unknown[] {
+    return voiceFunctions;
+  }
+}
+
+class GeminiProvider implements AIRealtimeProvider {
+  readonly name = "gemini" as const;
+
+  async createSession(
+    apiKey: string
+  ): Promise<{ url: string; token: string; model: string }> {
+    const model = "models/gemini-2.0-flash-live-001";
+    const url = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${apiKey}`;
+    return { url, token: "", model };
+  }
+
+  getSystemPrompt(): string {
+    return geminiSystemPrompt;
+  }
+
+  getTools(): unknown[] {
+    return geminiVoiceFunctions;
+  }
+}
+
+export function getAIProvider(providerName?: string): AIRealtimeProvider {
+  if (providerName === "gemini") return new GeminiProvider();
+  return new OpenAIProvider();
+}
+
+export async function getActiveProvider(): Promise<AIRealtimeProvider> {
+  try {
+    const supabase = createAdminClient();
+    const { data } = await supabase
+      .from("admin_settings")
+      .select("value")
+      .eq("key", "ai_provider")
+      .single();
+
+    if (
+      data?.value &&
+      typeof data.value === "object" &&
+      !Array.isArray(data.value) &&
+      "provider" in data.value
+    ) {
+      const providerValue = (data.value as { provider: string }).provider;
+      return getAIProvider(providerValue);
+    }
+  } catch {
+    // Fall through to default provider
+  }
+
+  return new OpenAIProvider();
+}

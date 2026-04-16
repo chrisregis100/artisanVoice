@@ -11,7 +11,13 @@ interface SettingsState {
   vatRatePercent: number;
   legalMentions: string;
   currency: "XOF" | "EUR" | "USD";
+  /**
+   * Clé API personnelle OpenAI (optionnel).
+   * Si renseignée, elle est utilisée à la place de la clé serveur par défaut.
+   */
   openaiApiKey: string;
+  /** Passerelle de paiement préférée pour les abonnements. */
+  preferredPaymentProvider?: "flutterwave" | "fedapay";
 }
 
 interface SettingsActions {
@@ -24,6 +30,9 @@ interface SettingsActions {
   setLegalMentions: (mentions: string) => void;
   setCurrency: (currency: "XOF" | "EUR" | "USD") => void;
   setOpenaiApiKey: (key: string) => void;
+  setPreferredPaymentProvider: (
+    provider: "flutterwave" | "fedapay" | undefined
+  ) => void;
   updateSettings: (updates: Partial<SettingsState>) => void;
 }
 
@@ -37,6 +46,7 @@ const initialState: SettingsState = {
   legalMentions: "",
   currency: "XOF",
   openaiApiKey: "",
+  preferredPaymentProvider: undefined,
 };
 
 export const useSettingsStore = create<SettingsState & SettingsActions>()(
@@ -53,6 +63,8 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
       setLegalMentions: (mentions) => set({ legalMentions: mentions }),
       setCurrency: (currency) => set({ currency }),
       setOpenaiApiKey: (key) => set({ openaiApiKey: key }),
+      setPreferredPaymentProvider: (provider) =>
+        set({ preferredPaymentProvider: provider }),
       updateSettings: (updates) => set(updates),
     }),
     {

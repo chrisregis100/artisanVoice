@@ -6,9 +6,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { Mic, Menu, X } from "lucide-react";
-import { navItems, SidebarNav } from "./sidebar-nav";
+import { useNavItems, SidebarNav } from "./sidebar-nav";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { DashboardHeader } from "./dashboard-header";
+import { useLanguage } from "@/i18n/context";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -23,8 +24,11 @@ export function DashboardShell({
 }: DashboardShellProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDesktopExpanded, setIsDesktopExpanded] = useState(true);
+
+  const navLinks = useNavItems();
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -42,11 +46,19 @@ export function DashboardShell({
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2 -ml-2"
-              aria-label={isMobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+              aria-label={
+                isMobileMenuOpen
+                  ? t("dashboard.nav.closeMenu")
+                  : t("dashboard.nav.openMenu")
+              }
             >
-              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isMobileMenuOpen ? (
+                <X className="h-5 w-5" />
+              ) : (
+                <Menu className="h-5 w-5" />
+              )}
             </button>
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/dashboard" className="flex items-center gap-2">
               <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary">
                 <Mic className="w-4 h-4 text-primary-foreground" />
               </div>
@@ -61,7 +73,7 @@ export function DashboardShell({
             className="flex flex-col gap-1 border-t border-border/60 bg-background p-2"
             aria-label="Navigation principale"
           >
-            {navItems.map((item) => (
+            {navLinks.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -70,11 +82,11 @@ export function DashboardShell({
                   "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors",
                   pathname === item.href
                     ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
                 <item.icon className="h-5 w-5 shrink-0" />
-                {item.label}
+                {t(item.labelKey)}
               </Link>
             ))}
             <button
@@ -82,7 +94,7 @@ export function DashboardShell({
               onClick={handleSignOut}
               className="mt-2 flex w-full items-center gap-3 rounded-lg border-t border-border/60 px-3 py-3 text-left text-sm font-medium text-destructive transition-colors hover:bg-muted"
             >
-              Se déconnecter
+              {t("dashboard.main.signOut")}
             </button>
           </nav>
         )}
@@ -92,7 +104,7 @@ export function DashboardShell({
       <aside
         className={cn(
           "hidden md:flex md:shrink-0 md:flex-col md:border-r md:border-border/60 md:bg-white md:p-3 md:text-foreground transition-all duration-300 ease-in-out",
-          isDesktopExpanded ? "md:w-64" : "md:w-[4.5rem]"
+          isDesktopExpanded ? "md:w-64" : "md:w-[4.5rem]",
         )}
       >
         <SidebarNav

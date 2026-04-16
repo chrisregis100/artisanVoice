@@ -1,11 +1,9 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export const updateSession = async (request: NextRequest) => {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+  let supabaseResponse = NextResponse.next({
+    request,
   });
 
   const supabase = createServerClient(
@@ -13,42 +11,17 @@ export const updateSession = async (request: NextRequest) => {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value;
+        getAll() {
+          return request.cookies.getAll();
         },
-        set(name: string, value: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-          });
-        },
-        remove(name: string, options: CookieOptions) {
-          request.cookies.set({
-            name,
-            value: "",
-            ...options,
-          });
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          });
-          response.cookies.set({
-            name,
-            value: "",
-            ...options,
-          });
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value),
+          );
+          supabaseResponse = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options),
+          );
         },
       },
     },
@@ -58,28 +31,41 @@ export const updateSession = async (request: NextRequest) => {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protected routes
-  const protectedRoutes = ["/", "/invoices", "/settings"];
-  const isProtectedRoute = protectedRoutes.some((route) =>
-    route === "/"
-      ? request.nextUrl.pathname === "/"
-      : request.nextUrl.pathname.startsWith(route),
-  );
+  const { pathname } = request.nextUrl;
 
-  // TESTING: Disable auth redirect
-  // if (isProtectedRoute && !user) {
-  //   return NextResponse.redirect(new URL("/login", request.url));
-  // }
-
-  // Redirect logged-in users away from auth pages
-  const authRoutes = ["/login", "/register", "/welcome"];
-  const isAuthRoute = authRoutes.some((route) =>
-    request.nextUrl.pathname.startsWith(route),
-  );
-
-  if (isAuthRoute && user) {
-    return NextResponse.redirect(new URL("/", request.url));
+  // Skip API routes entirely
+  if (pathname.startsWith("/api/")) {
+    return supabaseResponse;
   }
 
-  return response;
+  // Routes that require authentication
+  const protectedPrefixes = [
+    "/dashboard",
+    "/invoices",
+    "/settings",
+    "/home",
+    "/subscribe",
+    "/admin",
+  ];
+  const isProtectedRoute = protectedPrefixes.some((prefix) =>
+    pathname.startsWith(prefix),
+  );
+
+  if (isProtectedRoute && !user) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // Redirect authenticated users away from login/register
+  const authOnlyRoutes = ["/login", "/register"];
+  const isAuthOnlyRoute = authOnlyRoutes.some((route) =>
+    pathname.startsWith(route),
+  );
+
+  if (isAuthOnlyRoute && user) {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  return supabaseResponse;
 };

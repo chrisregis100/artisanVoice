@@ -5,6 +5,14 @@ import { toast } from "sonner";
 import { useInvoiceStore } from "@/stores/invoice-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { RealtimeClient } from "@/lib/openai/realtime-client";
+import { GeminiRealtimeClient } from "@/lib/gemini/realtime-client";
+
+interface VoiceClient {
+  sendAudio(audioData: ArrayBuffer): void;
+  commitAudio(): void;
+  disconnect(): void;
+  readonly isConnected: boolean;
+}
 
 interface UseVoiceReturn {
   startListening: () => void;
@@ -12,7 +20,7 @@ interface UseVoiceReturn {
 }
 
 export function useVoice(): UseVoiceReturn {
-  const clientRef = useRef<RealtimeClient | null>(null);
+  const clientRef = useRef<VoiceClient | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioQueueRef = useRef<ArrayBuffer[]>([]);
@@ -33,7 +41,6 @@ export function useVoice(): UseVoiceReturn {
     reset,
   } = useInvoiceStore();
 
-  // Audio playback for AI responses
   const playAudioQueue = useCallback(async () => {
     if (isPlayingRef.current || audioQueueRef.current.length === 0) return;
 
@@ -48,7 +55,6 @@ export function useVoice(): UseVoiceReturn {
           audioContextRef.current = new AudioContext({ sampleRate: 24000 });
         }
 
-        // Convert PCM16 to Float32
         const int16Array = new Int16Array(audioData);
         const float32Array = new Float32Array(int16Array.length);
         for (let i = 0; i < int16Array.length; i++) {
@@ -97,13 +103,13 @@ export function useVoice(): UseVoiceReturn {
         case "clear_document":
           reset();
           break;
-        case "finalize_document":
-          // Trigger share flow - will be handled by UI
+        case "finalize_document": {
           const event = new CustomEvent("finalize-document", {
             detail: { sendVia: args.send_via },
           });
           window.dispatchEvent(event);
           break;
+        }
         default:
           console.warn("Unknown function:", name);
       }
@@ -113,61 +119,67 @@ export function useVoice(): UseVoiceReturn {
 
   const initializeClient = useCallback(async () => {
     try {
-      if (!openaiApiKey) {
-        throw new Error(
-          "Clé API OpenAI non configurée. Rendez-vous dans Paramètres → Clé API."
-        );
+      // Build request body — include personal key only if user has set one
+      const body: Record<string, string> = {};
+      if (openaiApiKey) {
+        body.userApiKey = openaiApiKey;
       }
 
-      // Get ephemeral session token from our API route (key is not stored server-side)
       const response = await fetch("/api/realtime/session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ apiKey: openaiApiKey }),
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
-        throw new Error(
-          data.error ?? "Impossible de créer la session vocale"
-        );
+        throw new Error(data.error ?? "Impossible de créer la session vocale");
       }
 
-      const { token } = await response.json();
+      const { provider, url, token } = (await response.json()) as {
+        provider: "openai" | "gemini";
+        url: string;
+        token: string;
+        model: string;
+      };
 
-      if (!token) {
-        throw new Error(
-          "Jeton de session manquant. Réessayez ou vérifiez votre clé API dans Paramètres."
-        );
-      }
-
-      // Create and connect the client
-      const client = new RealtimeClient({
-        onUserTranscript: (text) => {
+      const clientConfig = {
+        onUserTranscript: (text: string) => {
           pushUserMessage(text);
         },
-        onAssistantTranscriptDelta: (delta) => {
+        onAssistantTranscriptDelta: (delta: string) => {
           appendAssistantDelta(delta);
         },
         onFunctionCall: handleFunctionCall,
-        onAudioResponse: (audio) => {
+        onAudioResponse: (audio: ArrayBuffer) => {
           audioQueueRef.current.push(audio);
           playAudioQueue();
         },
-        onError: (error) => {
+        onError: (error: string) => {
           setError(error);
           setProcessing(false);
         },
-        onConnectionChange: (connected) => {
+        onConnectionChange: (connected: boolean) => {
           setConnected(connected);
           if (!connected) {
             setListening(false);
             setProcessing(false);
           }
         },
-      });
+      };
 
-      await client.connect(token);
+      let client: VoiceClient;
+
+      if (provider === "gemini") {
+        const geminiClient = new GeminiRealtimeClient(clientConfig);
+        await geminiClient.connect(url);
+        client = geminiClient;
+      } else {
+        const openaiClient = new RealtimeClient(clientConfig);
+        await openaiClient.connect(token);
+        client = openaiClient;
+      }
+
       clientRef.current = client;
 
       toast.success("Connexion établie", {
@@ -202,7 +214,6 @@ export function useVoice(): UseVoiceReturn {
     try {
       setError(null);
 
-      // Request microphone access first
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -212,14 +223,12 @@ export function useVoice(): UseVoiceReturn {
         },
       });
 
-      // Initialize client if needed
       if (!clientRef.current?.isConnected) {
         await initializeClient();
       }
 
       setListening(true);
 
-      // Set up audio processing
       audioContextRef.current = new AudioContext({ sampleRate: 24000 });
       const source = audioContextRef.current.createMediaStreamSource(stream);
       const processor = audioContextRef.current.createScriptProcessor(4096, 1, 1);
@@ -228,7 +237,6 @@ export function useVoice(): UseVoiceReturn {
         if (!clientRef.current?.isConnected) return;
 
         const inputData = e.inputBuffer.getChannelData(0);
-        // Convert Float32 to Int16
         const int16Data = new Int16Array(inputData.length);
         for (let i = 0; i < inputData.length; i++) {
           const s = Math.max(-1, Math.min(1, inputData[i]));
@@ -241,7 +249,6 @@ export function useVoice(): UseVoiceReturn {
       source.connect(processor);
       processor.connect(audioContextRef.current.destination);
 
-      // Store reference for cleanup
       mediaRecorderRef.current = { stream, processor, source } as unknown as MediaRecorder;
     } catch (error) {
       setListening(false);
@@ -263,7 +270,6 @@ export function useVoice(): UseVoiceReturn {
     setListening(false);
     setProcessing(true);
 
-    // Stop audio processing
     if (mediaRecorderRef.current) {
       const { stream, processor, source } = mediaRecorderRef.current as unknown as {
         stream: MediaStream;
@@ -277,24 +283,23 @@ export function useVoice(): UseVoiceReturn {
       mediaRecorderRef.current = null;
     }
 
-    // Commit audio and request response
     if (clientRef.current?.isConnected) {
       clientRef.current.commitAudio();
     }
 
-    // Stop processing state after a delay
     setTimeout(() => {
       setProcessing(false);
     }, 3000);
   }, [setListening, setProcessing]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       clientRef.current?.disconnect();
       audioContextRef.current?.close();
       if (mediaRecorderRef.current) {
-        const { stream } = mediaRecorderRef.current as unknown as { stream: MediaStream };
+        const { stream } = mediaRecorderRef.current as unknown as {
+          stream: MediaStream;
+        };
         stream?.getTracks().forEach((track) => track.stop());
       }
     };

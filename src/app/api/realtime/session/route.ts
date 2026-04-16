@@ -1,87 +1,89 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { getActiveProvider } from "@/lib/ai/provider";
+import { rateLimit, getClientIp } from "@/lib/utils/rate-limit";
+
+const limiter = rateLimit({ interval: 60_000, maxRequests: 10 });
 
 export async function POST(request: NextRequest) {
-  let apiKey: string | undefined;
+  const ip = getClientIp(request);
+  const { success } = limiter(ip);
+  if (!success) {
+    return NextResponse.json(
+      { code: "RATE_LIMITED", error: "Trop de requêtes. Réessayez dans une minute." },
+      { status: 429 }
+    );
+  }
 
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json(
+      { code: "UNAUTHORIZED", error: "Authentification requise." },
+      { status: 401 }
+    );
+  }
+
+  let userApiKey: string | undefined;
   try {
     const body = await request.json();
-    apiKey = typeof body?.apiKey === "string" ? body.apiKey.trim() : undefined;
+    const raw = typeof body?.userApiKey === "string" ? body.userApiKey.trim() : "";
+    userApiKey = raw || undefined;
   } catch {
-    // Malformed JSON body — treat as missing key
-  }
-
-  if (!apiKey) {
-    return NextResponse.json(
-      {
-        code: "MISSING_API_KEY",
-        error:
-          "Clé API OpenAI manquante. Configurez-la dans Paramètres → Clé API.",
-      },
-      { status: 400 }
-    );
+    // Missing or malformed body — use server key
   }
 
   try {
-    // Create an ephemeral token for the Realtime API
-    const response = await fetch(
-      "https://api.openai.com/v1/realtime/sessions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
+    const provider = await getActiveProvider();
+
+    const apiKey =
+      userApiKey ??
+      (provider.name === "gemini"
+        ? process.env.GEMINI_API_KEY
+        : process.env.OPENAI_API_KEY);
+
+    if (!apiKey) {
+      return NextResponse.json(
+        {
+          code: "MISSING_API_KEY",
+          error: "Clé API non configurée sur le serveur. Contactez l'administrateur.",
         },
-        body: JSON.stringify({
-          model: "gpt-4o-realtime-preview-2024-12-17",
-          voice: "alloy",
-        }),
-      }
-    );
+        { status: 500 }
+      );
+    }
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("OpenAI session error:", errorText);
+    const session = await provider.createSession(apiKey);
 
-      if (response.status === 401) {
+    return NextResponse.json({
+      provider: provider.name,
+      url: session.url,
+      token: session.token,
+      model: session.model,
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "INVALID_API_KEY") {
         return NextResponse.json(
           {
             code: "INVALID_API_KEY",
-            error:
-              "Clé API OpenAI invalide. Vérifiez votre clé dans Paramètres → Clé API.",
+            error: "Clé API invalide. Vérifiez la configuration du serveur.",
           },
           { status: 401 }
         );
       }
-
-      if (response.status === 429) {
+      if (error.message === "QUOTA_EXCEEDED") {
         return NextResponse.json(
           {
             code: "QUOTA_EXCEEDED",
-            error:
-              "Quota OpenAI dépassé. Vérifiez votre compte OpenAI puis réessayez.",
+            error: "Quota API dépassé. Réessayez plus tard.",
           },
           { status: 429 }
         );
       }
-
-      return NextResponse.json(
-        {
-          code: "SESSION_ERROR",
-          error: "Impossible de créer la session vocale. Réessayez.",
-        },
-        { status: response.status }
-      );
     }
-
-    const data = await response.json();
-
-    // Return the WebSocket URL with the ephemeral token
-    return NextResponse.json({
-      url: `wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17`,
-      token: data.client_secret?.value,
-      expiresAt: data.client_secret?.expires_at,
-    });
-  } catch (error) {
     console.error("Session creation error:", error);
     return NextResponse.json(
       { code: "INTERNAL_ERROR", error: "Erreur interne du serveur. Réessayez." },

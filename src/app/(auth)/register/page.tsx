@@ -3,162 +3,388 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { z } from "zod";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mic, Loader2 } from "lucide-react";
+import { useLanguage } from "@/i18n/context";
+import {
+  Mic,
+  Loader2,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  Zap,
+  Users,
+  FileText,
+} from "lucide-react";
+
+type RegisterFormValues = {
+  business_name: string;
+  email: string;
+  phone?: string;
+  password: string;
+};
+type FieldErrors = Partial<Record<keyof RegisterFormValues, string>>;
 
 export default function RegisterPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [businessName, setBusinessName] = useState("");
-  const [phone, setPhone] = useState("");
+  const { t } = useLanguage();
+
+  const registerSchema = z.object({
+    business_name: z
+      .string()
+      .min(2, t("auth.register.errorBusinessNameMin")),
+    email: z
+      .string()
+      .min(1, t("auth.register.errorEmailRequired"))
+      .email(t("auth.register.errorEmailInvalid")),
+    phone: z.string().optional(),
+    password: z
+      .string()
+      .min(6, t("auth.register.errorPasswordMin")),
+  });
+
+  const [values, setValues] = useState<RegisterFormValues>({
+    business_name: "",
+    email: "",
+    phone: "",
+    password: "",
+  });
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setValues((prev) => ({ ...prev, [name]: value }));
+    if (errors[name as keyof RegisterFormValues]) {
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError(null);
 
-    if (password.length < 6) {
-      setError("Le mot de passe doit contenir au moins 6 caractères");
-      setIsLoading(false);
+    const result = registerSchema.safeParse(values);
+    if (!result.success) {
+      const fieldErrors: FieldErrors = {};
+      for (const issue of result.error.issues) {
+        const field = issue.path[0] as keyof RegisterFormValues;
+        if (!fieldErrors[field]) fieldErrors[field] = issue.message;
+      }
+      setErrors(fieldErrors);
       return;
     }
 
-    const supabase = createClient();
+    setIsLoading(true);
 
-    const { error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
+    const supabase = createClient();
+    const { error } = await supabase.auth.signUp({
+      email: values.email,
+      password: values.password,
       options: {
         data: {
-          business_name: businessName,
-          phone: phone,
+          business_name: values.business_name,
+          phone: values.phone ?? "",
         },
       },
     });
 
-    if (signUpError) {
-      setError(signUpError.message);
+    if (error) {
       setIsLoading(false);
+      toast.error(
+        error.message === "User already registered"
+          ? t("auth.register.errorUserExists")
+          : error.message,
+      );
       return;
     }
 
-    router.push("/");
+    toast.success(t("auth.register.successToast"));
+    router.push("/subscribe");
     router.refresh();
   };
 
+  const perks = [
+    {
+      icon: Mic,
+      title: t("auth.register.perk1Title"),
+      desc: t("auth.register.perk1Desc"),
+    },
+    {
+      icon: FileText,
+      title: t("auth.register.perk2Title"),
+      desc: t("auth.register.perk2Desc"),
+    },
+    {
+      icon: Users,
+      title: t("auth.register.perk3Title"),
+      desc: t("auth.register.perk3Desc"),
+    },
+  ];
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1 text-center">
-          <div className="flex justify-center mb-4">
-            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary">
-              <Mic className="w-7 h-7 text-primary-foreground" />
+    <div className="grid min-h-screen lg:grid-cols-2">
+      {/* Left: Form */}
+      <div className="flex flex-col items-center justify-center px-6 py-12 lg:px-12">
+        <div className="w-full max-w-md">
+          <Link
+            href="/"
+            className="mb-10 flex items-center gap-2.5"
+            aria-label="ArtisanVoice — Accueil"
+          >
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#2e3165] shadow-sm">
+              <Mic className="h-5 w-5 text-white" aria-hidden />
             </div>
+            <span className="text-lg font-bold text-[#2e3165]">
+              ArtisanVoice
+            </span>
+          </Link>
+
+          <div className="mb-8">
+            <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+              <Zap className="h-3 w-3" aria-hidden />
+              {t("auth.register.badge")}
+            </span>
+            <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+              {t("auth.register.title")}
+            </h1>
+            <p className="mt-2 text-sm text-slate-500">
+              {t("auth.register.subtitle")}
+            </p>
           </div>
-          <CardTitle className="text-2xl font-bold">Créer un compte</CardTitle>
-          <CardDescription>
-            Inscrivez-vous pour commencer à utiliser ArtisanVoice
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            {error && (
-              <div 
-                className="p-3 text-sm text-destructive bg-destructive/10 rounded-md"
-                role="alert"
-              >
-                {error}
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="businessName">Nom de l&apos;entreprise</Label>
+
+          <form onSubmit={handleSubmit} noValidate className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="business_name" className="text-slate-700">
+                {t("auth.register.businessNameLabel")}
+              </Label>
               <Input
-                id="businessName"
+                id="business_name"
+                name="business_name"
                 type="text"
                 placeholder="Ex: Menuiserie Kossi"
-                value={businessName}
-                onChange={(e) => setBusinessName(e.target.value)}
-                required
+                value={values.business_name}
+                onChange={handleChange}
                 disabled={isLoading}
+                aria-invalid={!!errors.business_name}
+                aria-describedby={
+                  errors.business_name ? "business-name-error" : undefined
+                }
+                className={
+                  errors.business_name
+                    ? "border-red-400 focus-visible:ring-red-400"
+                    : ""
+                }
               />
+              {errors.business_name && (
+                <p id="business-name-error" className="text-xs text-red-500">
+                  {errors.business_name}
+                </p>
+              )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Téléphone</Label>
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="Ex: +229 97 00 00 00"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                disabled={isLoading}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="email" className="text-slate-700">
+                {t("auth.register.emailLabel")}
+              </Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="votre@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                value={values.email}
+                onChange={handleChange}
                 autoComplete="email"
                 disabled={isLoading}
+                aria-invalid={!!errors.email}
+                aria-describedby={errors.email ? "email-error" : undefined}
+                className={
+                  errors.email
+                    ? "border-red-400 focus-visible:ring-red-400"
+                    : ""
+                }
               />
+              {errors.email && (
+                <p id="email-error" className="text-xs text-red-500">
+                  {errors.email}
+                </p>
+              )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Mot de passe</Label>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="phone" className="text-slate-700">
+                {t("auth.register.phoneLabel")}{" "}
+                <span className="text-slate-400 font-normal">
+                  {t("auth.register.phoneOptional")}
+                </span>
+              </Label>
               <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="new-password"
-                minLength={6}
+                id="phone"
+                name="phone"
+                type="tel"
+                placeholder="Ex: +229 97 00 00 00"
+                value={values.phone}
+                onChange={handleChange}
                 disabled={isLoading}
+                autoComplete="tel"
               />
-              <p className="text-xs text-muted-foreground">
-                Minimum 6 caractères
-              </p>
             </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
-            <Button 
-              type="submit" 
-              className="w-full h-11" 
+
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-slate-700">
+                {t("auth.register.passwordLabel")}
+              </Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={values.password}
+                  onChange={handleChange}
+                  autoComplete="new-password"
+                  disabled={isLoading}
+                  aria-invalid={!!errors.password}
+                  aria-describedby={
+                    errors.password ? "password-error" : "password-hint"
+                  }
+                  className={
+                    errors.password
+                      ? "border-red-400 pr-10 focus-visible:ring-red-400"
+                      : "pr-10"
+                  }
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  aria-label={
+                    showPassword
+                      ? t("auth.register.hidePassword")
+                      : t("auth.register.showPassword")
+                  }
+                  tabIndex={0}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" aria-hidden />
+                  ) : (
+                    <Eye className="h-4 w-4" aria-hidden />
+                  )}
+                </button>
+              </div>
+              {errors.password ? (
+                <p id="password-error" className="text-xs text-red-500">
+                  {errors.password}
+                </p>
+              ) : (
+                <p id="password-hint" className="text-xs text-slate-400">
+                  {t("auth.register.passwordHint")}
+                </p>
+              )}
+            </div>
+
+            <Button
+              type="submit"
               disabled={isLoading}
+              className="h-11 w-full gap-2 rounded-xl bg-[#2e3165] text-white shadow-sm hover:bg-[#1f2144]"
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Création du compte...
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  {t("auth.register.submitting")}
                 </>
               ) : (
-                "Créer mon compte"
+                <>
+                  {t("auth.register.submit")}
+                  <ArrowRight className="h-4 w-4" aria-hidden />
+                </>
               )}
             </Button>
-            <p className="text-sm text-center text-muted-foreground">
-              Déjà inscrit?{" "}
-              <Link 
-                href="/login" 
-                className="text-primary hover:underline font-medium"
-                tabIndex={0}
+          </form>
+
+          <p className="mt-4 text-center text-xs leading-relaxed text-slate-400">
+            {t("auth.register.terms1")}{" "}
+            <Link href="/legal" className="underline hover:text-slate-600">
+              {t("auth.register.terms2")}
+            </Link>{" "}
+            {t("auth.register.terms3")}{" "}
+            <Link href="/privacy" className="underline hover:text-slate-600">
+              {t("auth.register.terms4")}
+            </Link>
+            .
+          </p>
+
+          <p className="mt-4 text-center text-sm text-slate-500">
+            {t("auth.register.hasAccount")}{" "}
+            <Link
+              href="/login"
+              className="font-semibold text-[#2e3165] hover:underline"
+              tabIndex={0}
+            >
+              {t("auth.register.loginLink")}
+            </Link>
+          </p>
+        </div>
+      </div>
+
+      {/* Right: Brand panel */}
+      <div
+        className="hidden bg-gradient-to-br from-[#1a1c4b] via-[#2e3165] to-[#1f5a3d] lg:flex lg:flex-col lg:items-center lg:justify-center lg:px-12"
+        aria-hidden
+      >
+        <div
+          className="pointer-events-none absolute inset-y-0 right-0 w-1/2 opacity-10"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)",
+            backgroundSize: "40px 40px",
+          }}
+        />
+
+        <div className="relative z-10 max-w-sm">
+          <div className="mb-8 flex justify-center">
+            <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white/10 backdrop-blur-sm ring-1 ring-white/20">
+              <Mic className="h-10 w-10 text-white" aria-hidden />
+            </div>
+          </div>
+
+          <h2 className="text-center text-3xl font-extrabold leading-tight tracking-tight text-white">
+            {t("auth.register.panelTitle")}{" "}
+            <span className="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
+              {t("auth.register.panelTitleHighlight")}
+            </span>
+          </h2>
+
+          <p className="mt-4 text-center text-base leading-relaxed text-slate-300">
+            {t("auth.register.panelSubtitle")}
+          </p>
+
+          <div className="mt-8 flex flex-col gap-4">
+            {perks.map(({ icon: Icon, title, desc }) => (
+              <div
+                key={title}
+                className="flex items-start gap-4 rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
               >
-                Se connecter
-              </Link>
-            </p>
-          </CardFooter>
-        </form>
-      </Card>
-    </main>
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/20">
+                  <Icon className="h-4.5 w-4.5 text-emerald-400" aria-hidden />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">{title}</p>
+                  <p className="text-xs text-slate-400">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-8 text-center text-xs text-slate-400">
+            {t("auth.register.afterRegister")}
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -22,8 +22,10 @@ import { useSettingsStore } from "@/stores/settings-store";
 import type { InvoiceItem } from "@/types";
 import { WifiOff, Mic, Eye } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/i18n/context";
 
 export default function DashboardPage() {
+  const { t } = useLanguage();
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
@@ -191,9 +193,9 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-2 mx-auto w-full max-w-md mb-2">
            <div className="flex justify-center gap-2 flex-wrap">
             {[
-              "Ajouter prestation peinture...",
-              "Supprimer l'article 2...",
-              "Afficher les factures..."
+              t("dashboard.main.example1"),
+              t("dashboard.main.example2"),
+              t("dashboard.main.example3"),
             ].map((example) => (
               <button
                 key={example}
@@ -218,8 +220,7 @@ export default function DashboardPage() {
       {!isOnline && (
         <div className="bg-amber-100 text-amber-900 px-4 py-2 text-sm flex items-center justify-center gap-2">
           <WifiOff className="h-4 w-4 shrink-0" aria-hidden />
-          Mode hors-ligne — les données seront synchronisées lorsque la
-          connexion reviendra.
+          {t("dashboard.main.offline")}
         </div>
       )}
 
@@ -235,7 +236,7 @@ export default function DashboardPage() {
         >
           <div className="mx-auto max-w-4xl flex flex-col h-full">
              <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900">Document Preview</h2>
+                <h2 className="text-2xl font-bold text-gray-900">{t("dashboard.main.documentPreview")}</h2>
                 
                 <div className="flex items-center gap-3">
                   <Button
@@ -244,24 +245,24 @@ export default function DashboardPage() {
                     className="rounded-lg border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
                     disabled={isListening || isProcessing || !hasContent}
                   >
-                    Tout effacer
+                    {t("dashboard.main.clearAll")}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={handlePreview}
                     disabled={!hasContent}
-                    aria-label="Aperçu du document"
+                    aria-label={t("dashboard.main.previewAria")}
                     className="gap-2 rounded-lg border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
                   >
                     <Eye className="h-4 w-4" aria-hidden />
-                    Aperçu
+                    {t("dashboard.main.preview")}
                   </Button>
                   <Button
                     className="rounded-lg bg-[#2e3165] text-white hover:bg-[#1f2144] shadow-sm"
                     onClick={handleSend}
                     disabled={isListening || isProcessing || items.length === 0}
                   >
-                    Partager le document
+                    {t("dashboard.main.share")}
                   </Button>
                 </div>
              </div>
@@ -280,9 +281,9 @@ export default function DashboardPage() {
           className="flex flex-col flex-1 min-h-0 px-3 pt-2"
         >
           <TabsList className="w-full grid grid-cols-2 h-11 shrink-0">
-            <TabsTrigger value="assistant">Assistant</TabsTrigger>
+            <TabsTrigger value="assistant">{t("dashboard.main.assistant")}</TabsTrigger>
             <TabsTrigger value="document" className="relative">
-              Voir le document
+              {t("dashboard.main.viewDocument")}
               {hasContent && (
                 <span
                   className="ml-1.5 inline-flex h-2 w-2 rounded-full bg-primary"
@@ -303,18 +304,18 @@ export default function DashboardPage() {
           >
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-medium text-muted-foreground">
-                Document en cours
+                {t("dashboard.main.currentDocument")}
               </span>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handlePreview}
                 disabled={!hasContent}
-                aria-label="Aperçu du document"
+                aria-label={t("dashboard.main.previewAria")}
                 className="gap-1.5"
               >
                 <Eye className="h-3.5 w-3.5" aria-hidden />
-                Aperçu
+                {t("dashboard.main.preview")}
               </Button>
             </div>
             <div id="document-preview-mobile">{invoicePreview}</div>
@@ -350,19 +351,18 @@ export default function DashboardPage() {
       <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Tout effacer ?</AlertDialogTitle>
+            <AlertDialogTitle>{t("dashboard.main.confirmClearTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Le document en cours, la conversation avec l’assistant et les
-              articles seront supprimés. Cette action ne peut pas être annulée.
+              {t("dashboard.main.confirmClearDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>{t("dashboard.main.cancelBtn")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleResetConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Tout effacer
+              {t("dashboard.main.confirmBtn")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
