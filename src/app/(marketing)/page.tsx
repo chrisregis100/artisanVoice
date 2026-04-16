@@ -1,4 +1,4 @@
-import { LandingContent } from "./_components/landing-content";
+import { LandingContent } from "./_components/landing";
 
 export const metadata = {
   title: "ArtisanVoice — Créez vos factures par la voix",
