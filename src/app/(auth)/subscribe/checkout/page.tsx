@@ -181,54 +181,57 @@ function CheckoutForm() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <header className="border-b border-slate-100 bg-white px-6 py-4">
-        <div className="mx-auto flex max-w-3xl items-center justify-between">
-          <Link
-            href="/"
-            className="flex items-center gap-2.5"
-            aria-label="ArtisanVoice — Accueil"
-          >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#2e3165] shadow-sm">
-              <Mic className="h-5 w-5 text-white" aria-hidden />
-            </div>
-            <span className="text-lg font-bold text-[#2e3165]">
-              ArtisanVoice
-            </span>
-          </Link>
-          <div className="flex items-center gap-2 text-sm text-slate-500">
-            <Shield className="h-4 w-4 text-emerald-500" aria-hidden />
+    <div className="min-h-screen bg-gradient-to-b from-slate-100/80 to-slate-50">
+      <header className="border-b border-slate-200/80 bg-white/90 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-5xl flex-col gap-4 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+            <Link
+              href="/"
+              className="flex items-center gap-2.5"
+              aria-label="ArtisanVoice — Accueil"
+            >
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#2e3165] shadow-sm">
+                <Mic className="h-5 w-5 text-white" aria-hidden />
+              </div>
+              <span className="text-lg font-bold text-[#2e3165]">
+                ArtisanVoice
+              </span>
+            </Link>
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="flex items-center gap-2 text-sm text-slate-500 transition-colors hover:text-[#2e3165]"
+              aria-label={t("auth.checkout.backAria")}
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") router.back();
+              }}
+            >
+              <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden />
+              {t("auth.checkout.backBtn")}
+            </button>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-slate-600">
+            <Shield className="h-4 w-4 shrink-0 text-emerald-500" aria-hidden />
             {t("auth.checkout.securePayment")}
           </div>
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-        <button
-          onClick={() => router.back()}
-          className="mb-8 flex items-center gap-2 text-sm text-slate-500 transition-colors hover:text-slate-700"
-          aria-label={t("auth.checkout.backAria")}
-          tabIndex={0}
-          onKeyDown={(e) => e.key === "Enter" && router.back()}
-        >
-          <ArrowLeft className="h-4 w-4" aria-hidden />
-          {t("auth.checkout.backBtn")}
-        </button>
-
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
-          {/* Left: Payment form */}
-          <div className="lg:col-span-3">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h1 className="mb-1 text-xl font-bold text-slate-900">
+      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10 lg:py-12">
+        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-10">
+          {/* Left: Payment form — min-w-0 évite le débordement grid qui chevauche la colonne suivante */}
+          <div className="min-w-0 lg:col-span-7">
+            <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-6 shadow-md shadow-slate-200/50 sm:p-8">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900">
                 {t("auth.checkout.title")}
               </h1>
-              <p className="mb-6 text-sm text-slate-500">
+              <p className="mt-2 text-sm leading-relaxed text-slate-600">
                 {t("auth.checkout.subtitle")}
               </p>
 
-              <fieldset>
-                <legend className="mb-3 text-sm font-semibold text-slate-700">
+              <fieldset className="mt-8">
+                <legend className="mb-4 text-sm font-semibold text-slate-800">
                   {t("auth.checkout.paymentMethodLabel")}
                 </legend>
                 <div className="flex flex-col gap-3">
@@ -246,14 +249,26 @@ function CheckoutForm() {
                             setSelectedProvider(provider.id);
                         }}
                         tabIndex={0}
-                        className={`flex items-center gap-4 rounded-xl border-2 p-4 text-left transition-all ${
+                        className={`flex w-full min-w-0 items-start gap-3 rounded-xl border-2 p-4 text-left transition-all ${
                           isSelected
-                            ? "border-[#2e3165] bg-[#2e3165]/5"
-                            : "border-slate-200 hover:border-slate-300 hover:bg-slate-50"
+                            ? "border-[#2e3165] bg-[#2e3165]/5 ring-1 ring-[#2e3165]/20"
+                            : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/80"
                         }`}
                       >
+                        <span
+                          className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
+                            isSelected
+                              ? "border-[#2e3165] bg-[#2e3165]"
+                              : "border-slate-300 bg-white"
+                          }`}
+                          aria-hidden
+                        >
+                          {isSelected ? (
+                            <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                          ) : null}
+                        </span>
                         <div
-                          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg text-xs font-black ${
+                          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-[0.65rem] font-black leading-none ${
                             isSelected
                               ? "bg-[#2e3165] text-white"
                               : "bg-slate-100 text-slate-600"
@@ -266,18 +281,10 @@ function CheckoutForm() {
                           <div className="font-semibold text-slate-900">
                             {provider.name}
                           </div>
-                          <div className="truncate text-xs text-slate-500">
+                          <div className="mt-0.5 text-xs leading-snug text-slate-500">
                             {t(provider.descKey)}
                           </div>
                         </div>
-                        <div
-                          className={`h-4 w-4 shrink-0 rounded-full border-2 transition-colors ${
-                            isSelected
-                              ? "border-[#2e3165] bg-[#2e3165]"
-                              : "border-slate-300"
-                          }`}
-                          aria-hidden
-                        />
                       </button>
                     );
                   })}
@@ -288,7 +295,7 @@ function CheckoutForm() {
                 onClick={handlePay}
                 disabled={isLoading || !selectedProvider}
                 size="lg"
-                className="mt-6 h-12 w-full gap-2 rounded-xl bg-emerald-500 font-semibold text-white shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 disabled:opacity-60"
+                className="mt-8 h-12 w-full gap-2 rounded-xl bg-emerald-500 font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-600 disabled:opacity-60"
                 aria-label={t("auth.checkout.payBtn")}
               >
                 {isLoading ? (
@@ -301,56 +308,56 @@ function CheckoutForm() {
                 )}
               </Button>
 
-              <p className="mt-4 text-center text-xs text-slate-400">
+              <p className="mt-4 text-center text-xs leading-relaxed text-slate-400">
                 {t("auth.checkout.paymentNote")}
               </p>
             </div>
           </div>
 
           {/* Right: Order summary */}
-          <div className="lg:col-span-2">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-slate-500">
+          <div className="min-w-0 lg:col-span-5">
+            <div className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-md shadow-slate-200/50 sm:p-8 lg:sticky lg:top-8">
+              <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
                 {t("auth.checkout.orderSummary")}
               </h2>
 
-              <div className="mb-4 flex items-baseline justify-between">
+              <div className="mt-5 flex flex-wrap items-baseline justify-between gap-2 border-b border-slate-100 pb-5">
                 <span className="text-lg font-bold text-slate-900">
                   {t("auth.checkout.proPlan")}
                 </span>
-                <span className="text-lg font-bold text-slate-900">
+                <span className="text-lg font-bold tabular-nums text-slate-900">
                   5 000 FCFA
                 </span>
               </div>
-              <p className="mb-5 text-xs text-slate-500">
+              <p className="mt-3 text-xs text-slate-500">
                 {t("auth.checkout.monthlyBilling")}
               </p>
 
-              <div className="border-t border-slate-100 pt-4">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <div className="mt-6">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">
                   {t("auth.checkout.includedLabel")}
                 </p>
-                <ul className="flex flex-col gap-2">
+                <ul className="flex flex-col gap-2.5">
                   {proFeatures.map((feature) => (
                     <li
                       key={feature}
-                      className="flex items-center gap-2 text-sm text-slate-700"
+                      className="flex gap-2.5 text-sm leading-snug text-slate-700"
                     >
                       <CheckCircle2
-                        className="h-3.5 w-3.5 shrink-0 text-emerald-500"
+                        className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500"
                         aria-hidden
                       />
-                      {feature}
+                      <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
+              <div className="mt-8 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 px-4 py-3">
                 <span className="font-semibold text-slate-700">
                   {t("auth.checkout.totalPerMonth")}
                 </span>
-                <span className="text-xl font-black text-slate-900">
+                <span className="text-xl font-black tabular-nums text-slate-900">
                   5 000 FCFA
                 </span>
               </div>

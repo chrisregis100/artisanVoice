@@ -374,6 +374,22 @@
       "example3": "Show invoices...",
       "signOut": "Sign out"
     },
+    "subscription": {
+      "title": "Subscription & usage",
+      "loading": "Loading…",
+      "sessionRequired": "Sign in to view your subscription.",
+      "loadError": "Could not load subscription information.",
+      "retry": "Retry",
+      "noPlan": "—",
+      "planPrefix": "Plan: {{plan}}",
+      "noActiveSub": "No active subscription.",
+      "periodEnd": "Current period until {{date}}",
+      "usageLimited": "{{count}} / {{limit}} billable exports this month",
+      "usageUnlimited": "{{count}} export(s) this month — unlimited",
+      "limitReached": "Monthly quota reached. Upgrade to Pro or wait until next month.",
+      "managePlan": "Plans & billing",
+      "refreshAria": "Refresh subscription"
+    },
     "settings": {
       "sectionLabel": "Account",
       "title": "Settings",

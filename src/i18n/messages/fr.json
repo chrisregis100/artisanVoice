@@ -374,6 +374,22 @@
       "example3": "Afficher les factures...",
       "signOut": "Se déconnecter"
     },
+    "subscription": {
+      "title": "Abonnement et usage",
+      "loading": "Chargement…",
+      "sessionRequired": "Connectez-vous pour voir votre abonnement.",
+      "loadError": "Impossible de charger les informations d’abonnement.",
+      "retry": "Réessayer",
+      "noPlan": "—",
+      "planPrefix": "Forfait : {{plan}}",
+      "noActiveSub": "Aucun abonnement actif.",
+      "periodEnd": "Période en cours jusqu’au {{date}}",
+      "usageLimited": "{{count}} / {{limit}} exports comptabilisés ce mois-ci",
+      "usageUnlimited": "{{count}} export(s) ce mois-ci — illimité",
+      "limitReached": "Quota mensuel atteint. Passez Pro ou attendez le mois prochain.",
+      "managePlan": "Forfaits et paiement",
+      "refreshAria": "Actualiser l’abonnement"
+    },
     "settings": {
       "sectionLabel": "Compte",
       "title": "Paramètres",

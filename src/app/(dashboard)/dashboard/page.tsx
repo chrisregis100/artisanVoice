@@ -15,8 +15,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SubscriptionUsageCard } from "@/components/dashboard/subscription-usage-card";
 import { VoiceButton } from "@/components/voice/voice-button";
 import { VoiceConversation } from "@/components/voice/voice-conversation";
+import { useSubscriptionStatus } from "@/hooks/use-subscription-status";
 import { useLanguage } from "@/i18n/context";
 import { useInvoiceStore } from "@/stores/invoice-store";
 import { useSettingsStore } from "@/stores/settings-store";
@@ -26,6 +28,7 @@ import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
   const { t } = useLanguage();
+  const subscriptionStatus = useSubscriptionStatus();
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
@@ -228,6 +231,9 @@ export default function DashboardPage() {
       <div className="hidden flex-1 flex-row overflow-hidden bg-[#f4f4f5] md:flex">
         <div className="flex min-h-0 w-1/3 min-w-0 flex-col bg-white">
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 md:p-6 lg:p-8">
+            <div className="mb-4 shrink-0 hidden md:block">
+              <SubscriptionUsageCard {...subscriptionStatus} />
+            </div>
             {assistantInner}
           </div>
         </div>
@@ -278,6 +284,9 @@ export default function DashboardPage() {
       </div>
 
       <div className="md:hidden flex flex-col flex-1 min-h-0 bg-background">
+        <div className="shrink-0 px-3 pt-3 pb-1">
+          <SubscriptionUsageCard {...subscriptionStatus} />
+        </div>
         <Tabs
           value={mobileTab}
           onValueChange={setMobileTab}
