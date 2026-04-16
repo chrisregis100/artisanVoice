@@ -34,6 +34,7 @@ export default function DashboardPage() {
   const [itemIdToFocus, setItemIdToFocus] = useState<string | null>(null);
 
   const {
+    id: documentId,
     customerName,
     customerPhone,
     customerAddress,
@@ -337,6 +338,7 @@ export default function DashboardPage() {
       <ShareDialog
         open={isShareOpen}
         onOpenChange={setIsShareOpen}
+        documentId={documentId}
         customerName={customerName}
         customerPhone={customerPhone}
         customerAddress={customerAddress}

@@ -117,3 +117,86 @@ export const incrementInvoiceCount = async (userId: string): Promise<void> => {
     });
   }
 };
+
+export interface PrecheckDocumentExportResult {
+  canExport: boolean;
+  duplicate?: boolean;
+  reason?: "no_subscription" | "quota_exceeded";
+}
+
+export const precheckDocumentExport = async (
+  userId: string,
+  documentId: string,
+): Promise<PrecheckDocumentExportResult> => {
+  const supabase = createClient();
+  const monthYear = getCurrentMonthYear();
+
+  const { data: existing } = await supabase
+    .from("invoice_usage_documents")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("month_year", monthYear)
+    .eq("document_id", documentId)
+    .maybeSingle();
+
+  if (existing) {
+    return { canExport: true, duplicate: true };
+  }
+
+  const limitCheck = await canCreateInvoice(userId);
+  if (!limitCheck.allowed) {
+    return {
+      canExport: false,
+      reason: limitCheck.plan === "none" ? "no_subscription" : "quota_exceeded",
+    };
+  }
+
+  return { canExport: true, duplicate: false };
+};
+
+export const commitDocumentExport = async (
+  userId: string,
+  documentId: string,
+): Promise<"counted" | "duplicate" | "quota_exceeded"> => {
+  const supabase = createClient();
+  const monthYear = getCurrentMonthYear();
+
+  const { data: existing } = await supabase
+    .from("invoice_usage_documents")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("month_year", monthYear)
+    .eq("document_id", documentId)
+    .maybeSingle();
+
+  if (existing) return "duplicate";
+
+  const limitCheck = await canCreateInvoice(userId);
+  if (!limitCheck.allowed) return "quota_exceeded";
+
+  const { data: inserted, error: insertError } = await supabase
+    .from("invoice_usage_documents")
+    .insert({
+      user_id: userId,
+      month_year: monthYear,
+      document_id: documentId,
+    })
+    .select("id")
+    .single();
+
+  if (insertError) {
+    if (insertError.code === "23505") return "duplicate";
+    throw insertError;
+  }
+
+  try {
+    await incrementInvoiceCount(userId);
+  } catch (error) {
+    if (inserted?.id) {
+      await supabase.from("invoice_usage_documents").delete().eq("id", inserted.id);
+    }
+    throw error;
+  }
+
+  return "counted";
+};
