@@ -17,12 +17,12 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VoiceButton } from "@/components/voice/voice-button";
 import { VoiceConversation } from "@/components/voice/voice-conversation";
+import { useLanguage } from "@/i18n/context";
 import { useInvoiceStore } from "@/stores/invoice-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import type { InvoiceItem } from "@/types";
-import { WifiOff, Mic, Eye } from "lucide-react";
+import { Eye, Mic, WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useLanguage } from "@/i18n/context";
 
 export default function DashboardPage() {
   const { t } = useLanguage();
@@ -191,22 +191,22 @@ export default function DashboardPage() {
 
         <div className="flex flex-col gap-3 mt-4 px-2">
           <div className="flex flex-col gap-2 mx-auto w-full max-w-md mb-2">
-           <div className="flex justify-center gap-2 flex-wrap">
-            {[
-              t("dashboard.main.example1"),
-              t("dashboard.main.example2"),
-              t("dashboard.main.example3"),
-            ].map((example) => (
-              <button
-                key={example}
-                className="rounded-full border border-border/80 bg-gray-50 px-4 py-1.5 text-xs text-gray-600 hover:bg-gray-100 transition-colors shadow-sm"
-              >
-                {example}
-              </button>
-            ))}
-           </div>
+            <div className="flex justify-center gap-2 flex-wrap">
+              {[
+                t("dashboard.main.example1"),
+                t("dashboard.main.example2"),
+                t("dashboard.main.example3"),
+              ].map((example) => (
+                <button
+                  key={example}
+                  className="rounded-full border border-border/80 bg-gray-50 px-4 py-1.5 text-xs text-gray-600 hover:bg-gray-100 transition-colors shadow-sm"
+                >
+                  {example}
+                </button>
+              ))}
+            </div>
           </div>
-          
+
           <div className="flex justify-center w-full">
             <VoiceButton />
           </div>
@@ -225,50 +225,52 @@ export default function DashboardPage() {
       )}
 
       <div className="hidden flex-1 flex-row overflow-hidden bg-[#f4f4f5] md:flex">
-        <div className="flex min-h-0 w-1/2 min-w-0 flex-col bg-white">
+        <div className="flex min-h-0 w-1/3 min-w-0 flex-col bg-white">
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 md:p-6 lg:p-8">
             {assistantInner}
           </div>
         </div>
         <div
           id="document-preview"
-          className="min-h-0 w-1/2 min-w-0 flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 border-l border-border/40"
+          className="min-h-0 w-2/3 min-w-0 flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 border-l border-border/40"
         >
           <div className="mx-auto max-w-4xl flex flex-col h-full">
-             <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-                <h2 className="text-2xl font-bold text-gray-900">{t("dashboard.main.documentPreview")}</h2>
-                
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => setResetDialogOpen(true)}
-                    className="rounded-lg border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
-                    disabled={isListening || isProcessing || !hasContent}
-                  >
-                    {t("dashboard.main.clearAll")}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={handlePreview}
-                    disabled={!hasContent}
-                    aria-label={t("dashboard.main.previewAria")}
-                    className="gap-2 rounded-lg border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
-                  >
-                    <Eye className="h-4 w-4" aria-hidden />
-                    {t("dashboard.main.preview")}
-                  </Button>
-                  <Button
-                    className="rounded-lg bg-[#2e3165] text-white hover:bg-[#1f2144] shadow-sm"
-                    onClick={handleSend}
-                    disabled={isListening || isProcessing || items.length === 0}
-                  >
-                    {t("dashboard.main.share")}
-                  </Button>
-                </div>
-             </div>
-            
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {t("dashboard.main.documentPreview")}
+              </h2>
+
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setResetDialogOpen(true)}
+                  className="rounded-lg border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+                  disabled={isListening || isProcessing || !hasContent}
+                >
+                  {t("dashboard.main.clearAll")}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handlePreview}
+                  disabled={!hasContent}
+                  aria-label={t("dashboard.main.previewAria")}
+                  className="gap-2 rounded-lg border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  <Eye className="h-4 w-4" aria-hidden />
+                  {t("dashboard.main.preview")}
+                </Button>
+                <Button
+                  className="rounded-lg bg-[#2e3165] text-white hover:bg-[#1f2144] shadow-sm"
+                  onClick={handleSend}
+                  disabled={isListening || isProcessing || items.length === 0}
+                >
+                  {t("dashboard.main.share")}
+                </Button>
+              </div>
+            </div>
+
             <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-               {invoicePreview}
+              {invoicePreview}
             </div>
           </div>
         </div>
@@ -281,7 +283,9 @@ export default function DashboardPage() {
           className="flex flex-col flex-1 min-h-0 px-3 pt-2"
         >
           <TabsList className="w-full grid grid-cols-2 h-11 shrink-0">
-            <TabsTrigger value="assistant">{t("dashboard.main.assistant")}</TabsTrigger>
+            <TabsTrigger value="assistant">
+              {t("dashboard.main.assistant")}
+            </TabsTrigger>
             <TabsTrigger value="document" className="relative">
               {t("dashboard.main.viewDocument")}
               {hasContent && (
@@ -351,13 +355,17 @@ export default function DashboardPage() {
       <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("dashboard.main.confirmClearTitle")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("dashboard.main.confirmClearTitle")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {t("dashboard.main.confirmClearDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t("dashboard.main.cancelBtn")}</AlertDialogCancel>
+            <AlertDialogCancel>
+              {t("dashboard.main.cancelBtn")}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleResetConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
