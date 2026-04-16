@@ -81,7 +81,7 @@ export function PricingContent() {
   return (
     <div className="flex flex-col">
       {/* Hero */}
-      <section className="bg-gradient-to-br from-[#1a1c4b] to-[#2e3165] pt-32 pb-20">
+      <section className="bg-slate-950 pt-32 pb-20">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <span className="mb-4 inline-block rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold text-slate-300">
             {t("pricingPage.badge")}
@@ -89,7 +89,7 @@ export function PricingContent() {
           <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
             {t("pricingPage.title")}
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg text-slate-300">
+          <p className="mx-auto mt-5 max-w-xl text-lg text-slate-400">
             {t("pricingPage.subtitle")}
           </p>
         </div>
@@ -120,7 +120,7 @@ export function PricingContent() {
                 asChild
                 size="lg"
                 variant="outline"
-                className="mb-8 h-11 w-full rounded-xl border-[#2e3165] text-[#2e3165] font-semibold hover:bg-[#2e3165]/5"
+                className="mb-8 h-11 w-full rounded-xl border-slate-900 text-slate-900 font-semibold hover:bg-slate-50"
               >
                 <Link href="/register">{t("pricingPage.freeCta")}</Link>
               </Button>
@@ -161,9 +161,9 @@ export function PricingContent() {
             </div>
 
             {/* Pro plan */}
-            <div className="relative flex flex-col rounded-2xl bg-[#2e3165] p-8 shadow-2xl shadow-[#2e3165]/30">
+            <div className="relative flex flex-col rounded-2xl bg-slate-900 p-8 shadow-xl">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                <span className="rounded-full bg-emerald-500 px-5 py-1 text-xs font-bold text-white shadow-lg">
+                <span className="rounded-full bg-emerald-600 px-5 py-1 text-xs font-bold text-white">
                   {t("pricingPage.recommended")}
                 </span>
               </div>
@@ -186,7 +186,7 @@ export function PricingContent() {
               <Button
                 asChild
                 size="lg"
-                className="mb-8 h-11 w-full rounded-xl bg-emerald-500 font-semibold text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-600"
+                className="mb-8 h-11 w-full rounded-xl bg-emerald-600 font-semibold text-white shadow-sm hover:bg-emerald-700"
               >
                 <Link href="/register?plan=pro">
                   {t("pricingPage.proCta")}
@@ -245,7 +245,7 @@ export function PricingContent() {
                   <th className="px-6 py-4 text-center font-semibold text-slate-600">
                     {t("pricingPage.freeName")}
                   </th>
-                  <th className="bg-[#2e3165]/5 px-6 py-4 text-center font-semibold text-[#2e3165]">
+                  <th className="bg-slate-100 px-6 py-4 text-center font-semibold text-slate-900">
                     {t("pricingPage.proName")}
                   </th>
                 </tr>
@@ -274,7 +274,7 @@ export function PricingContent() {
                         included={t("pricingPage.included")}
                       />
                     </td>
-                    <td className="bg-[#2e3165]/5 px-6 py-3.5 text-center">
+                    <td className="bg-slate-50 px-6 py-3.5 text-center">
                       <ComparisonCell
                         value={feature.pro}
                         isPro
@@ -302,7 +302,7 @@ export function PricingContent() {
           <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Button
               asChild
-              className="rounded-xl bg-[#2e3165] px-6 font-semibold text-white hover:bg-[#1f2144]"
+              className="rounded-xl bg-slate-900 px-6 font-semibold text-white hover:bg-slate-800"
             >
               <Link href="/#faq">{t("pricingPage.faqBtn")}</Link>
             </Button>
@@ -328,10 +328,10 @@ export function PricingContent() {
               className="flex items-center gap-2"
               aria-label="ArtisanVoice - Accueil"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#2e3165]">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900">
                 <Mic className="h-4 w-4 text-white" aria-hidden />
               </div>
-              <span className="font-bold text-[#2e3165]">ArtisanVoice</span>
+              <span className="font-bold text-slate-900">ArtisanVoice</span>
             </Link>
             <p className="text-sm text-slate-400">
               © {new Date().getFullYear()} ArtisanVoice ·{" "}
@@ -369,8 +369,8 @@ function ComparisonCell({
       />
     );
   return (
-    <span
-      className={`font-semibold ${isPro ? "text-[#2e3165]" : "text-slate-700"}`}
+      <span
+      className={`font-semibold ${isPro ? "text-slate-900" : "text-slate-700"}`}
     >
       {value}
     </span>

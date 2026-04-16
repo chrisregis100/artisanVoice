@@ -12,6 +12,7 @@ import {
   Zap,
   Users,
   TrendingUp,
+  ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/context";
@@ -231,37 +232,37 @@ function FeaturesSection() {
       icon: Mic,
       title: t("landing.features.voiceTitle"),
       description: t("landing.features.voiceDesc"),
-      color: "bg-violet-50 text-violet-600",
+      span: "col-span-1 md:col-span-2",
     },
     {
       icon: FileText,
       title: t("landing.features.pdfTitle"),
       description: t("landing.features.pdfDesc"),
-      color: "bg-emerald-50 text-emerald-600",
+      span: "col-span-1",
     },
     {
       icon: Share2,
       title: t("landing.features.whatsappTitle"),
       description: t("landing.features.whatsappDesc"),
-      color: "bg-blue-50 text-blue-600",
+      span: "col-span-1",
     },
     {
       icon: WifiOff,
       title: t("landing.features.offlineTitle"),
       description: t("landing.features.offlineDesc"),
-      color: "bg-amber-50 text-amber-600",
+      span: "col-span-1",
     },
     {
       icon: Users,
       title: t("landing.features.clientsTitle"),
       description: t("landing.features.clientsDesc"),
-      color: "bg-pink-50 text-pink-600",
+      span: "col-span-1 md:col-span-2",
     },
     {
       icon: TrendingUp,
       title: t("landing.features.trackingTitle"),
       description: t("landing.features.trackingDesc"),
-      color: "bg-orange-50 text-orange-600",
+      span: "col-span-1 md:col-span-3",
     },
   ];
 
@@ -269,7 +270,7 @@ function FeaturesSection() {
     <section id="features" className="bg-slate-50 py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mb-16 text-center">
-          <span className="mb-3 inline-block rounded-full bg-[#2e3165]/10 px-4 py-1.5 text-sm font-semibold text-[#2e3165]">
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-4 py-1.5 text-sm font-semibold text-slate-700">
             {t("landing.features.badge")}
           </span>
           <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
@@ -280,22 +281,20 @@ function FeaturesSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {features.map((feature) => (
             <div
               key={feature.title}
-              className="flex flex-col gap-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+              className={`flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-8 hover:shadow-md transition-shadow ${feature.span}`}
             >
-              <div
-                className={`flex h-11 w-11 items-center justify-center rounded-xl ${feature.color}`}
-              >
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
                 <feature.icon className="h-5 w-5" aria-hidden />
               </div>
               <div>
-                <h3 className="mb-1.5 text-base font-bold text-slate-800">
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">
                   {feature.title}
                 </h3>
-                <p className="text-sm leading-relaxed text-slate-500">
+                <p className="text-slate-500 leading-relaxed">
                   {feature.description}
                 </p>
               </div>
@@ -337,7 +336,7 @@ function HowItWorksSection() {
     <section id="demo" className="bg-white py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mb-16 text-center">
-          <span className="mb-3 inline-block rounded-full bg-[#2e3165]/10 px-4 py-1.5 text-sm font-semibold text-[#2e3165]">
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-4 py-1.5 text-sm font-semibold text-slate-700">
             {t("landing.howItWorks.badge")}
           </span>
           <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
@@ -350,7 +349,7 @@ function HowItWorksSection() {
 
         <div className="relative">
           <div
-            className="absolute top-8 left-0 right-0 hidden h-0.5 bg-gradient-to-r from-transparent via-slate-200 to-transparent lg:block"
+            className="absolute top-8 left-0 right-0 hidden h-0 border-t-2 border-dashed border-slate-200 lg:block"
             aria-hidden
           />
 
@@ -360,7 +359,7 @@ function HowItWorksSection() {
                 key={step.step}
                 className="relative flex flex-col items-center text-center"
               >
-                <div className="relative mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-[#2e3165] text-2xl font-black text-white shadow-lg">
+                <div className="relative mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 text-2xl font-black text-white shadow-lg">
                   {step.step}
                   {index < steps.length - 1 && (
                     <div
@@ -386,7 +385,7 @@ function HowItWorksSection() {
           <Button
             asChild
             size="lg"
-            className="h-12 gap-2 rounded-xl bg-[#2e3165] px-8 text-base font-semibold text-white shadow-md hover:bg-[#1f2144]"
+            className="h-12 gap-2 rounded-xl bg-slate-900 px-8 text-base font-semibold text-white shadow-md hover:bg-slate-800"
           >
             <Link href="/register">
               {t("landing.howItWorks.cta")}
@@ -429,11 +428,11 @@ function TestimonialsSection() {
   return (
     <section
       id="testimonials"
-      className="bg-gradient-to-br from-slate-900 to-[#1a1c4b] py-24"
+      className="bg-slate-950 py-24"
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mb-16 text-center">
-          <span className="mb-3 inline-block rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold text-slate-300">
+          <span className="mb-3 inline-block rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold text-slate-400">
             {t("landing.testimonials.badge")}
           </span>
           <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
@@ -448,7 +447,7 @@ function TestimonialsSection() {
           {testimonials.map((testimonial) => (
             <div
               key={testimonial.name}
-              className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm"
+              className="flex flex-col gap-4 rounded-2xl border border-slate-800 bg-slate-900 p-6"
             >
               <div className="flex items-center gap-1">
                 {Array.from({ length: testimonial.rating }).map((_, i) => (
@@ -462,8 +461,8 @@ function TestimonialsSection() {
               <p className="flex-1 text-sm leading-relaxed text-slate-300">
                 &ldquo;{testimonial.quote}&rdquo;
               </p>
-              <div className="flex items-center gap-3 border-t border-white/10 pt-4">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#2e3165] text-xs font-bold text-white">
+              <div className="flex items-center gap-3 border-t border-slate-800 pt-4">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800 text-xs font-bold text-white">
                   {testimonial.avatar}
                 </div>
                 <div>
@@ -533,7 +532,7 @@ function PricingSection() {
     <section id="pricing" className="bg-slate-50 py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mb-16 text-center">
-          <span className="mb-3 inline-block rounded-full bg-[#2e3165]/10 px-4 py-1.5 text-sm font-semibold text-[#2e3165]">
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-4 py-1.5 text-sm font-semibold text-slate-700">
             {t("landing.pricing.badge")}
           </span>
           <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
@@ -550,13 +549,13 @@ function PricingSection() {
               key={plan.name}
               className={`relative flex flex-col rounded-2xl p-8 ${
                 plan.featured
-                  ? "bg-[#2e3165] text-white shadow-2xl shadow-[#2e3165]/30"
+                  ? "bg-slate-900 text-white shadow-xl"
                   : "border border-slate-200 bg-white"
               }`}
             >
               {plan.featured && (
                 <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                  <span className="rounded-full bg-emerald-500 px-4 py-1 text-xs font-bold text-white shadow-lg">
+                  <span className="rounded-full bg-emerald-600 px-4 py-1 text-xs font-bold text-white">
                     {t("common.recommended")}
                   </span>
                 </div>
@@ -614,8 +613,8 @@ function PricingSection() {
                 size="lg"
                 className={`mt-auto h-11 w-full rounded-xl font-semibold ${
                   plan.featured
-                    ? "bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/30"
-                    : "border border-[#2e3165] bg-transparent text-[#2e3165] hover:bg-[#2e3165]/5"
+                    ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm"
+                    : "border border-slate-900 bg-transparent text-slate-900 hover:bg-slate-50"
                 }`}
               >
                 <Link href={plan.ctaHref}>{plan.cta}</Link>
@@ -648,7 +647,7 @@ function FaqSection() {
     <section id="faq" className="bg-white py-24">
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <div className="mb-16 text-center">
-          <span className="mb-3 inline-block rounded-full bg-[#2e3165]/10 px-4 py-1.5 text-sm font-semibold text-[#2e3165]">
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-4 py-1.5 text-sm font-semibold text-slate-700">
             {t("landing.faq.badge")}
           </span>
           <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
@@ -662,7 +661,7 @@ function FaqSection() {
               key={faq.question}
               className="group rounded-xl border border-slate-200 bg-slate-50 open:bg-white open:shadow-sm"
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-medium text-slate-800 transition-colors hover:text-[#2e3165]">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-medium text-slate-800 transition-colors hover:text-slate-900">
                 {faq.question}
                 <ChevronDown
                   className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180"
@@ -684,7 +683,7 @@ function CtaBannerSection() {
   const { t } = useLanguage();
 
   return (
-    <section className="bg-gradient-to-r from-[#2e3165] to-[#1f5a3d] py-20">
+    <section className="bg-slate-950 py-20">
       <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
         <div className="mb-5 flex justify-center">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
@@ -694,14 +693,14 @@ function CtaBannerSection() {
         <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
           {t("landing.cta.title")}
         </h2>
-        <p className="mx-auto mt-4 max-w-xl text-lg text-white/75">
+        <p className="mx-auto mt-4 max-w-xl text-lg text-slate-400">
           {t("landing.cta.subtitle")}
         </p>
         <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
           <Button
             asChild
             size="lg"
-            className="h-12 gap-2 rounded-xl bg-white px-8 text-base font-semibold text-[#2e3165] shadow-lg hover:bg-slate-100"
+            className="h-12 gap-2 rounded-xl bg-white px-8 text-base font-semibold text-slate-900 shadow-lg hover:bg-slate-100"
           >
             <Link href="/register">
               {t("landing.cta.createAccount")}
@@ -712,7 +711,7 @@ function CtaBannerSection() {
             asChild
             variant="outline"
             size="lg"
-            className="h-12 rounded-xl border-white/30 bg-transparent px-8 text-base font-semibold text-white hover:bg-white/10"
+            className="h-12 rounded-xl border-white/20 bg-transparent px-8 text-base font-semibold text-white hover:bg-white/10"
           >
             <Link href="/login">{t("landing.cta.login")}</Link>
           </Button>
@@ -752,10 +751,10 @@ function FooterSection() {
               className="flex items-center gap-2.5"
               aria-label="ArtisanVoice"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#2e3165]">
-                <Mic className="h-4.5 w-4.5 text-white" aria-hidden />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900">
+                <Mic className="h-4 w-4 text-white" aria-hidden />
               </div>
-              <span className="text-lg font-bold text-[#2e3165]">
+              <span className="text-lg font-bold text-slate-900">
                 ArtisanVoice
               </span>
             </Link>
@@ -774,7 +773,7 @@ function FooterSection() {
                   <li key={item.label}>
                     <Link
                       href={item.href}
-                      className="text-sm text-slate-500 transition-colors hover:text-[#2e3165]"
+                      className="text-sm text-slate-500 transition-colors hover:text-slate-900"
                     >
                       {item.label}
                     </Link>
