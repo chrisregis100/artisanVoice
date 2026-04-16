@@ -57,15 +57,8 @@ export const updateSession = async (request: NextRequest) => {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Redirect authenticated users away from login/register
-  const authOnlyRoutes = ["/login", "/register"];
-  const isAuthOnlyRoute = authOnlyRoutes.some((route) =>
-    pathname.startsWith(route),
-  );
-
-  if (isAuthOnlyRoute && user) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
+  // Authenticated users may still open /login and /register (e.g. marketing CTAs);
+  // do not redirect them to /dashboard → /subscribe.
 
   return supabaseResponse;
 };

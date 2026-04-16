@@ -229,7 +229,8 @@
       "errorEmailInvalid": "Invalid email address",
       "errorPasswordRequired": "Password is required",
       "errorInvalidCredentials": "Incorrect email or password",
-      "successToast": "Login successful!"
+      "successToast": "Login successful!",
+      "freePlanError": "Could not activate the free plan. Please try again in a moment."
     },
     "register": {
       "badge": "Free up to 3 invoices / month",
@@ -251,7 +252,7 @@
       "terms2": "Terms",
       "terms3": "and our",
       "terms4": "privacy policy",
-      "afterRegister": "After signing up, choose your plan and start invoicing.",
+      "afterRegister": "After signing up, you go straight to your dashboard. Upgrade to Pro whenever you want.",
       "panelTitle": "Start",
       "panelTitleHighlight": "for free",
       "panelSubtitle": "No credit card required. Up to 3 invoices per month, no time limits.",
@@ -266,7 +267,9 @@
       "errorEmailInvalid": "Invalid email address",
       "errorPasswordMin": "Password must be at least 6 characters",
       "errorUserExists": "An account already exists with this email. Please log in.",
-      "successToast": "Account created successfully!"
+      "successToast": "Account created successfully!",
+      "confirmEmailToast": "Check your email to confirm your account, then sign in.",
+      "setupError": "Account created, but free activation failed. Try signing in again."
     },
     "subscribe": {
       "stepBadge": "Final step",

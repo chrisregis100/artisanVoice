@@ -1,0 +1,1 @@
+{"sessionId":"2b2324","runId":"pre-fix","hypothesisId":"H1","location":"api/subscription/create/route.ts:free-branch","message":"public.users profile check before free subscription insert","data":{"authUserId":"50888734-365a-4e4b-940a-369292918010","hasPublicUsersRow":true,"profileSelectError":null},"timestamp":1776331660077}

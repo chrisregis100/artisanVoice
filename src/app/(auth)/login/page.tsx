@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { z } from "zod";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { getPostAuthPath } from "@/lib/subscription/post-auth-redirect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -81,8 +82,10 @@ export default function LoginPage() {
       return;
     }
 
+    const nextPath = await getPostAuthPath();
+    setIsLoading(false);
     toast.success(t("auth.login.successToast"));
-    router.push("/dashboard");
+    router.push(nextPath);
     router.refresh();
   };
 
@@ -241,7 +244,7 @@ export default function LoginPage() {
 
       {/* Right: Brand panel */}
       <div
-        className="hidden bg-gradient-to-br from-[#1a1c4b] via-[#2e3165] to-[#1f5a3d] lg:flex lg:flex-col lg:items-center lg:justify-center lg:px-12"
+        className="hidden bg-[#2e3165] lg:flex lg:flex-col lg:items-center lg:justify-center lg:px-12"
         aria-hidden
       >
         <div
@@ -262,7 +265,7 @@ export default function LoginPage() {
 
           <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-white">
             {t("auth.login.panelTitle1")}{" "}
-            <span className="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
+            <span className="text-emerald-400">
               {t("auth.login.panelTitle2")}
             </span>
           </h2>

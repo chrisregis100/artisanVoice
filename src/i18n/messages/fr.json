@@ -229,7 +229,8 @@
       "errorEmailInvalid": "Adresse email invalide",
       "errorPasswordRequired": "Le mot de passe est requis",
       "errorInvalidCredentials": "Email ou mot de passe incorrect",
-      "successToast": "Connexion réussie !"
+      "successToast": "Connexion réussie !",
+      "freePlanError": "Impossible d'activer l'offre gratuite. Réessayez dans un instant."
     },
     "register": {
       "badge": "Gratuit jusqu'à 3 factures / mois",
@@ -251,7 +252,7 @@
       "terms2": "CGU",
       "terms3": "et notre",
       "terms4": "politique de confidentialité",
-      "afterRegister": "Après inscription, choisissez votre plan et commencez à facturer.",
+      "afterRegister": "Après inscription, vous accédez à votre tableau de bord. Passez au Pro quand vous voulez.",
       "panelTitle": "Commencez",
       "panelTitleHighlight": "gratuitement",
       "panelSubtitle": "Aucune carte bancaire requise. Jusqu'à 3 factures par mois, sans limites de temps.",
@@ -266,7 +267,9 @@
       "errorEmailInvalid": "Adresse email invalide",
       "errorPasswordMin": "Le mot de passe doit contenir au moins 6 caractères",
       "errorUserExists": "Un compte existe déjà avec cet email. Connectez-vous.",
-      "successToast": "Compte créé avec succès !"
+      "successToast": "Compte créé avec succès !",
+      "confirmEmailToast": "Vérifiez votre boîte mail pour confirmer votre compte, puis connectez-vous.",
+      "setupError": "Compte créé, mais l'activation gratuite a échoué. Réessayez depuis la page de connexion."
     },
     "subscribe": {
       "stepBadge": "Étape finale",

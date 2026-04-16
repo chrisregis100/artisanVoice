@@ -35,6 +35,26 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const businessName =
+    typeof user.user_metadata?.business_name === "string"
+      ? user.user_metadata.business_name
+      : "";
+
+  const { error: ensureUserError } = await supabase
+    .from("users")
+    .upsert(
+      { id: user.id, business_name: businessName },
+      { onConflict: "id" },
+    );
+
+  if (ensureUserError) {
+    console.error("Failed to ensure public.users row:", ensureUserError);
+    return NextResponse.json(
+      { error: "Impossible de synchroniser le profil" },
+      { status: 500 },
+    );
+  }
+
   let body: CreateSubscriptionBody;
   try {
     body = await request.json();
@@ -69,6 +89,36 @@ export async function POST(request: NextRequest) {
   }
 
   if (planName === "free") {
+    // #region agent log
+    {
+      const profileCheck = await supabase
+        .from("users")
+        .select("id")
+        .eq("id", user.id)
+        .maybeSingle();
+      fetch("http://127.0.0.1:7750/ingest/3c1561a7-7cf1-4962-b715-03081e5d182c", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Debug-Session-Id": "2b2324",
+        },
+        body: JSON.stringify({
+          sessionId: "2b2324",
+          runId: "pre-fix",
+          hypothesisId: "H1",
+          location: "api/subscription/create/route.ts:free-branch",
+          message: "public.users profile check before free subscription insert",
+          data: {
+            authUserId: user.id,
+            hasPublicUsersRow: Boolean(profileCheck.data?.id),
+            profileSelectError: profileCheck.error?.code ?? null,
+          },
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {});
+    }
+    // #endregion
+
     const { data: existingSubscription } = await supabase
       .from("subscriptions")
       .select("id")
@@ -95,6 +145,28 @@ export async function POST(request: NextRequest) {
       });
 
     if (insertError) {
+      // #region agent log
+      fetch("http://127.0.0.1:7750/ingest/3c1561a7-7cf1-4962-b715-03081e5d182c", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Debug-Session-Id": "2b2324",
+        },
+        body: JSON.stringify({
+          sessionId: "2b2324",
+          runId: "pre-fix",
+          hypothesisId: "H1",
+          location: "api/subscription/create/route.ts:insertError",
+          message: "subscriptions insert failed",
+          data: {
+            pgCode: insertError.code,
+            pgMessage: insertError.message,
+            details: insertError.details,
+          },
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {});
+      // #endregion
       console.error("Failed to create free subscription:", insertError);
       return NextResponse.json(
         { error: "Impossible de créer l'abonnement" },
