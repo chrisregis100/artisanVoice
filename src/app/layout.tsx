@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { LanguageProvider } from "@/i18n/context";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-display" });
 
 export const metadata: Metadata = {
   title: "ArtisanVoice",
@@ -34,7 +35,7 @@ export default function RootLayout({
       <head>
         <link rel="apple-touch-icon" href="/icon-192.svg" type="image/svg+xml" />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.variable} ${plusJakarta.variable} font-sans antialiased`}>
         <LanguageProvider>
           <ThemeProvider
             attribute="class"
