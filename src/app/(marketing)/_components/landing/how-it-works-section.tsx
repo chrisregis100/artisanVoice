@@ -58,7 +58,7 @@ export function HowItWorksSection() {
                 key={step.step}
                 className="relative flex flex-col items-center text-center"
               >
-                <div className="relative mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-900 text-2xl font-black text-white shadow-lg">
+                <div className="relative mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand text-2xl font-black text-brand-foreground shadow-lg">
                   {step.step}
                   {index < steps.length - 1 && (
                     <div
@@ -84,7 +84,7 @@ export function HowItWorksSection() {
           <Button
             asChild
             size="lg"
-            className="h-12 gap-2 rounded-xl bg-slate-900 px-8 text-base font-semibold text-white shadow-md hover:bg-slate-800"
+            className="h-12 gap-2 rounded-xl bg-brand px-8 text-base font-semibold text-brand-foreground shadow-md hover:bg-brand/90"
           >
             <Link href="/register">
               {t("landing.howItWorks.cta")}

@@ -106,10 +106,10 @@ export default function LoginPage() {
             className="mb-10 flex items-center gap-2.5"
             aria-label="ArtisanVoice — Accueil"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#2e3165] shadow-sm">
-              <Mic className="h-5 w-5 text-white" aria-hidden />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand shadow-sm">
+              <Mic className="h-5 w-5 text-brand-foreground" aria-hidden />
             </div>
-            <span className="text-lg font-bold text-[#2e3165]">
+            <span className="text-lg font-bold text-brand">
               ArtisanVoice
             </span>
           </Link>
@@ -159,7 +159,7 @@ export default function LoginPage() {
                 </Label>
                 <Link
                   href="/forgot-password"
-                  className="text-xs font-medium text-[#2e3165] hover:underline"
+                  className="text-xs font-medium text-brand hover:underline"
                   tabIndex={0}
                 >
                   {t("auth.login.forgotPassword")}
@@ -213,7 +213,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="h-11 w-full gap-2 rounded-xl bg-[#2e3165] text-white shadow-sm hover:bg-[#1f2144]"
+              className="h-11 w-full gap-2 rounded-xl bg-brand text-brand-foreground shadow-sm hover:bg-brand/90"
             >
               {isLoading ? (
                 <>
@@ -233,7 +233,7 @@ export default function LoginPage() {
             {t("auth.login.noAccount")}{" "}
             <Link
               href="/register"
-              className="font-semibold text-[#2e3165] hover:underline"
+              className="font-semibold text-brand hover:underline"
               tabIndex={0}
             >
               {t("auth.login.registerLink")}
@@ -244,7 +244,7 @@ export default function LoginPage() {
 
       {/* Right: Brand panel */}
       <div
-        className="hidden bg-[#2e3165] lg:flex lg:flex-col lg:items-center lg:justify-center lg:px-12"
+        className="hidden bg-brand lg:flex lg:flex-col lg:items-center lg:justify-center lg:px-12"
         aria-hidden
       >
         <div
@@ -265,7 +265,7 @@ export default function LoginPage() {
 
           <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-white">
             {t("auth.login.panelTitle1")}{" "}
-            <span className="text-emerald-400">
+            <span className="text-primary">
               {t("auth.login.panelTitle2")}
             </span>
           </h2>
@@ -277,7 +277,7 @@ export default function LoginPage() {
           <ul className="mt-8 flex flex-col gap-3 text-left">
             {highlights.map((item) => (
               <li key={item} className="flex items-center gap-3">
-                <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-400" />
+                <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />
                 <span className="text-sm text-slate-200">{item}</span>
               </li>
             ))}
@@ -288,7 +288,7 @@ export default function LoginPage() {
               &ldquo;{t("auth.login.panelQuote")}&rdquo;
             </p>
             <div className="mt-3 flex items-center gap-2.5 border-t border-white/10 pt-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2e3165] text-xs font-bold text-white">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand/80 text-xs font-bold text-brand-foreground">
                 IK
               </div>
               <div>

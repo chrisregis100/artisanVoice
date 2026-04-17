@@ -34,10 +34,10 @@ export function FooterSection() {
               className="flex items-center gap-2.5"
               aria-label="ArtisanVoice"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900">
-                <Mic className="h-4 w-4 text-white" aria-hidden />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand">
+                <Mic className="h-4 w-4 text-brand-foreground" aria-hidden />
               </div>
-              <span className="text-lg font-bold text-slate-900">
+              <span className="text-lg font-bold text-brand">
                 ArtisanVoice
               </span>
             </Link>

@@ -40,15 +40,15 @@ export function MarketingHeader() {
           className="flex items-center gap-2.5"
           aria-label={t("nav.homeAria")}
         >
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-900 shadow-sm">
-            <Mic className="h-5 w-5 text-white" aria-hidden />
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand shadow-sm">
+            <Mic className="h-5 w-5 text-brand-foreground" aria-hidden />
           </div>
-          <span className="text-lg font-bold text-slate-900">ArtisanVoice</span>
+          <span className="text-lg font-bold text-brand">ArtisanVoice</span>
         </Link>
 
         <nav
           className="hidden items-center gap-8 md:flex"
-          aria-label="Navigation principale"
+          aria-label={t("nav.mainNav")}
         >
           {navLinks.map((link) => (
             <Link
@@ -77,7 +77,7 @@ export function MarketingHeader() {
           </Button>
           <Button
             asChild
-            className="bg-slate-900 text-white hover:bg-slate-800 shadow-sm"
+            className="bg-brand text-brand-foreground hover:bg-brand/90 shadow-sm"
           >
             <Link href="/register">{t("nav.registerFree")}</Link>
           </Button>
@@ -118,7 +118,7 @@ export function MarketingHeader() {
             </Button>
             <Button
               asChild
-              className="w-full bg-slate-900 text-white hover:bg-slate-800"
+              className="w-full bg-brand text-brand-foreground hover:bg-brand/90"
             >
               <Link href="/register">{t("nav.registerFree")}</Link>
             </Button>

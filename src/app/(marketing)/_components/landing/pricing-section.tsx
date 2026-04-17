@@ -57,12 +57,11 @@ export function PricingSection() {
 
   return (
     <section id="pricing" className="relative overflow-hidden bg-slate-50 py-24">
-      {/* Decorative background elements */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-100/50 via-slate-50 to-slate-50 pointer-events-none"></div>
-      
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand/5 via-slate-50 to-slate-50 pointer-events-none" />
+
       <div className="mx-auto max-w-6xl px-4 sm:px-6 relative z-10">
         <div className="mb-12 text-center">
-          <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-sm font-semibold text-blue-700 shadow-sm">
+          <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand-muted px-4 py-1.5 text-sm font-semibold text-brand shadow-sm">
             {t("landing.pricing.badge")}
           </span>
           <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
@@ -73,7 +72,6 @@ export function PricingSection() {
           </p>
         </div>
 
-        {/* Billing Toggle */}
         <div className="mb-16 flex justify-center">
           <div className="relative flex items-center rounded-full bg-slate-200/80 p-1 backdrop-blur-sm shadow-inner">
             <button
@@ -82,7 +80,7 @@ export function PricingSection() {
                 !isAnnual ? "text-slate-900" : "text-slate-500 hover:text-slate-700"
               }`}
             >
-              Mensuel
+              {t("landing.pricing.monthly")}
             </button>
             <button
               onClick={() => setIsAnnual(true)}
@@ -90,17 +88,16 @@ export function PricingSection() {
                 isAnnual ? "text-slate-900" : "text-slate-500 hover:text-slate-700"
               }`}
             >
-              Annuel
+              {t("landing.pricing.annual")}
             </button>
-            {/* Toggle slider background */}
             <div
               className={`absolute left-1 top-1 h-[calc(100%-8px)] w-32 rounded-full bg-white shadow-sm transition-transform duration-300 ease-in-out ${
                 isAnnual ? "translate-x-32" : "translate-x-0"
               }`}
-            ></div>
+            />
             {isAnnual && (
-              <span className="absolute -right-8 -top-3 z-20 rotate-12 rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
-                -20%
+              <span className="absolute -right-8 -top-3 z-20 rotate-12 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold text-primary-foreground shadow-sm">
+                {t("landing.pricing.annualDiscount")}
               </span>
             )}
           </div>
@@ -112,13 +109,13 @@ export function PricingSection() {
               key={plan.name}
               className={`relative flex flex-col rounded-3xl p-8 transition-all duration-300 ${
                 plan.featured
-                  ? "bg-slate-900 text-white shadow-2xl shadow-blue-900/20 md:-my-4 md:py-12 ring-1 ring-slate-800"
+                  ? "bg-brand text-white shadow-2xl shadow-brand/20 md:-my-4 md:py-12 ring-1 ring-brand/80"
                   : "border border-slate-200 bg-white/80 backdrop-blur-sm shadow-lg shadow-slate-200/50 hover:shadow-xl hover:border-slate-300"
               }`}
             >
               {plan.featured && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-white shadow-md shadow-blue-500/30">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-primary-foreground shadow-md shadow-primary/30">
                     <StarIcon className="h-3 w-3" />
                     {t("common.recommended")}
                   </span>
@@ -138,29 +135,29 @@ export function PricingSection() {
                     {plan.price}
                   </span>
                   <span
-                    className={`text-sm font-medium ${plan.featured ? "text-slate-400" : "text-slate-500"}`}
+                    className={`text-sm font-medium ${plan.featured ? "text-white/60" : "text-slate-500"}`}
                   >
                     {plan.period}
                   </span>
                 </div>
                 <p
-                  className={`mt-3 text-sm leading-relaxed ${plan.featured ? "text-slate-300" : "text-slate-600"}`}
+                  className={`mt-3 text-sm leading-relaxed ${plan.featured ? "text-white/70" : "text-slate-600"}`}
                 >
                   {plan.description}
                 </p>
               </div>
 
-              <div className={`mb-8 h-px w-full ${plan.featured ? "bg-slate-800" : "bg-slate-100"}`} />
+              <div className={`mb-8 h-px w-full ${plan.featured ? "bg-white/15" : "bg-slate-100"}`} />
 
               <ul className="mb-8 flex flex-col gap-4">
                 {plan.features.map((f) => (
                   <li key={f} className="flex items-start gap-3">
                     <CheckCircle2
-                      className={`mt-0.5 h-5 w-5 shrink-0 ${plan.featured ? "text-blue-400" : "text-blue-500"}`}
+                      className={`mt-0.5 h-5 w-5 shrink-0 ${plan.featured ? "text-primary/80" : "text-primary"}`}
                       aria-hidden
                     />
                     <span
-                      className={`text-sm leading-tight ${plan.featured ? "text-slate-200" : "text-slate-700"}`}
+                      className={`text-sm leading-tight ${plan.featured ? "text-white/90" : "text-slate-700"}`}
                     >
                       {f}
                     </span>
@@ -182,8 +179,8 @@ export function PricingSection() {
                 size="lg"
                 className={`mt-auto h-12 w-full rounded-xl font-bold text-base transition-all ${
                   plan.featured
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md shadow-blue-900/50 hover:from-blue-500 hover:to-indigo-500 hover:shadow-lg hover:shadow-blue-900/60 hover:-translate-y-0.5"
-                    : "bg-slate-100 text-slate-900 hover:bg-slate-200 hover:shadow-md"
+                    ? "bg-white text-brand shadow-md hover:bg-white/90 hover:shadow-lg hover:-translate-y-0.5"
+                    : "bg-brand text-brand-foreground hover:bg-brand/90 hover:shadow-md"
                 }`}
               >
                 <Link href={plan.ctaHref}>{plan.cta}</Link>

@@ -81,15 +81,15 @@ export function PricingContent() {
   return (
     <div className="flex flex-col">
       {/* Hero */}
-      <section className="bg-slate-950 pt-32 pb-20">
+      <section className="bg-brand pt-32 pb-20">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-          <span className="mb-4 inline-block rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold text-slate-300">
+          <span className="mb-4 inline-block rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold text-brand-foreground/70">
             {t("pricingPage.badge")}
           </span>
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl">
+          <h1 className="text-4xl font-extrabold tracking-tight text-brand-foreground sm:text-5xl">
             {t("pricingPage.title")}
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg text-slate-400">
+          <p className="mx-auto mt-5 max-w-xl text-lg text-brand-foreground/60">
             {t("pricingPage.subtitle")}
           </p>
         </div>
@@ -120,7 +120,7 @@ export function PricingContent() {
                 asChild
                 size="lg"
                 variant="outline"
-                className="mb-8 h-11 w-full rounded-xl border-slate-900 text-slate-900 font-semibold hover:bg-slate-50"
+                className="mb-8 h-11 w-full rounded-xl border-brand text-brand font-semibold hover:bg-brand/5"
               >
                 <Link href="/register">{t("pricingPage.freeCta")}</Link>
               </Button>
@@ -142,7 +142,7 @@ export function PricingContent() {
                         <div className="h-4 w-4 shrink-0 rounded-full border-2 border-slate-300" />
                       ) : (
                         <CheckCircle2
-                          className="h-4 w-4 shrink-0 text-emerald-500"
+                          className="h-4 w-4 shrink-0 text-primary"
                           aria-hidden
                         />
                       )}
@@ -161,9 +161,9 @@ export function PricingContent() {
             </div>
 
             {/* Pro plan */}
-            <div className="relative flex flex-col rounded-2xl bg-slate-900 p-8 shadow-xl">
+            <div className="relative flex flex-col rounded-2xl bg-brand p-8 shadow-xl">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                <span className="rounded-full bg-emerald-600 px-5 py-1 text-xs font-bold text-white">
+                <span className="rounded-full bg-primary px-5 py-1 text-xs font-bold text-primary-foreground">
                   {t("pricingPage.recommended")}
                 </span>
               </div>
@@ -186,7 +186,7 @@ export function PricingContent() {
               <Button
                 asChild
                 size="lg"
-                className="mb-8 h-11 w-full rounded-xl bg-emerald-600 font-semibold text-white shadow-sm hover:bg-emerald-700"
+                className="mb-8 h-11 w-full rounded-xl bg-white font-semibold text-brand shadow-sm hover:bg-white/90"
               >
                 <Link href="/register?plan=pro">
                   {t("pricingPage.proCta")}
@@ -204,7 +204,7 @@ export function PricingContent() {
                   return (
                     <li key={feature.labelKey} className="flex items-center gap-3">
                       <CheckCircle2
-                        className="h-4 w-4 shrink-0 text-emerald-400"
+                        className="h-4 w-4 shrink-0 text-primary"
                         aria-hidden
                       />
                       <span className="text-sm text-white/90">
@@ -302,7 +302,7 @@ export function PricingContent() {
           <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Button
               asChild
-              className="rounded-xl bg-slate-900 px-6 font-semibold text-white hover:bg-slate-800"
+              className="rounded-xl bg-brand px-6 font-semibold text-brand-foreground hover:bg-brand/90"
             >
               <Link href="/#faq">{t("pricingPage.faqBtn")}</Link>
             </Button>
@@ -328,10 +328,10 @@ export function PricingContent() {
               className="flex items-center gap-2"
               aria-label="ArtisanVoice - Accueil"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900">
-                <Mic className="h-4 w-4 text-white" aria-hidden />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand">
+                <Mic className="h-4 w-4 text-brand-foreground" aria-hidden />
               </div>
-              <span className="font-bold text-slate-900">ArtisanVoice</span>
+              <span className="font-bold text-brand">ArtisanVoice</span>
             </Link>
             <p className="text-sm text-slate-400">
               © {new Date().getFullYear()} ArtisanVoice ·{" "}
@@ -364,7 +364,7 @@ function ComparisonCell({
   if (value === true)
     return (
       <CheckCircle2
-        className="mx-auto h-5 w-5 text-emerald-500"
+        className="mx-auto h-5 w-5 text-primary"
         aria-label={included}
       />
     );

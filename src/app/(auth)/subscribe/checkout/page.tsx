@@ -82,7 +82,7 @@ function CallbackHandler() {
         {callbackStatus === "verifying" && (
           <>
             <Loader2
-              className="mx-auto mb-4 h-12 w-12 animate-spin text-[#2e3165]"
+              className="mx-auto mb-4 h-12 w-12 animate-spin text-brand"
               aria-hidden
             />
             <h2 className="text-xl font-bold text-slate-900">
@@ -96,7 +96,7 @@ function CallbackHandler() {
         {callbackStatus === "success" && (
           <>
             <CheckCircle2
-              className="mx-auto mb-4 h-12 w-12 text-emerald-500"
+              className="mx-auto mb-4 h-12 w-12 text-primary"
               aria-hidden
             />
             <h2 className="text-xl font-bold text-slate-900">
@@ -121,7 +121,7 @@ function CallbackHandler() {
             </p>
             <Button
               onClick={() => router.push("/subscribe/checkout")}
-              className="mt-6 w-full rounded-xl bg-[#2e3165] text-white hover:bg-[#1f2144]"
+              className="mt-6 w-full rounded-xl bg-brand text-brand-foreground hover:bg-brand/90"
             >
               {t("auth.checkout.retryBtn")}
             </Button>
@@ -190,17 +190,17 @@ function CheckoutForm() {
               className="flex items-center gap-2.5"
               aria-label="ArtisanVoice — Accueil"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#2e3165] shadow-sm">
-                <Mic className="h-5 w-5 text-white" aria-hidden />
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand shadow-sm">
+                <Mic className="h-5 w-5 text-brand-foreground" aria-hidden />
               </div>
-              <span className="text-lg font-bold text-[#2e3165]">
+              <span className="text-lg font-bold text-brand">
                 ArtisanVoice
               </span>
             </Link>
             <button
               type="button"
               onClick={() => router.back()}
-              className="flex items-center gap-2 text-sm text-slate-500 transition-colors hover:text-[#2e3165]"
+              className="flex items-center gap-2 text-sm text-slate-500 transition-colors hover:text-brand"
               aria-label={t("auth.checkout.backAria")}
               tabIndex={0}
               onKeyDown={(e) => {
@@ -212,7 +212,7 @@ function CheckoutForm() {
             </button>
           </div>
           <div className="flex items-center gap-2 text-sm text-slate-600">
-            <Shield className="h-4 w-4 shrink-0 text-emerald-500" aria-hidden />
+            <Shield className="h-4 w-4 shrink-0 text-primary" aria-hidden />
             {t("auth.checkout.securePayment")}
           </div>
         </div>
@@ -251,14 +251,14 @@ function CheckoutForm() {
                         tabIndex={0}
                         className={`flex w-full min-w-0 items-start gap-3 rounded-xl border-2 p-4 text-left transition-all ${
                           isSelected
-                            ? "border-[#2e3165] bg-[#2e3165]/5 ring-1 ring-[#2e3165]/20"
+                            ? "border-brand bg-brand/5 ring-1 ring-brand/20"
                             : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/80"
                         }`}
                       >
                         <span
                           className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
                             isSelected
-                              ? "border-[#2e3165] bg-[#2e3165]"
+                              ? "border-brand bg-brand"
                               : "border-slate-300 bg-white"
                           }`}
                           aria-hidden
@@ -270,7 +270,7 @@ function CheckoutForm() {
                         <div
                           className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-[0.65rem] font-black leading-none ${
                             isSelected
-                              ? "bg-[#2e3165] text-white"
+                              ? "bg-brand text-brand-foreground"
                               : "bg-slate-100 text-slate-600"
                           }`}
                           aria-hidden
@@ -295,7 +295,7 @@ function CheckoutForm() {
                 onClick={handlePay}
                 disabled={isLoading || !selectedProvider}
                 size="lg"
-                className="mt-8 h-12 w-full gap-2 rounded-xl bg-emerald-500 font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-600 disabled:opacity-60"
+                className="mt-8 h-12 w-full gap-2 rounded-xl bg-primary font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition hover:bg-primary/90 disabled:opacity-60"
                 aria-label={t("auth.checkout.payBtn")}
               >
                 {isLoading ? (
@@ -344,7 +344,7 @@ function CheckoutForm() {
                       className="flex gap-2.5 text-sm leading-snug text-slate-700"
                     >
                       <CheckCircle2
-                        className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500"
+                        className="mt-0.5 h-4 w-4 shrink-0 text-primary"
                         aria-hidden
                       />
                       <span>{feature}</span>
@@ -387,8 +387,8 @@ export default function CheckoutPage() {
       fallback={
         <div className="flex min-h-screen items-center justify-center bg-slate-50">
           <Loader2
-            className="h-8 w-8 animate-spin text-[#2e3165]"
-            aria-label="Chargement"
+            className="h-8 w-8 animate-spin text-brand"
+            aria-label="Loading"
           />
         </div>
       }

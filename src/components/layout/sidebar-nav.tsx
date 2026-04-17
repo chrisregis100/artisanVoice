@@ -28,13 +28,6 @@ export function useNavItems() {
   ];
 }
 
-export const navItems = [
-  { href: "/dashboard", label: "Accueil", icon: Home },
-  { href: "/customers", label: "Clients", icon: Users },
-  { href: "/invoices", label: "Documents", icon: FolderOpen },
-  { href: "/settings", label: "Paramètres", icon: Settings },
-];
-
 interface SidebarNavProps {
   businessName?: string;
   isExpanded: boolean;
@@ -66,12 +59,12 @@ export function SidebarNav({
           href="/dashboard"
           className="flex items-center gap-3 min-w-0 overflow-hidden"
         >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#2e3165] shadow-sm">
-            <Mic className="h-5 w-5 text-white" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand shadow-sm">
+            <Mic className="h-5 w-5 text-brand-foreground" />
           </div>
           <span
             className={cn(
-              "text-lg font-bold tracking-tight text-[#2e3165] whitespace-nowrap transition-all duration-300",
+              "text-lg font-bold tracking-tight text-brand whitespace-nowrap transition-all duration-300",
               isExpanded
                 ? "opacity-100 translate-x-0 w-auto"
                 : "opacity-0 -translate-x-4 w-0",
@@ -93,7 +86,7 @@ export function SidebarNav({
             className={cn(
               "flex items-center gap-3 rounded-xl p-3 text-sm font-medium transition-all duration-200 group overflow-hidden whitespace-nowrap",
               pathname === item.href
-                ? "bg-indigo-50/80 text-[#2e3165]"
+                ? "bg-brand-muted text-brand"
                 : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
             )}
             title={!isExpanded ? t(item.labelKey) : undefined}
@@ -102,7 +95,7 @@ export function SidebarNav({
               className={cn(
                 "h-6 w-6 shrink-0",
                 pathname === item.href
-                  ? "text-[#2e3165]"
+                  ? "text-brand"
                   : "text-muted-foreground",
               )}
               strokeWidth={2}

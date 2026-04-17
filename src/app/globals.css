@@ -4,18 +4,18 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%; /* Softer light background (slate-50) */
+    --background: 210 40% 98%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 160 84% 39%; /* Emerald 600 */
+    --primary: 160 84% 39%;
     --primary-foreground: 0 0% 100%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222 47% 11%;
     --muted: 210 40% 96.1%;
-    --muted-foreground: 215 16.3% 46.9%; /* Slate 500 */
+    --muted-foreground: 215 16.3% 46.9%;
     --accent: 210 40% 96.1%;
     --accent-foreground: 222 47% 11%;
     --destructive: 0 84% 60%;
@@ -24,17 +24,21 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 160 84% 39%;
     --highlight: 48 96% 53%;
-    --radius: 1rem; /* Softer, larger radius */
+    --radius: 1rem;
+    --brand: 233 37% 29%;
+    --brand-foreground: 0 0% 100%;
+    --brand-muted: 233 30% 94%;
+    --surface: 210 20% 97%;
   }
 
   .dark {
-    --background: 222 47% 11%; /* Slate 900 */
+    --background: 222 47% 11%;
     --foreground: 210 40% 98%;
     --card: 222 47% 11%;
     --card-foreground: 210 40% 98%;
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
-    --primary: 160 84% 39%; /* Emerald 600 */
+    --primary: 160 84% 39%;
     --primary-foreground: 0 0% 100%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -48,6 +52,10 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 160 84% 39%;
     --highlight: 48 96% 53%;
+    --brand: 233 37% 42%;
+    --brand-foreground: 0 0% 100%;
+    --brand-muted: 233 30% 22%;
+    --surface: 222 47% 13%;
     --sidebar: 222 47% 11%;
   }
 }
@@ -74,5 +82,14 @@
     100% {
       background-color: transparent;
     }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none !important;
+  }
+  .animate-ping {
+    animation: none !important;
   }
 }

@@ -17,7 +17,9 @@
     "securePayment": "Paiement sécurisé",
     "secureConnection": "Connexion sécurisée",
     "noHiddenFees": "Aucun frais caché",
-    "cancelAnytime": "Annulez à tout moment"
+    "cancelAnytime": "Annulez à tout moment",
+    "close": "Fermer",
+    "toggleTheme": "Basculer entre thème clair et sombre"
   },
   "nav": {
     "features": "Fonctionnalités",
@@ -27,7 +29,8 @@
     "registerFree": "S'inscrire gratuitement",
     "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu",
-    "homeAria": "ArtisanVoice - Accueil"
+    "homeAria": "ArtisanVoice - Accueil",
+    "mainNav": "Navigation principale"
   },
   "landing": {
     "hero": {
@@ -45,7 +48,23 @@
       "qty": "Qté",
       "totalTTC": "Total TTC",
       "sharedWhatsApp": "Partagé via WhatsApp ✓",
-      "scrollDown": "Défiler vers le bas"
+      "scrollDown": "Défiler vers le bas",
+      "mockupGreeting": "Bonjour, Artisan 👋",
+      "mockupSummary": "Voici un résumé de votre activité",
+      "mockupDashboard": "Tableau de bord",
+      "mockupInvoices": "Factures & Devis",
+      "mockupClients": "Clients",
+      "mockupRevenue": "Chiffre d'affaires",
+      "mockupRevenueValue": "1 250 000 FCFA",
+      "mockupRevenueChange": "+15% ce mois",
+      "mockupPending": "Factures en attente",
+      "mockupPendingAction": "À relancer",
+      "mockupNewClients": "Nouveaux clients",
+      "mockupNewClientsChange": "+4 cette semaine",
+      "mockupRecentInvoices": "Dernières factures",
+      "mockupCreateVoice": "Créer à la voix",
+      "mockupInvoiceLabel": "Facture",
+      "mockupClientLabel": "Client"
     },
     "socialProof": {
       "trust": "Des artisans qui nous font confiance partout en Afrique",
@@ -111,6 +130,9 @@
       "proPeriod": "FCFA / mois",
       "proDesc": "Pour les artisans qui veulent développer leur activité.",
       "proCta": "Passer au Pro",
+      "monthly": "Mensuel",
+      "annual": "Annuel",
+      "annualDiscount": "-20%",
       "footer": "Tous les prix sont en FCFA · Annulez à tout moment · Aucun frais caché",
       "freeF1": "3 documents par mois",
       "freeF2": "Facturation vocale",

@@ -17,7 +17,9 @@
     "securePayment": "Secure payment",
     "secureConnection": "Secure connection",
     "noHiddenFees": "No hidden fees",
-    "cancelAnytime": "Cancel anytime"
+    "cancelAnytime": "Cancel anytime",
+    "close": "Close",
+    "toggleTheme": "Toggle light and dark theme"
   },
   "nav": {
     "features": "Features",
@@ -27,7 +29,8 @@
     "registerFree": "Sign up for free",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "homeAria": "ArtisanVoice - Home"
+    "homeAria": "ArtisanVoice - Home",
+    "mainNav": "Main navigation"
   },
   "landing": {
     "hero": {
@@ -45,7 +48,23 @@
       "qty": "Qty",
       "totalTTC": "Total",
       "sharedWhatsApp": "Shared via WhatsApp ✓",
-      "scrollDown": "Scroll down"
+      "scrollDown": "Scroll down",
+      "mockupGreeting": "Hello, Artisan 👋",
+      "mockupSummary": "Here's a summary of your activity",
+      "mockupDashboard": "Dashboard",
+      "mockupInvoices": "Invoices & Quotes",
+      "mockupClients": "Clients",
+      "mockupRevenue": "Revenue",
+      "mockupRevenueValue": "1,250,000 FCFA",
+      "mockupRevenueChange": "+15% this month",
+      "mockupPending": "Pending invoices",
+      "mockupPendingAction": "Follow up",
+      "mockupNewClients": "New clients",
+      "mockupNewClientsChange": "+4 this week",
+      "mockupRecentInvoices": "Recent invoices",
+      "mockupCreateVoice": "Create by voice",
+      "mockupInvoiceLabel": "Invoice",
+      "mockupClientLabel": "Client"
     },
     "socialProof": {
       "trust": "Artisans who trust us across Africa",
@@ -111,6 +130,9 @@
       "proPeriod": "FCFA / month",
       "proDesc": "For artisans who want to grow their business.",
       "proCta": "Go Pro",
+      "monthly": "Monthly",
+      "annual": "Annual",
+      "annualDiscount": "-20%",
       "footer": "All prices in FCFA · Cancel anytime · No hidden fees",
       "freeF1": "3 documents per month",
       "freeF2": "Voice invoicing",

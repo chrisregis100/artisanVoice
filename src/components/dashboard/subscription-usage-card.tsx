@@ -175,7 +175,7 @@ export function SubscriptionUsageCard({
             >
               <div
                 className={`h-full rounded-full transition-all ${
-                  atLimit ? "bg-destructive" : "bg-[#2e3165]"
+                  atLimit ? "bg-destructive" : "bg-brand"
                 }`}
                 style={{ width: `${ratio}%` }}
               />

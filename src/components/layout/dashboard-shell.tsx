@@ -71,7 +71,7 @@ export function DashboardShell({
         {isMobileMenuOpen && (
           <nav
             className="flex flex-col gap-1 border-t border-border/60 bg-background p-2"
-            aria-label="Navigation principale"
+            aria-label={t("nav.mainNav")}
           >
             {navLinks.map((item) => (
               <Link
@@ -115,7 +115,7 @@ export function DashboardShell({
       </aside>
 
       {/* Main column: header + content */}
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-[#f4f4f5]">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-surface">
         <DashboardHeader userEmail={userEmail} businessName={businessName} />
         <main className="min-h-0 flex-1 overflow-hidden">{children}</main>
       </div>

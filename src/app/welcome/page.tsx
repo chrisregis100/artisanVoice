@@ -6,8 +6,8 @@ export default function WelcomePage() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-background">
       <div className="flex flex-col items-center gap-8 max-w-md text-center">
-        <div className="flex items-center justify-center w-20 h-20 rounded-full bg-primary">
-          <Mic className="w-10 h-10 text-primary-foreground" />
+        <div className="flex items-center justify-center w-20 h-20 rounded-full bg-brand">
+          <Mic className="w-10 h-10 text-brand-foreground" />
         </div>
         
         <div className="space-y-3">

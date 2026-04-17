@@ -146,16 +146,16 @@ export default function RegisterPage() {
             className="mb-10 flex items-center gap-2.5"
             aria-label="ArtisanVoice — Accueil"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#2e3165] shadow-sm">
-              <Mic className="h-5 w-5 text-white" aria-hidden />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand shadow-sm">
+              <Mic className="h-5 w-5 text-brand-foreground" aria-hidden />
             </div>
-            <span className="text-lg font-bold text-[#2e3165]">
+            <span className="text-lg font-bold text-brand">
               ArtisanVoice
             </span>
           </Link>
 
           <div className="mb-8">
-            <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
+            <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               <Zap className="h-3 w-3" aria-hidden />
               {t("auth.register.badge")}
             </span>
@@ -300,7 +300,7 @@ export default function RegisterPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="h-11 w-full gap-2 rounded-xl bg-[#2e3165] text-white shadow-sm hover:bg-[#1f2144]"
+              className="h-11 w-full gap-2 rounded-xl bg-brand text-brand-foreground shadow-sm hover:bg-brand/90"
             >
               {isLoading ? (
                 <>
@@ -332,7 +332,7 @@ export default function RegisterPage() {
             {t("auth.register.hasAccount")}{" "}
             <Link
               href="/login"
-              className="font-semibold text-[#2e3165] hover:underline"
+              className="font-semibold text-brand hover:underline"
               tabIndex={0}
             >
               {t("auth.register.loginLink")}
@@ -343,7 +343,7 @@ export default function RegisterPage() {
 
       {/* Right: Brand panel */}
       <div
-        className="hidden bg-[#2e3165] lg:flex lg:flex-col lg:items-center lg:justify-center lg:px-12"
+        className="hidden bg-brand lg:flex lg:flex-col lg:items-center lg:justify-center lg:px-12"
         aria-hidden
       >
         <div
@@ -364,7 +364,7 @@ export default function RegisterPage() {
 
           <h2 className="text-center text-3xl font-extrabold leading-tight tracking-tight text-white">
             {t("auth.register.panelTitle")}{" "}
-            <span className="text-emerald-400">
+            <span className="text-primary">
               {t("auth.register.panelTitleHighlight")}
             </span>
           </h2>
@@ -379,8 +379,8 @@ export default function RegisterPage() {
                 key={title}
                 className="flex items-start gap-4 rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
               >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/20">
-                  <Icon className="h-4.5 w-4.5 text-emerald-400" aria-hidden />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/20">
+                  <Icon className="h-4.5 w-4.5 text-primary" aria-hidden />
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-white">{title}</p>

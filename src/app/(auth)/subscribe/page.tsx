@@ -80,15 +80,15 @@ export default function SubscribePage() {
             className="flex items-center gap-2.5"
             aria-label="ArtisanVoice — Accueil"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#2e3165] shadow-sm">
-              <Mic className="h-5 w-5 text-white" aria-hidden />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand shadow-sm">
+              <Mic className="h-5 w-5 text-brand-foreground" aria-hidden />
             </div>
-            <span className="text-lg font-bold text-[#2e3165]">
+            <span className="text-lg font-bold text-brand">
               ArtisanVoice
             </span>
           </Link>
           <div className="flex items-center gap-2 text-sm text-slate-500">
-            <Shield className="h-4 w-4 text-emerald-500" aria-hidden />
+            <Shield className="h-4 w-4 text-primary" aria-hidden />
             {t("auth.subscribe.secureConnection")}
           </div>
         </div>
@@ -98,7 +98,7 @@ export default function SubscribePage() {
       <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
         {/* Page heading */}
         <div className="mb-12 text-center">
-          <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-[#2e3165]/10 px-4 py-1.5 text-sm font-semibold text-[#2e3165]">
+          <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-brand-muted px-4 py-1.5 text-sm font-semibold text-brand">
             <Zap className="h-3.5 w-3.5" aria-hidden />
             {t("auth.subscribe.stepBadge")}
           </span>
@@ -134,7 +134,7 @@ export default function SubscribePage() {
                 <li key={f.labelKey} className="flex items-center gap-2.5">
                   {f.free ? (
                     <CheckCircle2
-                      className="h-4 w-4 shrink-0 text-emerald-500"
+                      className="h-4 w-4 shrink-0 text-primary"
                       aria-hidden
                     />
                   ) : (
@@ -154,7 +154,7 @@ export default function SubscribePage() {
               disabled={isLoading}
               variant="outline"
               size="lg"
-              className="mt-auto h-11 w-full rounded-xl border-[#2e3165] font-semibold text-[#2e3165] hover:bg-[#2e3165]/5"
+              className="mt-auto h-11 w-full rounded-xl border-brand font-semibold text-brand hover:bg-brand/5"
               aria-label={t("auth.subscribe.freeCta")}
             >
               {loadingPlan === "free" ? (
@@ -169,9 +169,9 @@ export default function SubscribePage() {
           </div>
 
           {/* Pro plan */}
-          <div className="relative flex flex-col rounded-2xl bg-[#2e3165] p-8 text-white shadow-2xl shadow-[#2e3165]/30">
+          <div className="relative flex flex-col rounded-2xl bg-brand p-8 text-brand-foreground shadow-2xl shadow-brand/30">
             <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-              <span className="rounded-full bg-emerald-500 px-4 py-1 text-xs font-bold text-white shadow-lg">
+              <span className="rounded-full bg-primary px-4 py-1 text-xs font-bold text-primary-foreground shadow-lg">
                 {t("auth.subscribe.recommended")}
               </span>
             </div>
@@ -196,7 +196,7 @@ export default function SubscribePage() {
                 <li key={f.labelKey} className="flex items-center gap-2.5">
                   {f.pro ? (
                     <CheckCircle2
-                      className="h-4 w-4 shrink-0 text-emerald-400"
+                      className="h-4 w-4 shrink-0 text-primary"
                       aria-hidden
                     />
                   ) : (
@@ -218,7 +218,7 @@ export default function SubscribePage() {
               onClick={handleSelectPro}
               disabled={isLoading}
               size="lg"
-              className="mt-auto h-11 w-full gap-2 rounded-xl bg-emerald-500 font-semibold text-white shadow-lg shadow-emerald-500/30 hover:bg-emerald-600"
+              className="mt-auto h-11 w-full gap-2 rounded-xl bg-white font-semibold text-brand shadow-lg hover:bg-white/90"
               aria-label={t("auth.subscribe.proCta")}
             >
               {t("auth.subscribe.proCta")}
@@ -257,7 +257,7 @@ export default function SubscribePage() {
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-center font-semibold text-[#2e3165]"
+                    className="px-6 py-3 text-center font-semibold text-brand"
                   >
                     {t("auth.subscribe.proName")}
                   </th>
@@ -275,7 +275,7 @@ export default function SubscribePage() {
                     <td className="px-6 py-3.5 text-center">
                       {f.free ? (
                         <CheckCircle2
-                          className="mx-auto h-4 w-4 text-emerald-500"
+                          className="mx-auto h-4 w-4 text-primary"
                           aria-label="Inclus"
                         />
                       ) : (
@@ -288,7 +288,7 @@ export default function SubscribePage() {
                     <td className="px-6 py-3.5 text-center">
                       {f.pro ? (
                         <CheckCircle2
-                          className="mx-auto h-4 w-4 text-emerald-500"
+                          className="mx-auto h-4 w-4 text-primary"
                           aria-label="Inclus"
                         />
                       ) : (

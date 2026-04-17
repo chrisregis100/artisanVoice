@@ -48,7 +48,7 @@ export function DashboardHeader({
       )}
     >
       <div className="flex items-center">
-        <h1 className="text-xl font-bold tracking-tight text-[#111827]">
+        <h1 className="text-xl font-bold tracking-tight text-foreground">
           {t("dashboard.header.title")}
         </h1>
       </div>
@@ -70,13 +70,13 @@ export function DashboardHeader({
 
         <div className="flex items-center gap-2 pl-2 border-l border-border/60">
           <div
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1e1e40] text-xs font-medium text-white"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-xs font-medium text-brand-foreground"
             aria-label={`${t("dashboard.header.defaultAccount")} : ${accountLabel}`}
           >
             <span aria-hidden>{initials}</span>
           </div>
-          <span className="text-sm font-medium text-[#111827]">
-            {businessName || userEmail || "Jean Bernard"}
+          <span className="text-sm font-medium text-foreground">
+            {businessName || userEmail || t("dashboard.header.defaultAccount")}
           </span>
         </div>
       </div>

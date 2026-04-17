@@ -33,7 +33,7 @@ export function FaqSection() {
               key={faq.question}
               className="group rounded-xl border border-slate-200 bg-slate-50 open:bg-white open:shadow-sm"
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-medium text-slate-800 transition-colors hover:text-slate-900">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-medium text-slate-800 transition-colors hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl">
                 {faq.question}
                 <ChevronDown
                   className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180"

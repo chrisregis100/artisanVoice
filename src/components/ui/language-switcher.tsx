@@ -67,7 +67,7 @@ export function LanguageSwitcher({
         onKeyDown={handleKeyDown}
         className={cn(
           "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors",
-          "text-slate-600 hover:text-[#2e3165] hover:bg-slate-100",
+          "text-slate-600 hover:text-brand hover:bg-slate-100",
           className,
         )}
         aria-label={`Switch language to ${LANG_LABELS[nextLocale]}`}
@@ -102,7 +102,7 @@ export function LanguageSwitcher({
           className={cn(
             "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-all",
             locale === lang
-              ? "bg-[#2e3165] text-white shadow-sm"
+              ? "bg-brand text-brand-foreground shadow-sm"
               : "text-slate-500 hover:text-slate-800",
           )}
           aria-pressed={locale === lang}

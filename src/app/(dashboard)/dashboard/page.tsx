@@ -180,7 +180,7 @@ export default function DashboardPage() {
   const assistantInner = (
     <div className="flex min-h-full flex-1 flex-col justify-between">
       <div className="mb-4">
-        <div className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-[#2e3165] py-8 text-white shadow-sm">
+          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-brand py-8 text-brand-foreground shadow-sm">
           <Mic className="h-6 w-6" />
           <h2 className="text-xl font-bold tracking-wide">ArtisanVoice</h2>
         </div>
@@ -228,7 +228,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      <div className="hidden flex-1 flex-row overflow-hidden bg-[#f4f4f5] md:flex">
+      <div className="hidden flex-1 flex-row overflow-hidden bg-surface md:flex">
         <div className="flex min-h-0 w-1/3 min-w-0 flex-col bg-white">
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 md:p-6 lg:p-8">
             <div className="mb-4 shrink-0 hidden md:block">
@@ -267,7 +267,7 @@ export default function DashboardPage() {
                   {t("dashboard.main.preview")}
                 </Button>
                 <Button
-                  className="rounded-lg bg-[#2e3165] text-white hover:bg-[#1f2144] shadow-sm"
+                  className="rounded-lg bg-brand text-brand-foreground hover:bg-brand/90 shadow-sm"
                   onClick={handleSend}
                   disabled={isListening || isProcessing || items.length === 0}
                 >
