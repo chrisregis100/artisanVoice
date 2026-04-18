@@ -9,13 +9,17 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-display" });
 
 export const metadata: Metadata = {
-  title: "ArtisanVoice",
+  title: "Billo",
   description: "Assistant vocal de facturation pour artisans",
+  icons: {
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icon-192.svg", type: "image/svg+xml" }],
+  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "ArtisanVoice",
+    title: "Billo",
   },
 };
 
@@ -32,9 +36,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <head>
-        <link rel="apple-touch-icon" href="/icon-192.svg" type="image/svg+xml" />
-      </head>
       <body className={`${inter.variable} ${plusJakarta.variable} font-sans antialiased`}>
         <LanguageProvider>
           <ThemeProvider

@@ -15,6 +15,7 @@ import {
   Headphones,
 } from "lucide-react";
 import { useLanguage } from "@/i18n/context";
+import { BilloLogoMark } from "@/components/brand/billo-logo";
 
 interface PlanFeature {
   labelKey: string;
@@ -311,7 +312,7 @@ export function PricingContent() {
               variant="outline"
               className="rounded-xl px-6 font-semibold"
             >
-              <Link href="mailto:contact@artisanvoice.app">
+              <Link href="mailto:contact@billo.app">
                 {t("pricingPage.contactBtn")}
               </Link>
             </Button>
@@ -326,15 +327,13 @@ export function PricingContent() {
             <Link
               href="/"
               className="flex items-center gap-2"
-              aria-label="ArtisanVoice - Accueil"
+              aria-label="Billo - Accueil"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand">
-                <Mic className="h-4 w-4 text-brand-foreground" aria-hidden />
-              </div>
-              <span className="font-bold text-brand">ArtisanVoice</span>
+              <BilloLogoMark className="h-8 w-8" size={32} />
+              <span className="font-bold text-brand">Billo</span>
             </Link>
             <p className="text-sm text-slate-400">
-              © {new Date().getFullYear()} ArtisanVoice ·{" "}
+              © {new Date().getFullYear()} Billo ·{" "}
               {t("pricingPage.footerRights")}
             </p>
           </div>

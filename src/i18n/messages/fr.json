@@ -29,7 +29,7 @@
     "registerFree": "S'inscrire gratuitement",
     "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu",
-    "homeAria": "ArtisanVoice - Accueil",
+    "homeAria": "Billo - Accueil",
     "mainNav": "Navigation principale"
   },
   "landing": {
@@ -37,7 +37,7 @@
       "badge": "Nouveau : édition vocale en temps réel",
       "titlePart1": "Votre assistant vocal",
       "titleHighlight": "de facturation",
-      "subtitle": "Dictez votre facture à voix haute, ArtisanVoice la génère automatiquement. Partagez-la via WhatsApp en quelques secondes. Sans clavier, sans effort.",
+      "subtitle": "Dictez votre facture à voix haute, Billo la génère automatiquement. Partagez-la via WhatsApp en quelques secondes. Sans clavier, sans effort.",
       "ctaPrimary": "Commencer gratuitement",
       "ctaSecondary": "Voir la démo",
       "freeNotice": "Gratuit jusqu'à 3 factures par mois · Aucune carte requise",
@@ -76,7 +76,7 @@
     "features": {
       "badge": "Fonctionnalités",
       "title": "Tout ce dont vous avez besoin",
-      "subtitle": "ArtisanVoice réunit tout ce qu'il faut pour gérer votre facturation sans perdre de temps.",
+      "subtitle": "Billo réunit tout ce qu'il faut pour gérer votre facturation sans perdre de temps.",
       "voiceTitle": "Facturation 100 % vocale",
       "voiceDesc": "Dictez simplement « Ajouter prestation peinture 3 heures à 5 000 F » — la ligne s'ajoute instantanément.",
       "pdfTitle": "PDF professionnel instantané",
@@ -84,7 +84,7 @@
       "whatsappTitle": "Partage WhatsApp en 1 tap",
       "whatsappDesc": "Envoyez le document directement dans WhatsApp à votre client. Pas d'email, pas d'imprimante.",
       "offlineTitle": "Mode hors-ligne",
-      "offlineDesc": "ArtisanVoice fonctionne sans connexion internet. Synchronisation automatique dès que le réseau revient.",
+      "offlineDesc": "Billo fonctionne sans connexion internet. Synchronisation automatique dès que le réseau revient.",
       "clientsTitle": "Gestion des clients",
       "clientsDesc": "Enregistrez vos clients et accédez à tout leur historique de commandes en quelques secondes.",
       "trackingTitle": "Suivi des encaissements",
@@ -96,7 +96,7 @@
       "subtitle": "Conçu pour aller vite, même avec les mains occupées.",
       "cta": "Essayer gratuitement",
       "step1Title": "Ouvrez l'application",
-      "step1Desc": "Lancez ArtisanVoice depuis n'importe quel appareil — téléphone, tablette ou PC.",
+      "step1Desc": "Lancez Billo depuis n'importe quel appareil — téléphone, tablette ou PC.",
       "step2Title": "Dictez votre facture",
       "step2Desc": "Appuyez sur le micro et dites les prestations, quantités et prix. L'IA comprend le wolof, le français et le bambara.",
       "step3Title": "Vérifiez et ajustez",
@@ -107,13 +107,13 @@
     "testimonials": {
       "badge": "Témoignages",
       "title": "Ce qu'ils en disent",
-      "subtitle": "Des artisans de toute l'Afrique francophone font confiance à ArtisanVoice chaque jour.",
+      "subtitle": "Des artisans de toute l'Afrique francophone font confiance à Billo chaque jour.",
       "t1Name": "Ibrahima Koné",
       "t1Role": "Peintre en bâtiment, Abidjan",
       "t1Quote": "Avant, je perdais 1 heure à faire mes factures le soir. Maintenant j'en parle à l'appli sur le chantier et c'est envoyé au client directement. C'est magique.",
       "t2Name": "Fatoumata Traoré",
       "t2Role": "Couturière, Bamako",
-      "t2Quote": "Je ne sais pas bien écrire sur le téléphone. Avec ArtisanVoice je dicte, la facture sort belle et professionnelle. Mes clients sont impressionnés.",
+      "t2Quote": "Je ne sais pas bien écrire sur le téléphone. Avec Billo je dicte, la facture sort belle et professionnelle. Mes clients sont impressionnés.",
       "t3Name": "Kwame Asante",
       "t3Role": "Électricien, Dakar",
       "t3Quote": "Le mode hors-ligne est essentiel pour moi. Je travaille dans des zones sans réseau et tout se synchronise après. Je recommande à tous mes collègues."
@@ -155,22 +155,22 @@
     "faq": {
       "badge": "FAQ",
       "title": "Questions fréquentes",
-      "q1": "ArtisanVoice fonctionne-t-il sans internet ?",
-      "a1": "Oui. ArtisanVoice dispose d'un mode hors-ligne complet. Vous pouvez créer et modifier vos documents sans connexion. Dès que votre réseau revient, tout se synchronise automatiquement.",
+      "q1": "Billo fonctionne-t-il sans internet ?",
+      "a1": "Oui. Billo dispose d'un mode hors-ligne complet. Vous pouvez créer et modifier vos documents sans connexion. Dès que votre réseau revient, tout se synchronise automatiquement.",
       "q2": "En quelle langue puis-je dicter mes factures ?",
       "a2": "Vous pouvez dicter en français. Le support pour d'autres langues locales (wolof, bambara, mooré…) est en cours de développement.",
       "q3": "Mes données sont-elles sécurisées ?",
       "a3": "Vos données sont chiffrées et hébergées sur des serveurs sécurisés en Europe. Nous n'accédons jamais au contenu de vos factures et vous pouvez supprimer votre compte à tout moment.",
       "q4": "Comment fonctionne l'abonnement Pro ?",
       "a4": "L'abonnement Pro est mensuel à 5 000 FCFA. Il vous donne accès à des documents illimités, la gestion des clients et le support prioritaire. Vous pouvez annuler à tout moment sans frais.",
-      "q5": "Puis-je utiliser ArtisanVoice sur mon téléphone ?",
-      "a5": "Oui ! ArtisanVoice est une Progressive Web App (PWA) optimisée pour mobile. Ajoutez-la à votre écran d'accueil pour une expérience app native, sans passer par un store.",
+      "q5": "Puis-je utiliser Billo sur mon téléphone ?",
+      "a5": "Oui ! Billo est une Progressive Web App (PWA) optimisée pour mobile. Ajoutez-la à votre écran d'accueil pour une expérience app native, sans passer par un store.",
       "q6": "Y a-t-il un essai gratuit du plan Pro ?",
       "a6": "Le plan Gratuit est disponible sans limite de durée. Pour tester le Pro, contactez notre équipe — nous proposons une période d'essai sur demande."
     },
     "cta": {
       "title": "Prêt à facturer plus vite ?",
-      "subtitle": "Rejoignez les 1 200 artisans qui gagnent du temps chaque semaine avec ArtisanVoice.",
+      "subtitle": "Rejoignez les 1 200 artisans qui gagnent du temps chaque semaine avec Billo.",
       "createAccount": "Créer un compte gratuit",
       "login": "Se connecter"
     },
@@ -318,7 +318,7 @@
       "fFullHistory": "Historique complet",
       "fPrioritySupport": "Support prioritaire",
       "featureLabel": "Fonctionnalité",
-      "welcome": "Bienvenue sur ArtisanVoice ! Votre compte gratuit est actif.",
+      "welcome": "Bienvenue sur Billo ! Votre compte gratuit est actif.",
       "activationError": "Erreur lors de l'activation"
     },
     "checkout": {

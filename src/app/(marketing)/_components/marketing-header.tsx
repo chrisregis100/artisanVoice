@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Mic, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import { BilloLogoMark } from "@/components/brand/billo-logo";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { useLanguage } from "@/i18n/context";
@@ -40,10 +41,8 @@ export function MarketingHeader() {
           className="flex items-center gap-2.5"
           aria-label={t("nav.homeAria")}
         >
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand shadow-sm">
-            <Mic className="h-5 w-5 text-brand-foreground" aria-hidden />
-          </div>
-          <span className="text-lg font-bold text-brand">ArtisanVoice</span>
+          <BilloLogoMark className="h-9 w-9" size={36} />
+          <span className="text-lg font-bold text-brand">Billo</span>
         </Link>
 
         <nav

@@ -6,8 +6,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/context";
+import { BilloLogoMark } from "@/components/brand/billo-logo";
 import {
-  Mic,
   ArrowLeft,
   Loader2,
   Shield,
@@ -188,13 +188,11 @@ function CheckoutForm() {
             <Link
               href="/"
               className="flex items-center gap-2.5"
-              aria-label="ArtisanVoice — Accueil"
+              aria-label="Billo — Accueil"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand shadow-sm">
-                <Mic className="h-5 w-5 text-brand-foreground" aria-hidden />
-              </div>
+              <BilloLogoMark className="h-9 w-9" size={36} />
               <span className="text-lg font-bold text-brand">
-                ArtisanVoice
+                Billo
               </span>
             </Link>
             <button

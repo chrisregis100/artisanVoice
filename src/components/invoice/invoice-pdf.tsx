@@ -301,7 +301,7 @@ export function InvoicePDF({
         </View>
 
         <Text style={styles.footer} fixed>
-          Document généré par ArtisanVoice —{" "}
+          Document généré par Billo —{" "}
           {formatIsoDateForDocument(documentDate)}
         </Text>
       </Page>

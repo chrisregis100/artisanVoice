@@ -1,4 +1,4 @@
--- ArtisanVoice Subscriptions Schema
+-- Billo Subscriptions Schema
 -- Phase 3: Plans, Subscriptions, Admin Settings, Invoice Usage
 
 -- Plans table

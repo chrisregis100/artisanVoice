@@ -29,7 +29,7 @@
     "registerFree": "Sign up for free",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "homeAria": "ArtisanVoice - Home",
+    "homeAria": "Billo - Home",
     "mainNav": "Main navigation"
   },
   "landing": {
@@ -37,7 +37,7 @@
       "badge": "New: real-time voice editing",
       "titlePart1": "Your voice assistant",
       "titleHighlight": "for invoicing",
-      "subtitle": "Dictate your invoice out loud, ArtisanVoice generates it automatically. Share it via WhatsApp in seconds. No keyboard, no effort.",
+      "subtitle": "Dictate your invoice out loud, Billo generates it automatically. Share it via WhatsApp in seconds. No keyboard, no effort.",
       "ctaPrimary": "Start for free",
       "ctaSecondary": "See the demo",
       "freeNotice": "Free up to 3 invoices per month · No card required",
@@ -76,7 +76,7 @@
     "features": {
       "badge": "Features",
       "title": "Everything you need",
-      "subtitle": "ArtisanVoice brings together everything you need to manage your invoicing without wasting time.",
+      "subtitle": "Billo brings together everything you need to manage your invoicing without wasting time.",
       "voiceTitle": "100% voice invoicing",
       "voiceDesc": "Simply say \"Add painting service 3 hours at 5,000 F\" — the line is added instantly.",
       "pdfTitle": "Instant professional PDF",
@@ -84,7 +84,7 @@
       "whatsappTitle": "Share via WhatsApp in 1 tap",
       "whatsappDesc": "Send the document directly to your client in WhatsApp. No email, no printer.",
       "offlineTitle": "Offline mode",
-      "offlineDesc": "ArtisanVoice works without an internet connection. Automatic sync when the network comes back.",
+      "offlineDesc": "Billo works without an internet connection. Automatic sync when the network comes back.",
       "clientsTitle": "Client management",
       "clientsDesc": "Save your clients and access their full order history in seconds.",
       "trackingTitle": "Payment tracking",
@@ -96,7 +96,7 @@
       "subtitle": "Designed to be fast, even with your hands busy.",
       "cta": "Try for free",
       "step1Title": "Open the app",
-      "step1Desc": "Launch ArtisanVoice from any device — phone, tablet or PC.",
+      "step1Desc": "Launch Billo from any device — phone, tablet or PC.",
       "step2Title": "Dictate your invoice",
       "step2Desc": "Press the mic and say the services, quantities and prices. The AI understands French and local languages.",
       "step3Title": "Review and adjust",
@@ -107,13 +107,13 @@
     "testimonials": {
       "badge": "Testimonials",
       "title": "What they say",
-      "subtitle": "Artisans from across francophone Africa trust ArtisanVoice every day.",
+      "subtitle": "Artisans from across francophone Africa trust Billo every day.",
       "t1Name": "Ibrahima Koné",
       "t1Role": "House painter, Abidjan",
       "t1Quote": "Before, I wasted 1 hour doing invoices every evening. Now I tell the app on the job site and it's sent to the client right away. It's magic.",
       "t2Name": "Fatoumata Traoré",
       "t2Role": "Seamstress, Bamako",
-      "t2Quote": "I'm not great at typing on my phone. With ArtisanVoice I dictate, the invoice comes out beautiful and professional. My clients are impressed.",
+      "t2Quote": "I'm not great at typing on my phone. With Billo I dictate, the invoice comes out beautiful and professional. My clients are impressed.",
       "t3Name": "Kwame Asante",
       "t3Role": "Electrician, Dakar",
       "t3Quote": "Offline mode is essential for me. I work in areas with no network and everything syncs after. I recommend it to all my colleagues."
@@ -155,22 +155,22 @@
     "faq": {
       "badge": "FAQ",
       "title": "Frequently asked questions",
-      "q1": "Does ArtisanVoice work without internet?",
-      "a1": "Yes. ArtisanVoice has a full offline mode. You can create and edit documents without a connection. As soon as your network returns, everything syncs automatically.",
+      "q1": "Does Billo work without internet?",
+      "a1": "Yes. Billo has a full offline mode. You can create and edit documents without a connection. As soon as your network returns, everything syncs automatically.",
       "q2": "What language can I dictate my invoices in?",
       "a2": "You can dictate in French. Support for other local languages (Wolof, Bambara, Mooré…) is under development.",
       "q3": "Is my data secure?",
       "a3": "Your data is encrypted and hosted on secure servers in Europe. We never access the content of your invoices and you can delete your account at any time.",
       "q4": "How does the Pro subscription work?",
       "a4": "The Pro subscription is monthly at 5,000 FCFA. It gives you access to unlimited documents, client management and priority support. You can cancel at any time with no fees.",
-      "q5": "Can I use ArtisanVoice on my phone?",
-      "a5": "Yes! ArtisanVoice is a Progressive Web App (PWA) optimized for mobile. Add it to your home screen for a native app experience, without going through a store.",
+      "q5": "Can I use Billo on my phone?",
+      "a5": "Yes! Billo is a Progressive Web App (PWA) optimized for mobile. Add it to your home screen for a native app experience, without going through a store.",
       "q6": "Is there a free trial of the Pro plan?",
       "a6": "The Free plan is available without time limit. To try Pro, contact our team — we offer a trial period on request."
     },
     "cta": {
       "title": "Ready to invoice faster?",
-      "subtitle": "Join 1,200 artisans who save time every week with ArtisanVoice.",
+      "subtitle": "Join 1,200 artisans who save time every week with Billo.",
       "createAccount": "Create a free account",
       "login": "Log in"
     },
@@ -318,7 +318,7 @@
       "fFullHistory": "Full history",
       "fPrioritySupport": "Priority support",
       "featureLabel": "Feature",
-      "welcome": "Welcome to ArtisanVoice! Your free account is active.",
+      "welcome": "Welcome to Billo! Your free account is active.",
       "activationError": "Activation error"
     },
     "checkout": {

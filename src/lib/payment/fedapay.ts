@@ -74,7 +74,7 @@ export const initiateFedaPayPayment = async (
   const lastName = lastParts.join(" ") || firstName;
 
   const transactionPayload = {
-    description: "Abonnement ArtisanVoice Pro — 5 000 FCFA/mois",
+    description: "Abonnement Billo Pro — 5 000 FCFA/mois",
     amount: params.amount,
     currency: { iso: params.currency },
     callback_url: params.redirectUrl,

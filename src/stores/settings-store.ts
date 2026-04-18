@@ -68,7 +68,7 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
       updateSettings: (updates) => set(updates),
     }),
     {
-      name: "artisan-voice-settings",
+      name: "billo-settings",
     }
   )
 );

@@ -1,7 +1,7 @@
 import { LandingContent } from "./_components/landing";
 
 export const metadata = {
-  title: "ArtisanVoice — Créez vos factures par la voix",
+  title: "Billo — Créez vos factures par la voix",
   description:
     "Assistant vocal de facturation pour artisans. Dictez, la facture se crée automatiquement. Partagez via WhatsApp en quelques secondes.",
 };

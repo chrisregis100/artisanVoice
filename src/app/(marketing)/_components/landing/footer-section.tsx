@@ -1,7 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/i18n/context";
-import { Mic } from "lucide-react";
+import { BilloLogoMark } from "@/components/brand/billo-logo";
 import Link from "next/link";
 
 export function FooterSection() {
@@ -32,13 +32,11 @@ export function FooterSection() {
             <Link
               href="/"
               className="flex items-center gap-2.5"
-              aria-label="ArtisanVoice"
+              aria-label="Billo"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand">
-                <Mic className="h-4 w-4 text-brand-foreground" aria-hidden />
-              </div>
+              <BilloLogoMark className="h-9 w-9" size={36} />
               <span className="text-lg font-bold text-brand">
-                ArtisanVoice
+                Billo
               </span>
             </Link>
             <p className="text-sm leading-relaxed text-slate-500">
@@ -69,7 +67,7 @@ export function FooterSection() {
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-100 pt-8 sm:flex-row">
           <p className="text-sm text-slate-400">
-            © {currentYear} ArtisanVoice · {t("landing.footer.rights")}
+            © {currentYear} Billo · {t("landing.footer.rights")}
           </p>
           <p className="text-xs text-slate-300">{t("landing.footer.madeWith")}</p>
         </div>

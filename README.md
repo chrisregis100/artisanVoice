@@ -1,4 +1,4 @@
-# ArtisanVoice
+# Billo
 
 Assistant vocal de facturation pour artisans - Créez vos devis et factures par la voix, sans saisie au clavier.
 
@@ -26,7 +26,7 @@ Assistant vocal de facturation pour artisans - Créez vos devis et factures par 
 ```bash
 # Cloner le projet
 git clone <repo-url>
-cd artisanVoice
+cd billo   # ou le dossier où vous avez cloné le dépôt
 
 # Installer les dépendances
 npm install

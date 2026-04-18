@@ -1,11 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="Billo">
+  <title>Billo</title>
   <defs>
-    <linearGradient id="billoG192" x1="32" y1="32" x2="160" y2="160" gradientUnits="userSpaceOnUse">
+    <linearGradient id="billoMark" x1="32" y1="32" x2="160" y2="160" gradientUnits="userSpaceOnUse">
       <stop stop-color="#059669"/>
       <stop offset="1" stop-color="#0f766e"/>
     </linearGradient>
   </defs>
-  <rect width="192" height="192" rx="48" fill="url(#billoG192)"/>
+  <rect width="192" height="192" rx="48" fill="url(#billoMark)"/>
   <path
     d="M 60 52 L 60 140 M 60 52 Q 114 70 60 88 M 60 88 Q 124 114 60 140"
     fill="none"

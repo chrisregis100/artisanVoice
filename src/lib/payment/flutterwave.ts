@@ -55,7 +55,7 @@ export const initiateFlutterwavePayment = async (
 ): Promise<{ paymentUrl: string }> => {
   const secretKey = env.FLUTTERWAVE_SECRET_KEY;
 
-  const txRef = `artisan-${params.userId}-${params.planId}-${Date.now()}`;
+  const txRef = `billo-${params.userId}-${params.planId}-${Date.now()}`;
 
   const payload = {
     tx_ref: txRef,
@@ -71,9 +71,9 @@ export const initiateFlutterwavePayment = async (
       name: params.name,
     },
     customizations: {
-      title: "ArtisanVoice Pro",
+      title: "Billo Pro",
       description: "Abonnement mensuel Plan Pro — 5 000 FCFA/mois",
-      logo: "https://artisanvoice.app/logo.png",
+      logo: "https://billo.app/billo-mark.svg",
     },
   };
 

@@ -2,13 +2,13 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "ArtisanVoice",
-    short_name: "ArtisanVoice",
+    name: "Billo",
+    short_name: "Billo",
     description: "Assistant vocal de facturation pour artisans",
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",
-    theme_color: "#2e3165",
+    theme_color: "#059669",
     orientation: "portrait",
     icons: [
       {

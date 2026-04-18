@@ -1,4 +1,4 @@
--- ArtisanVoice Database Schema
+-- Billo Database Schema
 -- Run this in your Supabase SQL editor
 
 -- Enable UUID extension

@@ -5,7 +5,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
-import { Mic, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import { BilloLogoMark } from "@/components/brand/billo-logo";
 import { useNavItems, SidebarNav } from "./sidebar-nav";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { DashboardHeader } from "./dashboard-header";
@@ -59,10 +60,8 @@ export function DashboardShell({
               )}
             </button>
             <Link href="/dashboard" className="flex items-center gap-2">
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary">
-                <Mic className="w-4 h-4 text-primary-foreground" />
-              </div>
-              <span className="font-semibold text-lg">ArtisanVoice</span>
+              <BilloLogoMark size={32} />
+              <span className="font-semibold text-lg">Billo</span>
             </Link>
           </div>
           <ThemeToggle />

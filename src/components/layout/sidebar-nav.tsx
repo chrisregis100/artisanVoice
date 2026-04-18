@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/context";
 import { cn } from "@/lib/utils";
 import {
-  Mic,
   Settings,
   LogOut,
   Home,
@@ -17,6 +16,7 @@ import {
   ChevronRight,
   ChevronLeft,
 } from "lucide-react";
+import { BilloLogoMark } from "@/components/brand/billo-logo";
 
 export function useNavItems() {
   const { t } = useLanguage();
@@ -59,9 +59,7 @@ export function SidebarNav({
           href="/dashboard"
           className="flex items-center gap-3 min-w-0 overflow-hidden"
         >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand shadow-sm">
-            <Mic className="h-5 w-5 text-brand-foreground" />
-          </div>
+          <BilloLogoMark className="h-10 w-10" size={40} />
           <span
             className={cn(
               "text-lg font-bold tracking-tight text-brand whitespace-nowrap transition-all duration-300",
@@ -70,7 +68,7 @@ export function SidebarNav({
                 : "opacity-0 -translate-x-4 w-0",
             )}
           >
-            ArtisanVoice
+            Billo
           </span>
         </Link>
       </div>

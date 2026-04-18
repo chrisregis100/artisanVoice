@@ -2,6 +2,7 @@
 
 import { useLanguage } from "@/i18n/context";
 import { FileText, Mic, TrendingUp, Users } from "lucide-react";
+import { BilloLogoMark } from "@/components/brand/billo-logo";
 import { motion, useMotionTemplate, useMotionValue, useSpring } from "framer-motion";
 import React from "react";
 
@@ -58,17 +59,15 @@ export function HeroDashboardMockup() {
             <div className="h-3 w-3 rounded-full bg-emerald-500 shadow-sm" />
           </div>
           <div className="mx-auto flex h-6 w-full max-w-md items-center justify-center rounded-md bg-white/60 text-[10px] font-medium text-slate-500 shadow-sm">
-            app.artisanvoice.com
+            app.billo.app
           </div>
         </div>
 
         <div className="flex h-[500px] bg-slate-50/40">
           <div className="hidden w-64 flex-col gap-6 border-r border-white/50 bg-white/40 p-6 sm:flex backdrop-blur-md">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand shadow-md shadow-brand/20">
-                <Mic className="h-4 w-4 text-brand-foreground" />
-              </div>
-              <span className="font-display font-bold text-slate-900 tracking-tight">ArtisanVoice</span>
+              <BilloLogoMark className="h-8 w-8" size={32} />
+              <span className="font-display font-bold text-slate-900 tracking-tight">Billo</span>
             </div>
 
             <div className="flex flex-col gap-1">

@@ -23,7 +23,8 @@ import { useLanguage } from "@/i18n/context";
 import { useInvoiceStore } from "@/stores/invoice-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import type { InvoiceItem } from "@/types";
-import { Eye, Mic, WifiOff } from "lucide-react";
+import { BilloLogoMark } from "@/components/brand/billo-logo";
+import { Eye, WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
@@ -180,9 +181,13 @@ export default function DashboardPage() {
   const assistantInner = (
     <div className="flex min-h-full flex-1 flex-col justify-between">
       <div className="mb-4">
-          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl bg-brand py-8 text-brand-foreground shadow-sm">
-          <Mic className="h-6 w-6" />
-          <h2 className="text-xl font-bold tracking-wide">ArtisanVoice</h2>
+          <div className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-brand py-8 text-brand-foreground shadow-sm">
+          <BilloLogoMark
+            className="h-14 w-14"
+            size={56}
+            variant="onBrand"
+          />
+          <h2 className="text-xl font-bold tracking-wide">Billo</h2>
         </div>
       </div>
 

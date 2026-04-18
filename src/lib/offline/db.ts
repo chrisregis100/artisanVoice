@@ -34,13 +34,13 @@ export interface CachedCustomer {
   syncStatus: "local" | "synced";
 }
 
-class ArtisanVoiceDB extends Dexie {
+class BilloDB extends Dexie {
   invoices!: Table<LocalInvoice, string>;
   pendingCommands!: Table<PendingVoiceCommand, string>;
   customers!: Table<CachedCustomer, string>;
 
   constructor() {
-    super("ArtisanVoiceDB");
+    super("BilloDB");
 
     this.version(1).stores({
       invoices: "id, userId, syncStatus, createdAt, updatedAt",
@@ -50,7 +50,7 @@ class ArtisanVoiceDB extends Dexie {
   }
 }
 
-export const db = new ArtisanVoiceDB();
+export const db = new BilloDB();
 
 // Helper functions
 export async function saveInvoiceLocally(

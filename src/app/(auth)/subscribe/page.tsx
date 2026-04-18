@@ -1,20 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { BilloLogoMark } from "@/components/brand/billo-logo";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/context";
 import {
-  Mic,
-  CheckCircle2,
-  X,
-  Loader2,
-  Zap,
   ArrowRight,
+  CheckCircle2,
+  Loader2,
   Shield,
+  X,
+  Zap,
 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface PlanFeature {
   labelKey: string;
@@ -58,7 +58,10 @@ export default function SubscribePage() {
       router.push(data.redirect ?? "/dashboard");
       router.refresh();
     } catch (err) {
-      const message = err instanceof Error ? err.message : t("auth.subscribe.activationError");
+      const message =
+        err instanceof Error
+          ? err.message
+          : t("auth.subscribe.activationError");
       toast.error(message);
       setLoadingPlan(null);
     }
@@ -78,14 +81,10 @@ export default function SubscribePage() {
           <Link
             href="/"
             className="flex items-center gap-2.5"
-            aria-label="ArtisanVoice — Accueil"
+            aria-label="Billo — Accueil"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand shadow-sm">
-              <Mic className="h-5 w-5 text-brand-foreground" aria-hidden />
-            </div>
-            <span className="text-lg font-bold text-brand">
-              ArtisanVoice
-            </span>
+            <BilloLogoMark className="h-9 w-9" size={36} />
+            <span className="text-lg font-bold text-brand">Billo</span>
           </Link>
           <div className="flex items-center gap-2 text-sm text-slate-500">
             <Shield className="h-4 w-4 text-primary" aria-hidden />
@@ -138,7 +137,10 @@ export default function SubscribePage() {
                       aria-hidden
                     />
                   ) : (
-                    <X className="h-4 w-4 shrink-0 text-slate-300" aria-hidden />
+                    <X
+                      className="h-4 w-4 shrink-0 text-slate-300"
+                      aria-hidden
+                    />
                   )}
                   <span
                     className={`text-sm ${f.free ? "text-slate-700" : "text-slate-400"}`}
@@ -200,10 +202,7 @@ export default function SubscribePage() {
                       aria-hidden
                     />
                   ) : (
-                    <X
-                      className="h-4 w-4 shrink-0 text-white/30"
-                      aria-hidden
-                    />
+                    <X className="h-4 w-4 shrink-0 text-white/30" aria-hidden />
                   )}
                   <span
                     className={`text-sm ${f.pro ? "text-white/90" : "text-white/40"}`}

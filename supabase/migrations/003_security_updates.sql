@@ -1,4 +1,4 @@
--- ArtisanVoice Security Updates
+-- Billo Security Updates
 -- Phase 6: Additional indexes, RLS hardening, admin_settings protection
 
 -- -------------------------------------------------------------------
