@@ -208,7 +208,7 @@ export default function DashboardPage() {
               ].map((example) => (
                 <button
                   key={example}
-                  className="rounded-full border border-border/80 bg-gray-50 px-4 py-1.5 text-xs text-gray-600 hover:bg-gray-100 transition-colors shadow-sm"
+                  className="rounded-full border border-border/80 bg-muted px-4 py-1.5 text-xs text-muted-foreground hover:bg-muted/80 transition-colors shadow-sm"
                 >
                   {example}
                 </button>
@@ -234,7 +234,7 @@ export default function DashboardPage() {
       )}
 
       <div className="hidden flex-1 flex-row overflow-hidden bg-surface md:flex">
-        <div className="flex min-h-0 w-1/3 min-w-0 flex-col bg-white">
+        <div className="flex min-h-0 w-1/3 min-w-0 flex-col bg-background">
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 md:p-6 lg:p-8">
             <div className="mb-4 shrink-0 hidden md:block">
               <SubscriptionUsageCard {...subscriptionStatus} />
@@ -247,8 +247,8 @@ export default function DashboardPage() {
           className="min-h-0 w-2/3 min-w-0 flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 border-l border-border/40"
         >
           <div className="mx-auto max-w-4xl flex flex-col h-full">
-            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
-              <h2 className="text-2xl font-bold text-gray-900">
+            <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
+              <h2 className="text-2xl font-bold text-foreground">
                 {t("dashboard.main.documentPreview")}
               </h2>
 
@@ -256,7 +256,7 @@ export default function DashboardPage() {
                 <Button
                   variant="outline"
                   onClick={() => setResetDialogOpen(true)}
-                  className="rounded-lg border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+                  className="rounded-lg border-border text-foreground/80 bg-background hover:bg-muted"
                   disabled={isListening || isProcessing || !hasContent}
                 >
                   {t("dashboard.main.clearAll")}
@@ -266,7 +266,7 @@ export default function DashboardPage() {
                   onClick={handlePreview}
                   disabled={!hasContent}
                   aria-label={t("dashboard.main.previewAria")}
-                  className="gap-2 rounded-lg border-gray-300 text-gray-700 bg-white hover:bg-gray-50"
+                  className="gap-2 rounded-lg border-border text-foreground/80 bg-background hover:bg-muted"
                 >
                   <Eye className="h-4 w-4" aria-hidden />
                   {t("dashboard.main.preview")}
@@ -281,7 +281,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="flex-1 bg-card rounded-xl shadow-sm border border-border/60 overflow-hidden">
               {invoicePreview}
             </div>
           </div>

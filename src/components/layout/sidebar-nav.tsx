@@ -132,7 +132,7 @@ export function SidebarNav({
         </Link>
 
         <button
-          className="flex w-full items-center gap-3 rounded-xl p-3 text-sm font-medium text-muted-foreground hover:bg-red-50 hover:text-red-600 transition-all duration-200 overflow-hidden whitespace-nowrap"
+          className="flex w-full items-center gap-3 rounded-xl p-3 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all duration-200 overflow-hidden whitespace-nowrap"
           onClick={handleSignOut}
           title={!isExpanded ? t("dashboard.nav.logout") : undefined}
         >

@@ -1,18 +1,45 @@
 "use client";
 
-import { useId } from "react";
 import { cn } from "@/lib/utils";
+
+/** Aligné sur `public/billo-mark.svg` — ondes / voix. */
+const MARK_VIEW_BOX = "0 0 192 192";
+const WAVES_GROUP_TRANSFORM =
+  "translate(96 96) scale(1.88) translate(-65 -96)";
+const WAVE_PATH_DS = [
+  "M42 86 Q102 96 42 106",
+  "M42 74 Q118 96 42 118",
+  "M42 58 Q134 96 42 134",
+] as const;
+const WAVE_STROKE_WIDTH = 10;
 
 interface BilloLogoMarkProps {
   className?: string;
   size?: number;
   title?: string;
-  /** Sur fond vert (ex. bandeau brand) : pastille claire + B blanc */
+  /** Sur fond brand (ex. bandeau) : pastille claire + motif blanc */
   variant?: "default" | "onBrand";
 }
 
+function BilloWaveMark({ stroke }: { stroke: string }) {
+  return (
+    <g
+      fill="none"
+      stroke={stroke}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={WAVE_STROKE_WIDTH}
+      transform={WAVES_GROUP_TRANSFORM}
+    >
+      {WAVE_PATH_DS.map((d) => (
+        <path key={d} d={d} />
+      ))}
+    </g>
+  );
+}
+
 /**
- * Monogramme Billo : dégradé émeraude + B en traits arrondis (facture / voix).
+ * Pictogramme Billo : trois ondes (même tracé que `billo-mark.svg`).
  */
 export function BilloLogoMark({
   className,
@@ -20,75 +47,34 @@ export function BilloLogoMark({
   title,
   variant = "default",
 }: BilloLogoMarkProps) {
-  const uid = useId().replace(/:/g, "");
-  const gradId = `billo-surface-${uid}`;
-
-  const pathD =
-    "M 15 13 L 15 35 M 15 13 Q 28.5 17.5 15 22 M 15 22 Q 31 28.5 15 35";
+  const svgBase = {
+    width: size,
+    height: size,
+    viewBox: MARK_VIEW_BOX,
+    role: "img" as const,
+    "aria-hidden": title ? undefined : true,
+    "aria-label": title,
+  } as const;
 
   if (variant === "onBrand") {
     return (
-      <svg
-        width={size}
-        height={size}
-        viewBox="0 0 48 48"
-        className={cn("shrink-0", className)}
-        role="img"
-        aria-hidden={title ? undefined : true}
-        aria-label={title}
-      >
+      <svg {...svgBase} className={cn("shrink-0", className)}>
         {title ? <title>{title}</title> : null}
         <rect
-          width="48"
-          height="48"
-          rx="12"
-          fill="rgba(255,255,255,0.22)"
+          width="192"
+          height="192"
+          rx="44"
+          fill="rgba(255, 255, 255, 0.22)"
         />
-        <path
-          d={pathD}
-          fill="none"
-          stroke="white"
-          strokeWidth="4.75"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
+        <BilloWaveMark stroke="#ffffff" />
       </svg>
     );
   }
 
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 48 48"
-      className={cn("shrink-0", className)}
-      role="img"
-      aria-hidden={title ? undefined : true}
-      aria-label={title}
-    >
+    <svg {...svgBase} className={cn("shrink-0 text-primary", className)}>
       {title ? <title>{title}</title> : null}
-      <defs>
-        <linearGradient
-          id={gradId}
-          x1="8"
-          y1="8"
-          x2="44"
-          y2="44"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#059669" />
-          <stop offset="1" stopColor="#0f766e" />
-        </linearGradient>
-      </defs>
-      <rect width="48" height="48" rx="12" fill={`url(#${gradId})`} />
-      <path
-        d={pathD}
-        fill="none"
-        stroke="white"
-        strokeWidth="4.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <BilloWaveMark stroke="currentColor" />
     </svg>
   );
 }

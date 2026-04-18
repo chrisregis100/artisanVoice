@@ -74,9 +74,9 @@ export default function SubscribePage() {
   const isLoading = loadingPlan !== null;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-muted">
       {/* Header */}
-      <header className="border-b border-slate-100 bg-white px-6 py-4">
+      <header className="border-b border-border bg-background px-6 py-4">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <Link
             href="/"
@@ -86,7 +86,7 @@ export default function SubscribePage() {
             <BilloLogoMark className="h-9 w-9" size={36} />
             <span className="text-lg font-bold text-brand">Billo</span>
           </Link>
-          <div className="flex items-center gap-2 text-sm text-slate-500">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Shield className="h-4 w-4 text-primary" aria-hidden />
             {t("auth.subscribe.secureConnection")}
           </div>
@@ -101,10 +101,10 @@ export default function SubscribePage() {
             <Zap className="h-3.5 w-3.5" aria-hidden />
             {t("auth.subscribe.stepBadge")}
           </span>
-          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+          <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
             {t("auth.subscribe.title")}
           </h1>
-          <p className="mx-auto mt-3 max-w-xl text-base text-slate-500">
+          <p className="mx-auto mt-3 max-w-xl text-base text-muted-foreground">
             {t("auth.subscribe.subtitle")}
           </p>
         </div>
@@ -112,18 +112,18 @@ export default function SubscribePage() {
         {/* Plan cards */}
         <div className="mx-auto grid max-w-3xl grid-cols-1 gap-6 sm:grid-cols-2">
           {/* Free plan */}
-          <div className="flex flex-col rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="flex flex-col rounded-2xl border border-border bg-card p-8 shadow-sm">
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-slate-800">
+              <h2 className="text-xl font-bold text-foreground">
                 {t("auth.subscribe.freeName")}
               </h2>
               <div className="mt-3 flex items-baseline gap-1.5">
-                <span className="text-4xl font-black text-slate-900">0</span>
-                <span className="text-sm font-medium text-slate-500">
+                <span className="text-4xl font-black text-foreground">0</span>
+                <span className="text-sm font-medium text-muted-foreground">
                   {t("common.fcfaMonth")}
                 </span>
               </div>
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm text-muted-foreground">
                 {t("auth.subscribe.freeDesc")}
               </p>
             </div>
@@ -138,12 +138,12 @@ export default function SubscribePage() {
                     />
                   ) : (
                     <X
-                      className="h-4 w-4 shrink-0 text-slate-300"
+                      className="h-4 w-4 shrink-0 text-muted-foreground/30"
                       aria-hidden
                     />
                   )}
                   <span
-                    className={`text-sm ${f.free ? "text-slate-700" : "text-slate-400"}`}
+                    className={`text-sm ${f.free ? "text-foreground/80" : "text-muted-foreground/50"}`}
                   >
                     {t(f.labelKey)}
                   </span>
@@ -179,16 +179,16 @@ export default function SubscribePage() {
             </div>
 
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-white">
+              <h2 className="text-xl font-bold text-brand-foreground">
                 {t("auth.subscribe.proName")}
               </h2>
               <div className="mt-3 flex items-baseline gap-1.5">
-                <span className="text-4xl font-black text-white">5 000</span>
-                <span className="text-sm font-medium text-white/70">
+                <span className="text-4xl font-black text-brand-foreground">5 000</span>
+                <span className="text-sm font-medium text-brand-foreground/70">
                   {t("common.fcfaMonth")}
                 </span>
               </div>
-              <p className="mt-2 text-sm text-white/70">
+              <p className="mt-2 text-sm text-brand-foreground/70">
                 {t("auth.subscribe.proDesc")}
               </p>
             </div>
@@ -217,7 +217,7 @@ export default function SubscribePage() {
               onClick={handleSelectPro}
               disabled={isLoading}
               size="lg"
-              className="mt-auto h-11 w-full gap-2 rounded-xl bg-white font-semibold text-brand shadow-lg hover:bg-white/90"
+              className="mt-auto h-11 w-full gap-2 rounded-xl bg-brand-foreground font-semibold text-brand shadow-lg hover:bg-brand-foreground/90"
               aria-label={t("auth.subscribe.proCta")}
             >
               {t("auth.subscribe.proCta")}
@@ -227,30 +227,30 @@ export default function SubscribePage() {
         </div>
 
         {/* Footer note */}
-        <p className="mt-8 text-center text-sm text-slate-400">
+        <p className="mt-8 text-center text-sm text-muted-foreground/60">
           {t("auth.subscribe.footer")}
         </p>
 
         {/* Feature comparison table */}
-        <div className="mx-auto mt-16 max-w-3xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="border-b border-slate-100 px-6 py-4">
-            <h3 className="text-base font-bold text-slate-800">
+        <div className="mx-auto mt-16 max-w-3xl overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+          <div className="border-b border-border px-6 py-4">
+            <h3 className="text-base font-bold text-foreground">
               {t("auth.subscribe.comparisonTitle")}
             </h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm" role="table">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
+                <tr className="border-b border-border bg-muted">
                   <th
                     scope="col"
-                    className="px-6 py-3 text-left font-semibold text-slate-500"
+                    className="px-6 py-3 text-left font-semibold text-muted-foreground"
                   >
                     {t("auth.subscribe.featureLabel")}
                   </th>
                   <th
                     scope="col"
-                    className="px-6 py-3 text-center font-semibold text-slate-500"
+                    className="px-6 py-3 text-center font-semibold text-muted-foreground"
                   >
                     {t("auth.subscribe.freeName")}
                   </th>
@@ -266,9 +266,9 @@ export default function SubscribePage() {
                 {FEATURES.map((f, i) => (
                   <tr
                     key={f.labelKey}
-                    className={i % 2 === 0 ? "bg-white" : "bg-slate-50/50"}
+                    className={i % 2 === 0 ? "bg-card" : "bg-muted/30"}
                   >
-                    <td className="px-6 py-3.5 font-medium text-slate-700">
+                    <td className="px-6 py-3.5 font-medium text-foreground/80">
                       {t(f.labelKey)}
                     </td>
                     <td className="px-6 py-3.5 text-center">
@@ -279,7 +279,7 @@ export default function SubscribePage() {
                         />
                       ) : (
                         <X
-                          className="mx-auto h-4 w-4 text-slate-300"
+                          className="mx-auto h-4 w-4 text-muted-foreground/30"
                           aria-label="Non inclus"
                         />
                       )}
@@ -292,7 +292,7 @@ export default function SubscribePage() {
                         />
                       ) : (
                         <X
-                          className="mx-auto h-4 w-4 text-slate-300"
+                          className="mx-auto h-4 w-4 text-muted-foreground/30"
                           aria-label="Non inclus"
                         />
                       )}

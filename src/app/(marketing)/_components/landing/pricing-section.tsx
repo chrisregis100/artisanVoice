@@ -57,9 +57,8 @@ export function PricingSection() {
   ];
 
   return (
-    <section id="pricing" className="relative overflow-hidden bg-white py-24 lg:py-32">
-      {/* Decorative premium gradient orb at the center */}
-      <div className="absolute inset-0 top-0 left-1/2 -translate-x-1/2 w-full max-w-[1200px] h-[500px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand/10 via-white to-transparent pointer-events-none blur-3xl opacity-60" />
+    <section id="pricing" className="relative overflow-hidden bg-background py-24 lg:py-32">
+      <div className="absolute inset-0 top-0 left-1/2 -translate-x-1/2 w-full max-w-[1200px] h-[500px] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand/10 via-transparent to-transparent pointer-events-none blur-3xl opacity-60" />
 
       <div className="mx-auto max-w-6xl px-4 sm:px-6 relative z-10">
         <motion.div 
@@ -72,10 +71,10 @@ export function PricingSection() {
           <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand-muted px-4 py-1.5 text-sm font-semibold text-brand shadow-sm">
             {t("landing.pricing.badge")}
           </span>
-          <h2 className="font-display text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
+          <h2 className="font-display text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
             {t("landing.pricing.title")}
           </h2>
-          <p className="mx-auto mt-6 max-w-xl text-lg text-slate-600">
+          <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
             {t("landing.pricing.subtitle")}
           </p>
         </motion.div>
@@ -87,11 +86,11 @@ export function PricingSection() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="mb-16 flex justify-center"
         >
-          <div className="relative flex items-center rounded-full bg-slate-100 p-1.5 shadow-inner">
+          <div className="relative flex items-center rounded-full bg-muted p-1.5 shadow-inner">
             <button
               onClick={() => setIsAnnual(false)}
               className={`relative z-10 w-36 rounded-full py-2.5 text-sm font-bold transition-all duration-300 ${
-                !isAnnual ? "text-slate-900" : "text-slate-500 hover:text-slate-700"
+                !isAnnual ? "text-foreground" : "text-muted-foreground hover:text-foreground/70"
               }`}
             >
               {t("landing.pricing.monthly")}
@@ -99,19 +98,19 @@ export function PricingSection() {
             <button
               onClick={() => setIsAnnual(true)}
               className={`relative z-10 w-36 rounded-full py-2.5 text-sm font-bold transition-all duration-300 ${
-                isAnnual ? "text-slate-900" : "text-slate-500 hover:text-slate-700"
+                isAnnual ? "text-foreground" : "text-muted-foreground hover:text-foreground/70"
               }`}
             >
               {t("landing.pricing.annual")}
             </button>
             <div
-              className={`absolute left-1.5 h-[calc(100%-12px)] w-36 rounded-full bg-white shadow-md transition-transform duration-300 cubic-bezier(0.34, 1.56, 0.64, 1) ${
+              className={`absolute left-1.5 h-[calc(100%-12px)] w-36 rounded-full bg-background shadow-md transition-transform duration-300 cubic-bezier(0.34, 1.56, 0.64, 1) ${
                 isAnnual ? "translate-x-36" : "translate-x-0"
               }`}
             />
             <motion.div 
                animate={isAnnual ? { scale: [1, 1.1, 1] } : { scale: 1 }}
-               className="absolute -right-6 -top-4 z-20 rotate-12 rounded-full bg-emerald-500 px-3 py-1 text-xs font-bold text-white shadow-lg shadow-emerald-500/30"
+               className="absolute -right-6 -top-4 z-20 rotate-12 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground shadow-lg shadow-primary/30"
             >
               {t("landing.pricing.annualDiscount")}
             </motion.div>
@@ -127,26 +126,25 @@ export function PricingSection() {
               transition={{ duration: 0.6, delay: i * 0.2 }}
               key={plan.name}
               className={`relative flex flex-col rounded-[2.5rem] p-1 transition-all duration-500 group ${
-                plan.featured ? "md:-my-6 shadow-2xl shadow-brand/20 z-10" : "z-0 hover:shadow-xl hover:shadow-slate-200"
+                plan.featured ? "md:-my-6 shadow-2xl shadow-brand/20 z-10" : "z-0 hover:shadow-xl hover:shadow-muted"
               }`}
             >
-              {/* Premium Animated Border for Featured Plan */}
               {plan.featured && (
                 <div className="absolute inset-0 rounded-[2.5rem] bg-[conic-gradient(from_0deg_at_50%_50%,rgba(16,185,129,0.5)_0deg,transparent_60deg,transparent_300deg,rgba(16,185,129,0.5)_360deg)] animate-[spin_4s_linear_infinite]" />
               )}
               {plan.featured && (
-                <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-brand/20 to-emerald-400/20 blur-sm -z-10" />
+                <div className="absolute inset-0 rounded-[2.5rem] bg-gradient-to-br from-brand/20 to-primary/20 blur-sm -z-10" />
               )}
               {!plan.featured && (
-                <div className="absolute inset-0 rounded-[2.5rem] border border-slate-200/60 transition-colors group-hover:border-slate-300" />
+                <div className="absolute inset-0 rounded-[2.5rem] border border-border/60 transition-colors group-hover:border-border" />
               )}
 
               <div className={`relative h-full flex flex-col rounded-[2.4rem] p-8 sm:p-10 backdrop-blur-xl ${
-                plan.featured ? "bg-slate-900 border border-slate-700/50" : "bg-white/80"
+                plan.featured ? "bg-foreground text-background" : "bg-card/80"
               }`}>
                 {plan.featured && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-emerald-500/30">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-lg shadow-primary/30">
                       <StarIcon className="h-3.5 w-3.5" />
                       {t("common.recommended")}
                     </span>
@@ -154,7 +152,7 @@ export function PricingSection() {
                 )}
 
                 <div className="mb-6">
-                  <h3 className={`font-display text-2xl font-bold ${plan.featured ? "text-white" : "text-slate-900"}`}>
+                  <h3 className={`font-display text-2xl font-bold ${plan.featured ? "" : "text-foreground"}`}>
                     {plan.name}
                   </h3>
                   <div className="mt-4 flex items-baseline gap-2">
@@ -162,38 +160,38 @@ export function PricingSection() {
                       key={plan.price}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className={`font-display text-6xl font-black tracking-tight ${plan.featured ? "text-white" : "text-slate-900"}`}
+                      className={`font-display text-6xl font-black tracking-tight ${plan.featured ? "" : "text-foreground"}`}
                     >
                       {plan.price}
                     </motion.span>
-                    <span className={`text-base font-medium ${plan.featured ? "text-white/60" : "text-slate-500"}`}>
+                    <span className={`text-base font-medium ${plan.featured ? "opacity-60" : "text-muted-foreground"}`}>
                       {plan.period}
                     </span>
                   </div>
-                  <p className={`mt-4 text-sm leading-relaxed ${plan.featured ? "text-slate-300" : "text-slate-600"}`}>
+                  <p className={`mt-4 text-sm leading-relaxed ${plan.featured ? "opacity-70" : "text-muted-foreground"}`}>
                     {plan.description}
                   </p>
                 </div>
 
-                <div className={`mb-8 h-px w-full ${plan.featured ? "bg-slate-800" : "bg-slate-100"}`} />
+                <div className={`mb-8 h-px w-full ${plan.featured ? "bg-background/15" : "bg-border"}`} />
 
                 <ul className="mb-8 flex flex-col gap-4">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-start gap-3">
-                      <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${plan.featured ? "bg-emerald-500/20 text-emerald-400" : "bg-primary/10 text-primary"}`}>
+                      <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${plan.featured ? "bg-primary/20 text-primary" : "bg-primary/10 text-primary"}`}>
                         <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
                       </div>
-                      <span className={`text-sm leading-relaxed font-medium ${plan.featured ? "text-slate-200" : "text-slate-700"}`}>
+                      <span className={`text-sm leading-relaxed font-medium ${plan.featured ? "opacity-85" : "text-foreground/80"}`}>
                         {f}
                       </span>
                     </li>
                   ))}
                   {plan.missing.map((f) => (
                     <li key={f} className="flex items-start gap-3 opacity-60">
-                      <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                      <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
                         <X className="h-3.5 w-3.5" aria-hidden />
                       </div>
-                      <span className="text-sm leading-relaxed font-medium text-slate-500">{f}</span>
+                      <span className="text-sm leading-relaxed font-medium text-muted-foreground">{f}</span>
                     </li>
                   ))}
                 </ul>
@@ -203,8 +201,8 @@ export function PricingSection() {
                   size="lg"
                   className={`mt-auto h-14 w-full rounded-2xl font-bold text-base transition-all active:scale-95 ${
                     plan.featured
-                      ? "bg-emerald-500 hover:bg-emerald-400 text-white shadow-[0_0_20px_-3px_rgba(16,185,129,0.5)]"
-                      : "bg-slate-900 text-white hover:bg-slate-800 shadow-md"
+                      ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_-3px_rgba(16,185,129,0.5)]"
+                      : "bg-foreground text-background hover:bg-foreground/90 shadow-md"
                   }`}
                 >
                   <Link href={plan.ctaHref}>{plan.cta}</Link>
@@ -218,7 +216,7 @@ export function PricingSection() {
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          className="mt-16 text-center text-sm font-medium text-slate-500"
+          className="mt-16 text-center text-sm font-medium text-muted-foreground"
         >
           {t("landing.pricing.footer")}
         </motion.p>

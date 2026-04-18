@@ -16,8 +16,7 @@ export function HeroSection() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-white pt-32 pb-20 lg:pt-48 lg:pb-32">
-      {/* Background premium Mesh/Orb */}
+    <section className="relative overflow-hidden bg-background pt-32 pb-20 lg:pt-48 lg:pb-32">
       <div className="absolute inset-x-0 top-0 -z-10 h-[1000px] overflow-hidden">
         <div className="absolute left-1/2 top-0 -translate-x-1/2 aspect-square w-[800px] rounded-full bg-gradient-to-tr from-primary/20 to-emerald-300/10 blur-[100px] pointer-events-none" />
         <div className="absolute left-1/2 top-0 -translate-x-[80%] aspect-square w-[600px] rounded-full bg-gradient-to-br from-brand/10 to-transparent blur-[80px] pointer-events-none" />
@@ -45,7 +44,7 @@ export function HeroSection() {
 
           <motion.h1 
             variants={fadeUpVariant}
-            className="font-display max-w-5xl text-5xl font-extrabold tracking-tight text-slate-900 sm:text-6xl lg:text-7xl lg:leading-[1.1]"
+            className="font-display max-w-5xl text-5xl font-extrabold tracking-tight text-foreground sm:text-6xl lg:text-7xl lg:leading-[1.1]"
           >
             {t("landing.hero.titlePart1")}{" "}
             <span className="relative whitespace-nowrap text-primary">
@@ -61,7 +60,7 @@ export function HeroSection() {
             </span>
           </motion.h1>
           
-          <motion.p variants={fadeUpVariant} className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-slate-500 sm:text-xl">
+          <motion.p variants={fadeUpVariant} className="mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
             {t("landing.hero.subtitle")}
           </motion.p>
 
@@ -69,7 +68,7 @@ export function HeroSection() {
             <Button
               asChild
               size="lg"
-              className="group h-14 gap-2 rounded-full bg-primary px-8 text-base font-semibold text-white shadow-[0_4px_20px_-4px_rgba(5,150,105,0.4)] transition-all hover:scale-105 hover:bg-primary/90 hover:shadow-[0_8px_25px_-5px_rgba(5,150,105,0.5)] active:scale-95"
+              className="group h-14 gap-2 rounded-full bg-primary px-8 text-base font-semibold text-primary-foreground shadow-[0_4px_20px_-4px_rgba(5,150,105,0.4)] transition-all hover:scale-105 hover:bg-primary/90 hover:shadow-[0_8px_25px_-5px_rgba(5,150,105,0.5)] active:scale-95"
             >
               <Link href="/register">
                 {t("landing.hero.ctaPrimary")}
@@ -83,13 +82,13 @@ export function HeroSection() {
               asChild
               variant="outline"
               size="lg"
-              className="h-14 rounded-full border-slate-200/80 bg-white/50 px-8 text-base font-semibold text-slate-700 shadow-sm backdrop-blur-md transition-all hover:scale-105 hover:border-slate-300 hover:bg-white hover:shadow-md active:scale-95"
+              className="h-14 rounded-full border-border bg-background/50 px-8 text-base font-semibold text-foreground shadow-sm backdrop-blur-md transition-all hover:scale-105 hover:bg-muted hover:shadow-md active:scale-95"
             >
               <Link href="#demo">{t("landing.hero.ctaSecondary")}</Link>
             </Button>
           </motion.div>
 
-          <motion.p variants={fadeUpVariant} className="mt-8 flex items-center justify-center gap-2 text-sm font-medium text-slate-500">
+          <motion.p variants={fadeUpVariant} className="mt-8 flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground">
             <div className="flex items-center justify-center h-5 w-5 rounded-full bg-primary/10">
               <CheckCircle2 className="h-3.5 w-3.5 text-primary" aria-hidden />
             </div>

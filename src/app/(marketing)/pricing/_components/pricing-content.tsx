@@ -84,7 +84,7 @@ export function PricingContent() {
       {/* Hero */}
       <section className="bg-brand pt-32 pb-20">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-          <span className="mb-4 inline-block rounded-full bg-white/10 px-4 py-1.5 text-sm font-semibold text-brand-foreground/70">
+          <span className="mb-4 inline-block rounded-full bg-brand-foreground/10 px-4 py-1.5 text-sm font-semibold text-brand-foreground/70">
             {t("pricingPage.badge")}
           </span>
           <h1 className="text-4xl font-extrabold tracking-tight text-brand-foreground sm:text-5xl">
@@ -97,22 +97,22 @@ export function PricingContent() {
       </section>
 
       {/* Plans */}
-      <section className="bg-slate-50 py-20">
+      <section className="bg-muted py-20">
         <div className="mx-auto max-w-5xl px-4 sm:px-6">
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:gap-8">
             {/* Free plan */}
-            <div className="flex flex-col rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+            <div className="flex flex-col rounded-2xl border border-border bg-card p-8 shadow-sm">
               <div className="mb-6">
-                <h2 className="text-xl font-bold text-slate-800">
+                <h2 className="text-xl font-bold text-foreground">
                   {t("pricingPage.freeName")}
                 </h2>
                 <div className="mt-3 flex items-baseline gap-1.5">
-                  <span className="text-5xl font-black text-slate-900">0</span>
-                  <span className="text-base font-medium text-slate-500">
+                  <span className="text-5xl font-black text-foreground">0</span>
+                  <span className="text-base font-medium text-muted-foreground">
                     FCFA / {t("common.perMonth").replace("/ ", "")}
                   </span>
                 </div>
-                <p className="mt-2 text-sm text-slate-500">
+                <p className="mt-2 text-sm text-muted-foreground">
                   {t("pricingPage.freeDesc")}
                 </p>
               </div>
@@ -140,17 +140,17 @@ export function PricingContent() {
                       className={`flex items-center gap-3 ${isMissing ? "opacity-40" : ""}`}
                     >
                       {isMissing ? (
-                        <div className="h-4 w-4 shrink-0 rounded-full border-2 border-slate-300" />
+                        <div className="h-4 w-4 shrink-0 rounded-full border-2 border-muted-foreground/30" />
                       ) : (
                         <CheckCircle2
                           className="h-4 w-4 shrink-0 text-primary"
                           aria-hidden
                         />
                       )}
-                      <span className="text-sm text-slate-700">
+                      <span className="text-sm text-foreground/80">
                         {t(feature.labelKey)}
                         {isText && (
-                          <span className="ml-1 text-xs font-semibold text-slate-500">
+                          <span className="ml-1 text-xs font-semibold text-muted-foreground">
                             ({feature.free})
                           </span>
                         )}
@@ -170,16 +170,16 @@ export function PricingContent() {
               </div>
 
               <div className="mb-6">
-                <h2 className="text-xl font-bold text-white">
+                <h2 className="text-xl font-bold text-brand-foreground">
                   {t("pricingPage.proName")}
                 </h2>
                 <div className="mt-3 flex items-baseline gap-1.5">
-                  <span className="text-5xl font-black text-white">5 000</span>
-                  <span className="text-base font-medium text-white/70">
+                  <span className="text-5xl font-black text-brand-foreground">5 000</span>
+                  <span className="text-base font-medium text-brand-foreground/70">
                     {t("common.fcfaMonth")}
                   </span>
                 </div>
-                <p className="mt-2 text-sm text-white/70">
+                <p className="mt-2 text-sm text-brand-foreground/70">
                   {t("pricingPage.proDesc")}
                 </p>
               </div>
@@ -187,7 +187,7 @@ export function PricingContent() {
               <Button
                 asChild
                 size="lg"
-                className="mb-8 h-11 w-full rounded-xl bg-white font-semibold text-brand shadow-sm hover:bg-white/90"
+                className="mb-8 h-11 w-full rounded-xl bg-brand-foreground font-semibold text-brand shadow-sm hover:bg-brand-foreground/90"
               >
                 <Link href="/register?plan=pro">
                   {t("pricingPage.proCta")}
@@ -208,10 +208,10 @@ export function PricingContent() {
                         className="h-4 w-4 shrink-0 text-primary"
                         aria-hidden
                       />
-                      <span className="text-sm text-white/90">
+                      <span className="text-sm text-brand-foreground/90">
                         {t(feature.labelKey)}
                         {isText && (
-                          <span className="ml-1 text-xs font-semibold text-white/60">
+                          <span className="ml-1 text-xs font-semibold text-brand-foreground/60">
                             ({feature.pro})
                           </span>
                         )}
@@ -223,30 +223,30 @@ export function PricingContent() {
             </div>
           </div>
 
-          <p className="mt-8 text-center text-sm text-slate-400">
+          <p className="mt-8 text-center text-sm text-muted-foreground/60">
             {t("pricingPage.footer")}
           </p>
         </div>
       </section>
 
       {/* Comparison table */}
-      <section className="bg-white py-20">
+      <section className="bg-background py-20">
         <div className="mx-auto max-w-4xl px-4 sm:px-6">
-          <h2 className="mb-10 text-center text-2xl font-extrabold text-slate-900">
+          <h2 className="mb-10 text-center text-2xl font-extrabold text-foreground">
             {t("pricingPage.comparison")}
           </h2>
 
-          <div className="overflow-x-auto rounded-2xl border border-slate-200">
+          <div className="overflow-x-auto rounded-2xl border border-border">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-50">
-                  <th className="px-6 py-4 text-left font-semibold text-slate-600">
+                <tr className="border-b border-border bg-muted">
+                  <th className="px-6 py-4 text-left font-semibold text-muted-foreground">
                     {t("pricingPage.featureLabel")}
                   </th>
-                  <th className="px-6 py-4 text-center font-semibold text-slate-600">
+                  <th className="px-6 py-4 text-center font-semibold text-muted-foreground">
                     {t("pricingPage.freeName")}
                   </th>
-                  <th className="bg-slate-100 px-6 py-4 text-center font-semibold text-slate-900">
+                  <th className="bg-muted/80 px-6 py-4 text-center font-semibold text-foreground">
                     {t("pricingPage.proName")}
                   </th>
                 </tr>
@@ -255,15 +255,15 @@ export function PricingContent() {
                 {planFeatures.map((feature, index) => (
                   <tr
                     key={feature.labelKey}
-                    className={`border-b border-slate-100 ${index % 2 === 0 ? "bg-white" : "bg-slate-50/50"}`}
+                    className={`border-b border-border/60 ${index % 2 === 0 ? "bg-card" : "bg-muted/30"}`}
                   >
                     <td className="px-6 py-3.5">
                       <div className="flex items-center gap-2.5">
                         <feature.icon
-                          className="h-4 w-4 text-slate-400"
+                          className="h-4 w-4 text-muted-foreground"
                           aria-hidden
                         />
-                        <span className="font-medium text-slate-700">
+                        <span className="font-medium text-foreground/80">
                           {t(feature.labelKey)}
                         </span>
                       </div>
@@ -275,7 +275,7 @@ export function PricingContent() {
                         included={t("pricingPage.included")}
                       />
                     </td>
-                    <td className="bg-slate-50 px-6 py-3.5 text-center">
+                    <td className="bg-muted/30 px-6 py-3.5 text-center">
                       <ComparisonCell
                         value={feature.pro}
                         isPro
@@ -292,12 +292,12 @@ export function PricingContent() {
       </section>
 
       {/* FAQ teaser */}
-      <section className="border-t border-slate-100 bg-slate-50 py-16">
+      <section className="border-t border-border bg-muted py-16">
         <div className="mx-auto max-w-xl px-4 text-center sm:px-6">
-          <h2 className="text-2xl font-bold text-slate-800">
+          <h2 className="text-2xl font-bold text-foreground">
             {t("pricingPage.questionsTitle")}
           </h2>
-          <p className="mt-3 text-slate-500">
+          <p className="mt-3 text-muted-foreground">
             {t("pricingPage.questionsSubtitle")}
           </p>
           <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
@@ -321,7 +321,7 @@ export function PricingContent() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-slate-100 bg-white py-8">
+      <footer className="border-t border-border bg-background py-8">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
             <Link
@@ -332,8 +332,8 @@ export function PricingContent() {
               <BilloLogoMark className="h-8 w-8" size={32} />
               <span className="font-bold text-brand">Billo</span>
             </Link>
-            <p className="text-sm text-slate-400">
-              © {new Date().getFullYear()} Billo ·{" "}
+            <p className="text-sm text-muted-foreground/60">
+              &copy; {new Date().getFullYear()} Billo &middot;{" "}
               {t("pricingPage.footerRights")}
             </p>
           </div>
@@ -356,8 +356,8 @@ function ComparisonCell({
 }) {
   if (value === false)
     return (
-      <span className="text-slate-300" aria-label={notIncluded}>
-        —
+      <span className="text-muted-foreground/30" aria-label={notIncluded}>
+        &mdash;
       </span>
     );
   if (value === true)
@@ -368,8 +368,8 @@ function ComparisonCell({
       />
     );
   return (
-      <span
-      className={`font-semibold ${isPro ? "text-slate-900" : "text-slate-700"}`}
+    <span
+      className={`font-semibold ${isPro ? "text-foreground" : "text-foreground/80"}`}
     >
       {value}
     </span>

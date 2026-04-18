@@ -32,23 +32,23 @@ export function HowItWorksSection() {
   ];
 
   return (
-    <section id="demo" className="bg-white py-24">
+    <section id="demo" className="bg-background py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="mb-16 text-center">
-          <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-4 py-1.5 text-sm font-semibold text-slate-700">
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-muted px-4 py-1.5 text-sm font-semibold text-foreground">
             {t("landing.howItWorks.badge")}
           </span>
-          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+          <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
             {t("landing.howItWorks.title")}
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-500">
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
             {t("landing.howItWorks.subtitle")}
           </p>
         </div>
 
         <div className="relative">
           <div
-            className="absolute top-8 right-0 left-0 hidden h-0 border-t-2 border-dashed border-slate-200 lg:block"
+            className="absolute top-8 right-0 left-0 hidden h-0 border-t-2 border-dashed border-border lg:block"
             aria-hidden
           />
 
@@ -62,17 +62,17 @@ export function HowItWorksSection() {
                   {step.step}
                   {index < steps.length - 1 && (
                     <div
-                      className="absolute -right-4 top-1/2 hidden -translate-y-1/2 text-slate-300 lg:block"
+                      className="absolute -right-4 top-1/2 hidden -translate-y-1/2 text-muted-foreground/40 lg:block"
                       aria-hidden
                     >
                       →
                     </div>
                   )}
                 </div>
-                <h3 className="mb-2 text-base font-bold text-slate-800">
+                <h3 className="mb-2 text-base font-bold text-foreground">
                   {step.title}
                 </h3>
-                <p className="text-sm leading-relaxed text-slate-500">
+                <p className="text-sm leading-relaxed text-muted-foreground">
                   {step.description}
                 </p>
               </div>

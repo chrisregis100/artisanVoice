@@ -4,6 +4,7 @@ import { Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/i18n/context";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface DashboardHeaderProps {
   userEmail?: string | null;
@@ -43,7 +44,7 @@ export function DashboardHeader({
   return (
     <header
       className={cn(
-        "hidden h-16 shrink-0 items-center justify-between border-b border-border/60 bg-white px-5 md:flex lg:px-8",
+        "hidden h-16 shrink-0 items-center justify-between border-b border-border/60 bg-background px-5 md:flex lg:px-8",
         className,
       )}
     >
@@ -53,12 +54,14 @@ export function DashboardHeader({
         </h1>
       </div>
       <div className="ml-auto flex shrink-0 items-center gap-4">
-        <div className="flex items-center gap-2 rounded-full border border-green-200 bg-green-50 px-3 py-1 text-sm font-medium text-green-700">
-          <div className="h-2 w-2 rounded-full bg-green-500" />
+        <div className="flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+          <div className="h-2 w-2 rounded-full bg-primary" />
           {t("dashboard.header.connected")}
         </div>
 
         <LanguageSwitcher variant="minimal" />
+
+        <ThemeToggle />
 
         <button
           type="button"

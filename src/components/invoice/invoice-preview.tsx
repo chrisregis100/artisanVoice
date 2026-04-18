@@ -109,7 +109,7 @@ export function InvoicePreview({
   };
 
   return (
-    <Card className="relative overflow-hidden rounded-2xl border border-border/60 bg-white p-6 shadow-[0_20px_50px_-12px_rgba(15,23,42,0.12)] ring-1 ring-slate-200/60 dark:border-border dark:bg-card dark:shadow-none dark:ring-border sm:p-10">
+    <Card className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-6 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.08)] ring-1 ring-border/60 sm:p-10">
       {onTypeChange && (
         <div
           className="flex flex-wrap gap-2 mb-6"
@@ -167,7 +167,7 @@ export function InvoicePreview({
       </div>
 
       <div className="mb-8 grid gap-6 sm:grid-cols-2">
-        <div className="rounded-xl border border-border/50 bg-muted/40 p-4 dark:bg-muted/10">
+        <div className="rounded-xl border border-border/50 bg-muted/40 p-4">
           <p className="mb-2 text-sm font-bold text-foreground">Émetteur</p>
           <p className="font-semibold text-foreground">{businessName}</p>
           {issuerLines.map((line) => (
@@ -179,14 +179,14 @@ export function InvoicePreview({
             <p className="mt-1 text-sm text-muted-foreground">{businessPhone}</p>
           ) : null}
         </div>
-        <div className="rounded-xl border border-border/50 bg-muted/40 p-4 dark:bg-muted/10">
+        <div className="rounded-xl border border-border/50 bg-muted/40 p-4">
           <p className="mb-2 text-sm font-bold text-foreground">Client</p>
           {onCustomerNameChange ? (
             <Input
               value={customerName}
               onChange={(e) => onCustomerNameChange(e.target.value)}
               placeholder="Nom du client"
-              className="mb-2 h-10 text-base font-semibold border-border/60 bg-white dark:bg-background"
+              className="mb-2 h-10 text-base font-semibold border-border/60 bg-background"
               aria-label="Nom du client"
             />
           ) : (
@@ -201,7 +201,7 @@ export function InvoicePreview({
               placeholder="Adresse (rue, ville…)"
               rows={3}
               className={cn(
-                "mt-1 flex w-full rounded-md border border-input bg-white px-3 py-2 text-sm dark:bg-background",
+                "mt-1 flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none min-h-[4.5rem]"
               )}
               aria-label="Adresse du client"
@@ -227,7 +227,7 @@ export function InvoicePreview({
       </div>
 
       <div className="mb-6">
-        <div className="mb-0 overflow-hidden rounded-t-lg border border-b-0 border-border/60 bg-muted/70 dark:bg-muted/30">
+        <div className="mb-0 overflow-hidden rounded-t-lg border border-b-0 border-border/60 bg-muted/70">
           <div className="grid grid-cols-12 gap-2 px-3 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             <div className="col-span-5">Description</div>
             <div className="col-span-2 text-center">Quantité</div>
@@ -238,7 +238,7 @@ export function InvoicePreview({
         </div>
 
         {items.length === 0 ? (
-          <div className="rounded-b-lg border border-dashed border-border/60 bg-slate-50/70 py-12 text-center dark:bg-muted/10">
+          <div className="rounded-b-lg border border-dashed border-border/60 bg-muted/70 py-12 text-center">
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
               <Plus className="w-6 h-6 text-primary/60" />
             </div>
@@ -266,7 +266,7 @@ export function InvoicePreview({
                       !isEditing &&
                       "cursor-pointer hover:bg-muted/40",
                     isEditing &&
-                      "bg-white dark:bg-muted/20 p-3 ring-1 ring-primary/20"
+                      "bg-card p-3 ring-1 ring-primary/20"
                   )}
                   onClick={() => handleItemClick(item.id)}
                   onKeyDown={(e) => handleItemKeyDown(e, item.id)}
@@ -383,7 +383,7 @@ export function InvoicePreview({
           <Button
             type="button"
             variant="ghost"
-            className="mt-6 w-full gap-2 text-muted-foreground hover:text-foreground hover:bg-slate-50 dark:hover:bg-muted/10 border border-dashed border-border/60 rounded-xl"
+            className="mt-6 w-full gap-2 text-muted-foreground hover:text-foreground hover:bg-muted border border-dashed border-border/60 rounded-xl"
             onClick={onAddArticle}
           >
             <Plus className="h-4 w-4" aria-hidden />

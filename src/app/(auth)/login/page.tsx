@@ -114,17 +114,17 @@ export default function LoginPage() {
           </Link>
 
           <div className="mb-8">
-            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+            <h1 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
               {t("auth.login.title")}
             </h1>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-muted-foreground">
               {t("auth.login.subtitle")}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-slate-700">
+              <Label htmlFor="email" className="text-foreground/80">
                 {t("auth.login.emailLabel")}
               </Label>
               <Input
@@ -153,7 +153,7 @@ export default function LoginPage() {
 
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-slate-700">
+                <Label htmlFor="password" className="text-foreground/80">
                   {t("auth.login.passwordLabel")}
                 </Label>
                 <Link
@@ -187,7 +187,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   aria-label={
                     showPassword
                       ? t("auth.login.hidePassword")
@@ -228,7 +228,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-slate-500">
+          <p className="mt-6 text-center text-sm text-muted-foreground">
             {t("auth.login.noAccount")}{" "}
             <Link
               href="/register"
@@ -269,7 +269,7 @@ export default function LoginPage() {
             </span>
           </h2>
 
-          <p className="mt-4 text-base leading-relaxed text-slate-300">
+          <p className="mt-4 text-base leading-relaxed text-brand-foreground/70">
             {t("auth.login.panelSubtitle")}
           </p>
 
@@ -277,24 +277,24 @@ export default function LoginPage() {
             {highlights.map((item) => (
               <li key={item} className="flex items-center gap-3">
                 <CheckCircle2 className="h-5 w-5 shrink-0 text-primary" />
-                <span className="text-sm text-slate-200">{item}</span>
+                <span className="text-sm text-brand-foreground/80">{item}</span>
               </li>
             ))}
           </ul>
 
           <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-5 text-left backdrop-blur-sm">
-            <p className="text-sm italic leading-relaxed text-slate-300">
+            <p className="text-sm italic leading-relaxed text-brand-foreground/70">
               &ldquo;{t("auth.login.panelQuote")}&rdquo;
             </p>
             <div className="mt-3 flex items-center gap-2.5 border-t border-white/10 pt-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand/80 text-xs font-bold text-brand-foreground">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-foreground/10 text-xs font-bold text-brand-foreground">
                 IK
               </div>
               <div>
-                <p className="text-xs font-semibold text-white">
+                <p className="text-xs font-semibold text-brand-foreground">
                   {t("auth.login.panelAuthor")}
                 </p>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-brand-foreground/50">
                   {t("auth.login.panelAuthorRole")}
                 </p>
               </div>

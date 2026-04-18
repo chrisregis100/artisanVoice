@@ -16,13 +16,13 @@ export function FaqSection() {
   ];
 
   return (
-    <section id="faq" className="bg-white py-24">
+    <section id="faq" className="bg-background py-24">
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <div className="mb-16 text-center">
-          <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-4 py-1.5 text-sm font-semibold text-slate-700">
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-muted px-4 py-1.5 text-sm font-semibold text-foreground">
             {t("landing.faq.badge")}
           </span>
-          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+          <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
             {t("landing.faq.title")}
           </h2>
         </div>
@@ -31,16 +31,16 @@ export function FaqSection() {
           {faqs.map((faq) => (
             <details
               key={faq.question}
-              className="group rounded-xl border border-slate-200 bg-slate-50 open:bg-white open:shadow-sm"
+              className="group rounded-xl border border-border bg-muted open:bg-card open:shadow-sm"
             >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-medium text-slate-800 transition-colors hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 font-medium text-foreground transition-colors hover:text-foreground/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-xl">
                 {faq.question}
                 <ChevronDown
-                  className="h-4 w-4 shrink-0 text-slate-400 transition-transform group-open:rotate-180"
+                  className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180"
                   aria-hidden
                 />
               </summary>
-              <div className="px-5 pb-4 text-sm leading-relaxed text-slate-600">
+              <div className="px-5 pb-4 text-sm leading-relaxed text-muted-foreground">
                 {faq.answer}
               </div>
             </details>

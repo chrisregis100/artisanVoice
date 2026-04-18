@@ -158,17 +158,17 @@ export default function RegisterPage() {
               <Zap className="h-3 w-3" aria-hidden />
               {t("auth.register.badge")}
             </span>
-            <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+            <h1 className="mt-3 text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
               {t("auth.register.title")}
             </h1>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-muted-foreground">
               {t("auth.register.subtitle")}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="business_name" className="text-slate-700">
+              <Label htmlFor="business_name" className="text-foreground/80">
                 {t("auth.register.businessNameLabel")}
               </Label>
               <Input
@@ -197,7 +197,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="email" className="text-slate-700">
+              <Label htmlFor="email" className="text-foreground/80">
                 {t("auth.register.emailLabel")}
               </Label>
               <Input
@@ -225,9 +225,9 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="phone" className="text-slate-700">
+              <Label htmlFor="phone" className="text-foreground/80">
                 {t("auth.register.phoneLabel")}{" "}
-                <span className="text-slate-400 font-normal">
+                <span className="text-muted-foreground font-normal">
                   {t("auth.register.phoneOptional")}
                 </span>
               </Label>
@@ -244,7 +244,7 @@ export default function RegisterPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-slate-700">
+              <Label htmlFor="password" className="text-foreground/80">
                 {t("auth.register.passwordLabel")}
               </Label>
               <div className="relative">
@@ -270,7 +270,7 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   aria-label={
                     showPassword
                       ? t("auth.register.hidePassword")
@@ -290,7 +290,7 @@ export default function RegisterPage() {
                   {errors.password}
                 </p>
               ) : (
-                <p id="password-hint" className="text-xs text-slate-400">
+                <p id="password-hint" className="text-xs text-muted-foreground">
                   {t("auth.register.passwordHint")}
                 </p>
               )}
@@ -315,19 +315,19 @@ export default function RegisterPage() {
             </Button>
           </form>
 
-          <p className="mt-4 text-center text-xs leading-relaxed text-slate-400">
+          <p className="mt-4 text-center text-xs leading-relaxed text-muted-foreground/60">
             {t("auth.register.terms1")}{" "}
-            <Link href="/legal" className="underline hover:text-slate-600">
+            <Link href="/legal" className="underline hover:text-foreground">
               {t("auth.register.terms2")}
             </Link>{" "}
             {t("auth.register.terms3")}{" "}
-            <Link href="/privacy" className="underline hover:text-slate-600">
+            <Link href="/privacy" className="underline hover:text-foreground">
               {t("auth.register.terms4")}
             </Link>
             .
           </p>
 
-          <p className="mt-4 text-center text-sm text-slate-500">
+          <p className="mt-4 text-center text-sm text-muted-foreground">
             {t("auth.register.hasAccount")}{" "}
             <Link
               href="/login"
@@ -368,7 +368,7 @@ export default function RegisterPage() {
             </span>
           </h2>
 
-          <p className="mt-4 text-center text-base leading-relaxed text-slate-300">
+          <p className="mt-4 text-center text-base leading-relaxed text-brand-foreground/70">
             {t("auth.register.panelSubtitle")}
           </p>
 
@@ -383,13 +383,13 @@ export default function RegisterPage() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-white">{title}</p>
-                  <p className="text-xs text-slate-400">{desc}</p>
+                  <p className="text-xs text-brand-foreground/50">{desc}</p>
                 </div>
               </div>
             ))}
           </div>
 
-          <p className="mt-8 text-center text-xs text-slate-400">
+          <p className="mt-8 text-center text-xs text-brand-foreground/50">
             {t("auth.register.afterRegister")}
           </p>
         </div>

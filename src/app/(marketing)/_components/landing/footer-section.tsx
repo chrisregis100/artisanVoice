@@ -25,7 +25,7 @@ export function FooterSection() {
   };
 
   return (
-    <footer className="border-t border-slate-100 bg-white py-16">
+    <footer className="border-t border-border bg-background py-16">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div className="flex flex-col gap-4">
@@ -39,14 +39,14 @@ export function FooterSection() {
                 Billo
               </span>
             </Link>
-            <p className="text-sm leading-relaxed text-slate-500">
+            <p className="text-sm leading-relaxed text-muted-foreground">
               {t("landing.footer.tagline")}
             </p>
           </div>
 
           {Object.entries(links).map(([category, items]) => (
             <div key={category}>
-              <h4 className="mb-4 text-xs font-semibold uppercase tracking-widest text-slate-400">
+              <h4 className="mb-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground/60">
                 {category}
               </h4>
               <ul className="flex flex-col gap-2.5">
@@ -54,7 +54,7 @@ export function FooterSection() {
                   <li key={item.label}>
                     <Link
                       href={item.href}
-                      className="text-sm text-slate-500 transition-colors hover:text-slate-900"
+                      className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                     >
                       {item.label}
                     </Link>
@@ -65,11 +65,11 @@ export function FooterSection() {
           ))}
         </div>
 
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-100 pt-8 sm:flex-row">
-          <p className="text-sm text-slate-400">
-            © {currentYear} Billo · {t("landing.footer.rights")}
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
+          <p className="text-sm text-muted-foreground/60">
+            &copy; {currentYear} Billo &middot; {t("landing.footer.rights")}
           </p>
-          <p className="text-xs text-slate-300">{t("landing.footer.madeWith")}</p>
+          <p className="text-xs text-muted-foreground/40">{t("landing.footer.madeWith")}</p>
         </div>
       </div>
     </footer>

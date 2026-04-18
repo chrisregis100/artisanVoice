@@ -6,6 +6,7 @@ import { Menu, X } from "lucide-react";
 import { BilloLogoMark } from "@/components/brand/billo-logo";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { useLanguage } from "@/i18n/context";
 import { cn } from "@/lib/utils";
 
@@ -31,7 +32,7 @@ export function MarketingHeader() {
       className={cn(
         "fixed top-0 z-50 w-full transition-all duration-300",
         scrolled
-          ? "bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-100"
+          ? "bg-background/95 backdrop-blur-md shadow-sm border-b border-border"
           : "bg-transparent",
       )}
     >
@@ -53,12 +54,7 @@ export function MarketingHeader() {
             <Link
               key={link.href}
               href={link.href}
-              className={cn(
-                "text-sm font-medium transition-colors",
-                scrolled
-                  ? "text-slate-600 hover:text-slate-900"
-                  : "text-slate-700 hover:text-slate-900",
-              )}
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               {link.label}
             </Link>
@@ -66,11 +62,12 @@ export function MarketingHeader() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
+          <ThemeToggle />
           <LanguageSwitcher variant="ghost" />
           <Button
             variant="ghost"
             asChild
-            className="text-slate-600 hover:text-slate-900"
+            className="text-muted-foreground hover:text-foreground"
           >
             <Link href="/login">{t("nav.login")}</Link>
           </Button>
@@ -83,7 +80,7 @@ export function MarketingHeader() {
         </div>
 
         <button
-          className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 md:hidden"
+          className="rounded-lg p-2 text-muted-foreground transition-colors hover:bg-muted md:hidden"
           onClick={() => setMobileOpen((prev) => !prev)}
           aria-label={mobileOpen ? t("nav.closeMenu") : t("nav.openMenu")}
           aria-expanded={mobileOpen}
@@ -97,19 +94,20 @@ export function MarketingHeader() {
       </div>
 
       {mobileOpen && (
-        <div className="border-t border-slate-100 bg-white/98 backdrop-blur-md p-4 flex flex-col gap-3 md:hidden">
+        <div className="border-t border-border bg-background/98 backdrop-blur-md p-4 flex flex-col gap-3 md:hidden">
           {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
               onClick={() => setMobileOpen(false)}
-              className="rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors"
+              className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             >
               {link.label}
             </Link>
           ))}
-          <div className="flex flex-col gap-2 border-t border-slate-100 pt-3">
-            <div className="flex justify-center pb-1">
+          <div className="flex flex-col gap-2 border-t border-border pt-3">
+            <div className="flex items-center justify-center gap-2 pb-1">
+              <ThemeToggle />
               <LanguageSwitcher />
             </div>
             <Button variant="outline" asChild className="w-full">

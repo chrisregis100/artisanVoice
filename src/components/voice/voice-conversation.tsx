@@ -40,7 +40,7 @@ export function VoiceConversation({
       )}
 
       <div
-        className="flex-1 space-y-3 overflow-y-auto rounded-2xl border border-border/70 bg-card/90 px-3 py-4 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.08)] backdrop-blur-sm dark:shadow-none"
+        className="flex-1 space-y-3 overflow-y-auto rounded-2xl border border-border/70 bg-card/90 px-3 py-4 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.08)] backdrop-blur-sm"
         role="log"
         aria-label="Conversation avec l’assistant"
         aria-live="polite"

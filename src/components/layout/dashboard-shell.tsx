@@ -8,7 +8,6 @@ import { cn } from "@/lib/utils";
 import { Menu, X } from "lucide-react";
 import { BilloLogoMark } from "@/components/brand/billo-logo";
 import { useNavItems, SidebarNav } from "./sidebar-nav";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { DashboardHeader } from "./dashboard-header";
 import { useLanguage } from "@/i18n/context";
 
@@ -64,7 +63,6 @@ export function DashboardShell({
               <span className="font-semibold text-lg">Billo</span>
             </Link>
           </div>
-          <ThemeToggle />
         </div>
 
         {isMobileMenuOpen && (
@@ -102,7 +100,7 @@ export function DashboardShell({
       {/* Desktop Sidebar */}
       <aside
         className={cn(
-          "hidden md:flex md:shrink-0 md:flex-col md:border-r md:border-border/60 md:bg-white md:p-3 md:text-foreground transition-all duration-300 ease-in-out",
+          "hidden md:flex md:shrink-0 md:flex-col md:border-r md:border-border/60 md:bg-background md:p-3 md:text-foreground transition-all duration-300 ease-in-out",
           isDesktopExpanded ? "md:w-64" : "md:w-[4.5rem]",
         )}
       >

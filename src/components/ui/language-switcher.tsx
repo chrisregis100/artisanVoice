@@ -46,7 +46,7 @@ export function LanguageSwitcher({
         onKeyDown={handleKeyDown}
         className={cn(
           "inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-semibold transition-colors",
-          "text-slate-500 hover:text-slate-800 hover:bg-slate-100",
+          "text-muted-foreground hover:text-foreground hover:bg-muted",
           className,
         )}
         aria-label={`Switch language to ${LANG_LABELS[nextLocale]}`}
@@ -67,7 +67,7 @@ export function LanguageSwitcher({
         onKeyDown={handleKeyDown}
         className={cn(
           "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors",
-          "text-slate-600 hover:text-brand hover:bg-slate-100",
+          "text-muted-foreground hover:text-brand hover:bg-muted",
           className,
         )}
         aria-label={`Switch language to ${LANG_LABELS[nextLocale]}`}
@@ -82,7 +82,7 @@ export function LanguageSwitcher({
   return (
     <div
       className={cn(
-        "inline-flex items-center rounded-full border border-slate-200 bg-white p-0.5 shadow-sm",
+        "inline-flex items-center rounded-full border border-border bg-background p-0.5 shadow-sm",
         className,
       )}
       role="group"
@@ -103,7 +103,7 @@ export function LanguageSwitcher({
             "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-all",
             locale === lang
               ? "bg-brand text-brand-foreground shadow-sm"
-              : "text-slate-500 hover:text-slate-800",
+              : "text-muted-foreground hover:text-foreground",
           )}
           aria-pressed={locale === lang}
           aria-label={lang === "fr" ? "Français" : "English"}
