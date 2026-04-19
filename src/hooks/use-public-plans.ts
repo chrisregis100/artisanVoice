@@ -1,0 +1,51 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+export interface PublicPlanRow {
+  name: string;
+  display_name: string;
+  price_amount: number;
+  currency: string;
+  invoice_limit: number | null;
+  is_active: boolean;
+}
+
+const FALLBACK_PRO_MONTHLY = 5000;
+
+export function usePublicPlans() {
+  const [plans, setPlans] = useState<PublicPlanRow[] | null>(null);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/plans/public");
+        if (!res.ok) throw new Error("plans fetch failed");
+        const json = (await res.json()) as { plans?: PublicPlanRow[] };
+        if (!cancelled) setPlans(json.plans ?? []);
+      } catch {
+        if (!cancelled) {
+          setHasError(true);
+          setPlans([]);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const proPlan = plans?.find((p) => p.name === "pro");
+  const proMonthlyAmount = proPlan?.price_amount ?? FALLBACK_PRO_MONTHLY;
+  const isLoading = plans === null && !hasError;
+
+  return {
+    plans: plans ?? [],
+    proPlan,
+    proMonthlyAmount,
+    isLoading,
+    hasError,
+  };
+}

@@ -84,7 +84,7 @@ export const initiateFedaPayPayment = async (
   const lastName = lastParts.join(" ") || firstName;
 
   const transactionPayload = {
-    description: "Abonnement Billo Pro — 5 000 FCFA/mois",
+    description: `Abonnement Billo Pro — ${params.amount.toLocaleString("fr-FR")} ${params.currency}/mois`,
     amount: params.amount,
     currency: { iso: params.currency },
     callback_url: params.redirectUrl,
@@ -133,6 +133,7 @@ export const initiateFedaPayPayment = async (
 
 export const verifyFedaPayPayment = async (
   transactionId: string,
+  options: { minimumAmount: number },
 ): Promise<{ success: boolean; reference: string | null; amount: number | null }> => {
   const headers = getFedaPayHeaders();
 
@@ -152,7 +153,8 @@ export const verifyFedaPayPayment = async (
   const data: FedaPayVerifyResponse = await response.json();
   const tx = data.v1.transaction;
 
-  const isSuccessful = tx.status === "approved" && tx.amount >= 5000;
+  const isSuccessful =
+    tx.status === "approved" && tx.amount >= options.minimumAmount;
 
   return {
     success: isSuccessful,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyFedaPayPayment, verifyFedaPayWebhookSignature } from "@/lib/payment/fedapay";
 import { fedapayWebhookSchema } from "@/lib/api/schemas";
 
@@ -43,18 +44,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
-  const verification = await verifyFedaPayPayment(String(transaction.id));
-
-  if (!verification.success) {
-    console.error("FedaPay payment verification failed for ref:", transaction.reference);
-    return NextResponse.json({ received: true });
-  }
-
   const userId = transaction.metadata?.user_id;
   const planId = transaction.metadata?.plan_id;
 
   if (!userId || !planId) {
     console.error("Missing metadata in FedaPay webhook:", transaction.reference);
+    return NextResponse.json({ received: true });
+  }
+
+  const admin = createAdminClient();
+  const { data: planRow } = await admin
+    .from("plans")
+    .select("price_amount")
+    .eq("id", planId)
+    .maybeSingle();
+
+  if (planRow?.price_amount == null) {
+    console.error("FedaPay webhook: plan not found", planId);
+    return NextResponse.json({ received: true });
+  }
+
+  const verification = await verifyFedaPayPayment(String(transaction.id), {
+    minimumAmount: planRow.price_amount,
+  });
+
+  if (!verification.success) {
+    console.error("FedaPay payment verification failed for ref:", transaction.reference);
     return NextResponse.json({ received: true });
   }
 

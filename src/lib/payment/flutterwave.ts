@@ -86,7 +86,7 @@ export const initiateFlutterwavePayment = async (
     },
     customizations: {
       title: "Billo Pro",
-      description: "Abonnement mensuel Plan Pro — 5 000 FCFA/mois",
+      description: `Abonnement mensuel Plan Pro — ${params.amount.toLocaleString("fr-FR")} FCFA/mois`,
       logo: "https://billo.app/billo-mark.svg",
     },
   };
@@ -118,6 +118,7 @@ export const initiateFlutterwavePayment = async (
 
 export const verifyFlutterwavePayment = async (
   transactionId: string,
+  options?: { minimumAmount: number },
 ): Promise<{ success: boolean; txRef: string | null; amount: number | null }> => {
   if (!IS_FLUTTERWAVE_ENABLED) {
     return { success: false, txRef: null, amount: null };
@@ -149,10 +150,11 @@ export const verifyFlutterwavePayment = async (
     return { success: false, txRef: null, amount: null };
   }
 
+  const min = options?.minimumAmount ?? 1;
   const isSuccessful =
     data.data.status === "successful" &&
     data.data.currency === "XOF" &&
-    data.data.amount >= 5000;
+    data.data.amount >= min;
 
   return {
     success: isSuccessful,

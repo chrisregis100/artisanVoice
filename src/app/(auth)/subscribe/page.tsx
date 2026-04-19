@@ -3,6 +3,7 @@
 import { BilloLogoMark } from "@/components/brand/billo-logo";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/context";
+import { usePublicPlans } from "@/hooks/use-public-plans";
 import {
   ArrowRight,
   CheckCircle2,
@@ -24,8 +25,13 @@ interface PlanFeature {
 
 export default function SubscribePage() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const { proMonthlyAmount } = usePublicPlans();
   const [loadingPlan, setLoadingPlan] = useState<"free" | "pro" | null>(null);
+
+  const proPriceLabel = proMonthlyAmount.toLocaleString(
+    locale === "en" ? "en-US" : "fr-FR",
+  );
 
   const FEATURES: PlanFeature[] = [
     { labelKey: "auth.subscribe.fVoiceBilling", free: true, pro: true },
@@ -183,7 +189,9 @@ export default function SubscribePage() {
                 {t("auth.subscribe.proName")}
               </h2>
               <div className="mt-3 flex items-baseline gap-1.5">
-                <span className="text-4xl font-black text-brand-foreground">5 000</span>
+                <span className="text-4xl font-black text-brand-foreground">
+                  {proPriceLabel}
+                </span>
                 <span className="text-sm font-medium text-brand-foreground/70">
                   {t("common.fcfaMonth")}
                 </span>
