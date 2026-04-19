@@ -14,6 +14,8 @@ const serverSchema = z.object({
   FLUTTERWAVE_WEBHOOK_SECRET: z.string().optional(),
   FEDAPAY_PUBLIC_KEY: z.string().optional(),
   FEDAPAY_SECRET_KEY: z.string().optional(),
+  /** `sandbox` → https://sandbox-api.fedapay.com (clés test). `live` → production. */
+  FEDAPAY_ENVIRONMENT: z.enum(["live", "sandbox"]).default("live"),
   FEDAPAY_WEBHOOK_SECRET: z.string().optional(),
   ADMIN_EMAIL: z.string().email(),
   /** Base64, 32 bytes — encrypts API keys stored via the admin UI (`openssl rand -base64 32`). */

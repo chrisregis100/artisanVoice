@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function generateMetadata() {
   let proPrice = 5000;
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data } = await supabase
       .from("plans")
       .select("price_amount")

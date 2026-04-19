@@ -19,7 +19,7 @@ export interface InvoiceLimitCheck {
 export const getUserSubscription = async (
   userId: string,
 ): Promise<UserSubscription | null> => {
-  const supabase = createClient();
+  const supabase = await createClient();
   await downgradeExpiredProIfNeeded(supabase, userId);
 
   const { data, error } = await supabase
@@ -75,7 +75,7 @@ export const canCreateInvoice = async (
     return { allowed: true, remaining: null, plan: subscription.planName };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const monthYear = getCurrentMonthYear();
 
   const { data: usage } = await supabase
@@ -96,7 +96,7 @@ export const canCreateInvoice = async (
 };
 
 export const incrementInvoiceCount = async (userId: string): Promise<void> => {
-  const supabase = createClient();
+  const supabase = await createClient();
   const monthYear = getCurrentMonthYear();
 
   const { data: existing } = await supabase
@@ -130,7 +130,7 @@ export const precheckDocumentExport = async (
   userId: string,
   documentId: string,
 ): Promise<PrecheckDocumentExportResult> => {
-  const supabase = createClient();
+  const supabase = await createClient();
   const monthYear = getCurrentMonthYear();
 
   const { data: existing } = await supabase
@@ -160,7 +160,7 @@ export const commitDocumentExport = async (
   userId: string,
   documentId: string,
 ): Promise<"counted" | "duplicate" | "quota_exceeded"> => {
-  const supabase = createClient();
+  const supabase = await createClient();
   const monthYear = getCurrentMonthYear();
 
   const { data: existing } = await supabase

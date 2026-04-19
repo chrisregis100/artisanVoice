@@ -25,7 +25,7 @@ const statusColors = {
 };
 
 export default async function InvoicesPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },

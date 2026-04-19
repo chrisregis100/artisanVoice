@@ -38,9 +38,7 @@ const securityHeaders = [
 
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    serverComponentsExternalPackages: ["@react-pdf/renderer"],
-  },
+  serverExternalPackages: ["@react-pdf/renderer"],
   async headers() {
     return [
       {

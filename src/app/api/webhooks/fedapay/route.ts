@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const periodStart = new Date();
   const periodEnd = new Date(periodStart);

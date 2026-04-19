@@ -89,9 +89,9 @@ export function HeroSection() {
           </motion.div>
 
           <motion.p variants={fadeUpVariant} className="mt-8 flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground">
-            <div className="flex items-center justify-center h-5 w-5 rounded-full bg-primary/10">
+            <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10">
               <CheckCircle2 className="h-3.5 w-3.5 text-primary" aria-hidden />
-            </div>
+            </span>
             {t("landing.hero.freeNotice")}
           </motion.p>
         </motion.div>

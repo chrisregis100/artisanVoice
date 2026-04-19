@@ -20,7 +20,7 @@ export type AuthResult = AuthSuccess | AuthFailure;
 export const requireAuth = async (
   _request: NextRequest
 ): Promise<AuthResult> => {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

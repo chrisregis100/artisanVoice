@@ -55,7 +55,12 @@ interface FedaPayVerifyResponse {
   };
 }
 
-const FEDAPAY_BASE_URL = "https://api.fedapay.com/v1";
+const getFedaPayBaseUrl = (): string => {
+  if (env.FEDAPAY_ENVIRONMENT === "sandbox") {
+    return "https://sandbox-api.fedapay.com/v1";
+  }
+  return "https://api.fedapay.com/v1";
+};
 
 const requireFedaPaySecretKey = (): string => {
   const key = env.FEDAPAY_SECRET_KEY?.trim();
@@ -78,6 +83,7 @@ const getFedaPayHeaders = (): HeadersInit => {
 export const initiateFedaPayPayment = async (
   params: FedaPaymentParams,
 ): Promise<{ paymentUrl: string }> => {
+  const baseUrl = getFedaPayBaseUrl();
   const headers = getFedaPayHeaders();
 
   const [firstName, ...lastParts] = params.name.split(" ");
@@ -99,7 +105,7 @@ export const initiateFedaPayPayment = async (
     },
   };
 
-  const txResponse = await fetch(`${FEDAPAY_BASE_URL}/transactions`, {
+  const txResponse = await fetch(`${baseUrl}/transactions`, {
     method: "POST",
     headers,
     body: JSON.stringify(transactionPayload),
@@ -107,14 +113,20 @@ export const initiateFedaPayPayment = async (
 
   if (!txResponse.ok) {
     const errorText = await txResponse.text();
-    throw new Error(`FedaPay transaction error: ${txResponse.status} — ${errorText}`);
+    const authHint =
+      txResponse.status === 401
+        ? " (clé test sur l’API live ? définissez FEDAPAY_ENVIRONMENT=sandbox, ou utilisez une clé live.)"
+        : "";
+    throw new Error(
+      `FedaPay transaction error: ${txResponse.status} — ${errorText}${authHint}`,
+    );
   }
 
   const txData: FedaPayTransactionResponse = await txResponse.json();
   const transactionId = txData.v1.transaction.id;
 
   const tokenResponse = await fetch(
-    `${FEDAPAY_BASE_URL}/transactions/${transactionId}/token`,
+    `${baseUrl}/transactions/${transactionId}/token`,
     {
       method: "POST",
       headers,
@@ -135,10 +147,11 @@ export const verifyFedaPayPayment = async (
   transactionId: string,
   options: { minimumAmount: number },
 ): Promise<{ success: boolean; reference: string | null; amount: number | null }> => {
+  const baseUrl = getFedaPayBaseUrl();
   const headers = getFedaPayHeaders();
 
   const response = await fetch(
-    `${FEDAPAY_BASE_URL}/transactions/${transactionId}`,
+    `${baseUrl}/transactions/${transactionId}`,
     {
       method: "GET",
       headers,
