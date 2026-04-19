@@ -470,5 +470,27 @@
       "saveBtn": "Enregistrer",
       "savedBtn": "Enregistré"
     }
+  },
+  "legal": {
+    "title": "Mentions légales",
+    "updated": "Dernière mise à jour : avril 2026 — document d’information générale (à compléter avec vos coordonnées juridiques).",
+    "s1Title": "Éditeur du service",
+    "s1Body": "Billo est une application éditée par votre entité (raison sociale, forme juridique, adresse du siège et capital social à compléter).\nContact : via les canaux indiqués sur le site.",
+    "s2Title": "Hébergement",
+    "s2Body": "L’application est hébergée sur une infrastructure cloud (par ex. Vercel pour le front et Supabase pour les données — à préciser selon votre déploiement effectif).",
+    "s3Title": "Propriété intellectuelle",
+    "s3Body": "Les marques, logos et contenus du site sont protégés. Toute reproduction non autorisée est interdite."
+  },
+  "privacy": {
+    "title": "Politique de confidentialité",
+    "updated": "Dernière mise à jour : avril 2026.",
+    "s1Title": "Données collectées",
+    "s1Body": "Nous traitons les informations nécessaires au compte (email, éventuellement numéro de téléphone), aux documents que vous créez (clients, montants, PDF) et aux usages liés à l’abonnement (facturation, limites d’export).",
+    "s2Title": "Base légale et finalités",
+    "s2Body": "Le traitement repose sur l’exécution du contrat (fourniture du service) et, le cas échéant, l’intérêt légitime pour la sécurité et l’amélioration du produit.",
+    "s3Title": "Durée de conservation",
+    "s3Body": "Les données de compte et documents sont conservées tant que votre compte est actif ; certaines données peuvent être conservées pour respecter nos obligations légales.",
+    "s4Title": "Vos droits",
+    "s4Body": "Conformément au RGPD, vous pouvez demander l’accès, la rectification ou l’effacement de vos données, et vous opposer à certains traitements, en nous contactant."
   }
 }

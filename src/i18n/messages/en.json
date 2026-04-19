@@ -470,5 +470,27 @@
       "saveBtn": "Save",
       "savedBtn": "Saved"
     }
+  },
+  "legal": {
+    "title": "Legal notice",
+    "updated": "Last updated: April 2026 — general information (complete with your legal identity).",
+    "s1Title": "Publisher",
+    "s1Body": "Billo is operated by your company (legal name, form, registered address and share capital to be completed).\nContact: as indicated on the website.",
+    "s2Title": "Hosting",
+    "s2Body": "The app is hosted on cloud infrastructure (e.g. Vercel for the frontend and Supabase for data — adjust to match your actual setup).",
+    "s3Title": "Intellectual property",
+    "s3Body": "Brands, logos and site content are protected. Unauthorized reproduction is prohibited."
+  },
+  "privacy": {
+    "title": "Privacy policy",
+    "updated": "Last updated: April 2026.",
+    "s1Title": "Data we process",
+    "s1Body": "We process information needed for your account (email, optional phone), documents you create (clients, amounts, PDFs) and subscription-related usage (billing, export limits).",
+    "s2Title": "Legal basis and purposes",
+    "s2Body": "Processing is based on contract performance (providing the service) and, where applicable, legitimate interests for security and product improvement.",
+    "s3Title": "Retention",
+    "s3Body": "Account and document data are kept while your account is active; some records may be kept to comply with legal obligations.",
+    "s4Title": "Your rights",
+    "s4Body": "Under applicable law (e.g. GDPR), you may request access, rectification or erasure of your data, and object to certain processing, by contacting us."
   }
 }

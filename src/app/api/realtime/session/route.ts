@@ -34,10 +34,7 @@ export async function POST(request: NextRequest) {
     const provider = await getActiveProvider();
 
     const apiKey =
-      userApiKey ??
-      (provider.name === "gemini"
-        ? env.GEMINI_API_KEY
-        : env.OPENAI_API_KEY);
+      userApiKey ?? (await getServerApiKeyForProvider(provider.name));
 
     if (!apiKey) {
       return NextResponse.json(

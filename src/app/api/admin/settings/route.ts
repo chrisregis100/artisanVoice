@@ -212,7 +212,11 @@ export async function PUT(request: NextRequest) {
   return NextResponse.json(
     {
       error: "Données invalides.",
-      details: planResult.error.flatten(),
+      details: {
+        plan: planResult.success ? undefined : planResult.error.flatten(),
+        apiKey: apiKeyResult.success ? undefined : apiKeyResult.error.flatten(),
+        kv: kvResult.success ? undefined : kvResult.error.flatten(),
+      },
     },
     { status: 400 },
   );

@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -8,6 +10,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import type { SubscriptionStatusPayload } from "@/hooks/use-subscription-status";
 import { useLanguage } from "@/i18n/context";
 import { AlertCircle, CreditCard, Loader2, RefreshCw } from "lucide-react";
@@ -43,6 +55,8 @@ export function SubscriptionUsageCard({
 }: SubscriptionUsageCardProps) {
   const { t, locale } = useLanguage();
   const dateLocale = locale === "en" ? "en-GB" : "fr-FR";
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   if (isLoading) {
     return (
@@ -131,6 +145,27 @@ export function SubscriptionUsageCard({
       )
     : null;
 
+  const isPro = data.plan?.name === "pro";
+
+  const handleConfirmCancelPro = async () => {
+    setIsCancelling(true);
+    try {
+      const res = await fetch("/api/subscription/cancel", { method: "POST" });
+      const json = (await res.json()) as { error?: string };
+      if (!res.ok) {
+        toast.error(json.error ?? t("dashboard.subscription.cancelProError"));
+        return;
+      }
+      toast.success(t("dashboard.subscription.cancelProSuccess"));
+      setCancelOpen(false);
+      await refetch();
+    } catch {
+      toast.error(t("dashboard.subscription.cancelProError"));
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   return (
     <Card className={className}>
       <CardHeader className="pb-2">
@@ -193,8 +228,49 @@ export function SubscriptionUsageCard({
           <Button variant="outline" size="sm" asChild>
             <Link href="/subscribe">{t("dashboard.subscription.managePlan")}</Link>
           </Button>
+          {isPro ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-destructive hover:text-destructive"
+              onClick={() => setCancelOpen(true)}
+            >
+              {t("dashboard.subscription.cancelPro")}
+            </Button>
+          ) : null}
         </div>
       </CardContent>
+
+      <AlertDialog open={cancelOpen} onOpenChange={setCancelOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("dashboard.subscription.cancelProConfirmTitle")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("dashboard.subscription.cancelProConfirmDesc")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isCancelling}>
+              {t("dashboard.subscription.cancelProDismiss")}
+            </AlertDialogCancel>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={isCancelling}
+              className="gap-2"
+              onClick={() => void handleConfirmCancelPro()}
+            >
+              {isCancelling ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+              ) : null}
+              {t("dashboard.subscription.cancelProConfirm")}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
