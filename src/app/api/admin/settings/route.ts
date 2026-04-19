@@ -3,7 +3,18 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { requireAdmin } from "@/lib/api/auth";
 import { rateLimit, getClientIp } from "@/lib/utils/rate-limit";
 import { env } from "@/lib/env";
-import { adminPlanUpdateSchema, adminSettingKeyValueSchema } from "@/lib/api/schemas";
+import {
+  adminApiKeyUpdateSchema,
+  adminPlanUpdateSchema,
+  adminSettingKeyValueSchema,
+} from "@/lib/api/schemas";
+import {
+  ADMIN_SECRET_KEY_GEMINI,
+  ADMIN_SECRET_KEY_OPENAI,
+  buildSecretPayload,
+  maskFromStored,
+  parseStoredSecret,
+} from "@/lib/admin/provider-keys";
 import type { Json } from "@/lib/supabase/types";
 
 const limiter = rateLimit({ interval: 60_000, maxRequests: 20 });
@@ -31,6 +42,20 @@ function maskApiKey(key: string | undefined): string {
   return `${key.slice(0, 4)}...${key.slice(-4)}`;
 }
 
+function resolveServerKeyInfo(
+  dbValue: unknown,
+  envKey: string | undefined,
+): { source: "database" | "environment" | "none"; mask: string } {
+  const row = parseStoredSecret(dbValue);
+  if (row) {
+    return { source: "database", mask: maskFromStored(row) };
+  }
+  if (envKey) {
+    return { source: "environment", mask: maskApiKey(envKey) };
+  }
+  return { source: "none", mask: "Non configurée" };
+}
+
 export async function GET(request: NextRequest) {
   const check = await verifyAdminWithRateLimit(request);
   if (!check.ok) return check.response;
@@ -40,14 +65,24 @@ export async function GET(request: NextRequest) {
   // require bypassing RLS. Access is gated behind requireAdmin() above.
   const admin = createAdminClient();
 
-  const [settingsResult, plansResult, usersResult, invoicesResult, subsResult] =
-    await Promise.all([
-      admin.from("admin_settings").select("*"),
-      admin.from("plans").select("*").order("price_amount"),
-      admin.from("users").select("id", { count: "exact", head: true }),
-      admin.from("invoices").select("id", { count: "exact", head: true }),
-      admin.from("subscriptions").select("plan_id, status").eq("status", "active"),
-    ]);
+  const [
+    settingsResult,
+    plansResult,
+    usersResult,
+    invoicesResult,
+    subsResult,
+    secretKeysResult,
+  ] = await Promise.all([
+    admin.from("admin_settings").select("*"),
+    admin.from("plans").select("*").order("price_amount"),
+    admin.from("users").select("id", { count: "exact", head: true }),
+    admin.from("invoices").select("id", { count: "exact", head: true }),
+    admin.from("subscriptions").select("plan_id, status").eq("status", "active"),
+    admin
+      .from("admin_settings")
+      .select("key, value")
+      .in("key", [ADMIN_SECRET_KEY_OPENAI, ADMIN_SECRET_KEY_GEMINI]),
+  ]);
 
   const settings = settingsResult.data ?? [];
   const plans = plansResult.data ?? [];
@@ -65,6 +100,10 @@ export async function GET(request: NextRequest) {
     return acc + (plan?.price_amount ?? 0);
   }, 0);
 
+  const secretRows = secretKeysResult.data ?? [];
+  const openaiSecret = secretRows.find((r) => r.key === ADMIN_SECRET_KEY_OPENAI);
+  const geminiSecret = secretRows.find((r) => r.key === ADMIN_SECRET_KEY_GEMINI);
+
   return NextResponse.json({
     settings,
     plans,
@@ -76,8 +115,8 @@ export async function GET(request: NextRequest) {
       monthlyRevenue,
     },
     serverKeys: {
-      openai: maskApiKey(env.OPENAI_API_KEY),
-      gemini: maskApiKey(env.GEMINI_API_KEY),
+      openai: resolveServerKeyInfo(openaiSecret?.value, env.OPENAI_API_KEY),
+      gemini: resolveServerKeyInfo(geminiSecret?.value, env.GEMINI_API_KEY),
     },
   });
 }
@@ -109,6 +148,50 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
+  const apiKeyResult = adminApiKeyUpdateSchema.safeParse(rawBody);
+  if (apiKeyResult.success) {
+    const { provider, apiKey, clear } = apiKeyResult.data;
+    const settingKey =
+      provider === "gemini" ? ADMIN_SECRET_KEY_GEMINI : ADMIN_SECRET_KEY_OPENAI;
+
+    if (clear) {
+      const { error } = await admin.from("admin_settings").delete().eq("key", settingKey);
+      if (error) {
+        console.error("Admin API key clear error:", error);
+        return NextResponse.json({ error: "Erreur lors de la suppression." }, { status: 500 });
+      }
+      return NextResponse.json({ ok: true });
+    }
+
+    try {
+      const payload = buildSecretPayload(apiKey!.trim());
+      const { error } = await admin.from("admin_settings").upsert(
+        {
+          key: settingKey,
+          value: payload,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "key" },
+      );
+      if (error) {
+        console.error("Admin API key upsert error:", error);
+        return NextResponse.json({ error: "Erreur lors de l’enregistrement." }, { status: 500 });
+      }
+      return NextResponse.json({ ok: true });
+    } catch (err) {
+      if (err instanceof Error && err.message === "MISSING_ENCRYPTION_KEY") {
+        return NextResponse.json(
+          {
+            error:
+              "Définissez ADMIN_SECRETS_ENCRYPTION_KEY (32 octets encodés en base64, ex. openssl rand -base64 32) pour stocker des clés depuis l’interface.",
+          },
+          { status: 400 },
+        );
+      }
+      throw err;
+    }
+  }
+
   // Handle admin_settings update: { key: string, value: unknown }
   const kvResult = adminSettingKeyValueSchema.safeParse(rawBody);
   if (kvResult.success) {
@@ -127,7 +210,10 @@ export async function PUT(request: NextRequest) {
   }
 
   return NextResponse.json(
-    { error: "Données invalides.", details: planResult.error.flatten() },
-    { status: 400 }
+    {
+      error: "Données invalides.",
+      details: planResult.error.flatten(),
+    },
+    { status: 400 },
   );
 }

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { downgradeExpiredProIfNeeded } from "@/lib/subscription/expire";
 
 export interface UserSubscription {
   id: string;
@@ -19,6 +20,7 @@ export const getUserSubscription = async (
   userId: string,
 ): Promise<UserSubscription | null> => {
   const supabase = createClient();
+  await downgradeExpiredProIfNeeded(supabase, userId);
 
   const { data, error } = await supabase
     .from("subscriptions")

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api/auth";
 import { getActiveProvider } from "@/lib/ai/provider";
 import { rateLimit } from "@/lib/utils/rate-limit";
-import { env } from "@/lib/env";
+import { getServerApiKeyForProvider } from "@/lib/admin/provider-keys";
 import { realtimeSessionSchema } from "@/lib/api/schemas";
 
 const limiter = rateLimit({ interval: 60_000, maxRequests: 10 });

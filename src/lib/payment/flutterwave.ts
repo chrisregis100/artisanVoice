@@ -1,6 +1,14 @@
 import crypto from "crypto";
 import { env } from "@/lib/env";
 
+/**
+ * Flutterwave est désactivé sur le site (checkout + API). Ne pas réactiver sans :
+ * - remettre PROVIDERS + subscription/create + webhook,
+ * - exiger à nouveau les clés dans env.ts et .env,
+ * - rétablir le domaine dans next.config.js (CSP connect-src).
+ */
+export const IS_FLUTTERWAVE_ENABLED = false;
+
 interface FlutterwavePaymentParams {
   amount: number;
   currency: string;
@@ -53,7 +61,13 @@ interface FlutterwaveVerifyResponse {
 export const initiateFlutterwavePayment = async (
   params: FlutterwavePaymentParams,
 ): Promise<{ paymentUrl: string }> => {
+  if (!IS_FLUTTERWAVE_ENABLED) {
+    throw new Error("Flutterwave est désactivé.");
+  }
   const secretKey = env.FLUTTERWAVE_SECRET_KEY;
+  if (!secretKey) {
+    throw new Error("FLUTTERWAVE_SECRET_KEY manquante — Flutterwave ne doit pas être appelé.");
+  }
 
   const txRef = `billo-${params.userId}-${params.planId}-${Date.now()}`;
 
@@ -105,7 +119,13 @@ export const initiateFlutterwavePayment = async (
 export const verifyFlutterwavePayment = async (
   transactionId: string,
 ): Promise<{ success: boolean; txRef: string | null; amount: number | null }> => {
+  if (!IS_FLUTTERWAVE_ENABLED) {
+    return { success: false, txRef: null, amount: null };
+  }
   const secretKey = env.FLUTTERWAVE_SECRET_KEY;
+  if (!secretKey) {
+    throw new Error("FLUTTERWAVE_SECRET_KEY manquante — vérification Flutterwave impossible.");
+  }
 
   const response = await fetch(
     `https://api.flutterwave.com/v3/transactions/${transactionId}/verify`,
@@ -145,7 +165,10 @@ export const verifyFlutterwaveWebhookHash = (
   _payload: string,
   signature: string,
 ): boolean => {
+  if (!IS_FLUTTERWAVE_ENABLED) return false;
   const webhookSecret = env.FLUTTERWAVE_WEBHOOK_SECRET;
+  // Sans secret, ne pas appeler timingSafeEqual (secret absent = webhook invalide).
+  if (!webhookSecret) return false;
 
   const a = Buffer.from(signature);
   const b = Buffer.from(webhookSecret);

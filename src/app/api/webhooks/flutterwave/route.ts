@@ -1,9 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { verifyFlutterwavePayment, verifyFlutterwaveWebhookHash } from "@/lib/payment/flutterwave";
+import {
+  IS_FLUTTERWAVE_ENABLED,
+  verifyFlutterwavePayment,
+  verifyFlutterwaveWebhookHash,
+} from "@/lib/payment/flutterwave";
 import { flutterwaveWebhookSchema } from "@/lib/api/schemas";
 
 export async function POST(request: NextRequest) {
+  // Route laissée pour ne pas 404 si l’URL est encore configurée chez Flutterwave ; aucun traitement.
+  if (!IS_FLUTTERWAVE_ENABLED) {
+    return NextResponse.json(
+      { error: "Flutterwave est désactivé sur ce site." },
+      { status: 410 },
+    );
+  }
+
   const rawBody = await request.text();
   const signature = request.headers.get("verif-hash") ?? "";
 

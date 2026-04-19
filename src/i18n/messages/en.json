@@ -293,6 +293,32 @@
       "confirmEmailToast": "Check your email to confirm your account, then sign in.",
       "setupError": "Account created, but free activation failed. Try signing in again."
     },
+    "forgotPassword": {
+      "title": "Forgot password",
+      "subtitle": "Enter your email address and we will send you a link to set a new password.",
+      "emailLabel": "Email address",
+      "submit": "Send link",
+      "submitting": "Sending…",
+      "successToast": "If an account exists, we sent an email with next steps.",
+      "sentHint": "Check your inbox (and spam) and open the link to set a new password.",
+      "backToLogin": "Back to sign in",
+      "errorEmailRequired": "Email is required",
+      "errorEmailInvalid": "Invalid email address"
+    },
+    "resetPassword": {
+      "title": "New password",
+      "subtitle": "Choose a strong password for your account.",
+      "passwordLabel": "New password",
+      "confirmLabel": "Confirm password",
+      "submit": "Save",
+      "submitting": "Saving…",
+      "successToast": "Password updated. You can sign in.",
+      "errorMinLength": "At least 8 characters",
+      "errorMismatch": "Passwords do not match",
+      "noSessionTitle": "Invalid or expired link",
+      "noSessionDesc": "Request a new reset link from the forgot password page.",
+      "requestNewLink": "Request a new link"
+    },
     "subscribe": {
       "stepBadge": "Final step",
       "title": "Choose your plan",
@@ -379,6 +405,7 @@
     },
     "main": {
       "offline": "Offline mode — data will sync when the connection returns.",
+      "pendingSync": "Pending sync",
       "documentPreview": "Document Preview",
       "clearAll": "Clear all",
       "preview": "Preview",
@@ -410,7 +437,14 @@
       "usageUnlimited": "{{count}} export(s) this month — unlimited",
       "limitReached": "Monthly quota reached. Upgrade to Pro or wait until next month.",
       "managePlan": "Plans & billing",
-      "refreshAria": "Refresh subscription"
+      "refreshAria": "Refresh subscription",
+      "cancelPro": "Cancel Pro",
+      "cancelProConfirmTitle": "Switch back to the free plan?",
+      "cancelProConfirmDesc": "You keep access to Billo with free-plan limits (limited monthly exports). This takes effect immediately.",
+      "cancelProConfirm": "Cancel Pro",
+      "cancelProDismiss": "Keep Pro",
+      "cancelProSuccess": "You are back on the free plan.",
+      "cancelProError": "Could not cancel right now."
     },
     "settings": {
       "sectionLabel": "Account",

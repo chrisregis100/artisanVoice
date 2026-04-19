@@ -43,8 +43,6 @@ jobs:
           # Provide stubs here only to silence any static-analysis warnings;
           # they are never evaluated during next build.
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY || 'placeholder' }}
-          FLUTTERWAVE_SECRET_KEY: ${{ secrets.FLUTTERWAVE_SECRET_KEY || 'placeholder' }}
-          FLUTTERWAVE_WEBHOOK_SECRET: ${{ secrets.FLUTTERWAVE_WEBHOOK_SECRET || 'placeholder' }}
           FEDAPAY_SECRET_KEY: ${{ secrets.FEDAPAY_SECRET_KEY || 'placeholder' }}
           FEDAPAY_WEBHOOK_SECRET: ${{ secrets.FEDAPAY_WEBHOOK_SECRET || 'placeholder' }}
           ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL || 'admin@example.com' }}

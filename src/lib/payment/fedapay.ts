@@ -57,9 +57,19 @@ interface FedaPayVerifyResponse {
 
 const FEDAPAY_BASE_URL = "https://api.fedapay.com/v1";
 
+const requireFedaPaySecretKey = (): string => {
+  const key = env.FEDAPAY_SECRET_KEY?.trim();
+  if (!key) {
+    throw new Error(
+      "FedaPay n'est pas configuré : renseignez FEDAPAY_SECRET_KEY.",
+    );
+  }
+  return key;
+};
+
 const getFedaPayHeaders = (): HeadersInit => {
   return {
-    Authorization: `Bearer ${env.FEDAPAY_SECRET_KEY}`,
+    Authorization: `Bearer ${requireFedaPaySecretKey()}`,
     "Content-Type": "application/json",
     "FedaPay-Version": "2018-02-01",
   };
@@ -155,7 +165,8 @@ export const verifyFedaPayWebhookSignature = (
   payload: string,
   signature: string,
 ): boolean => {
-  const webhookSecret = env.FEDAPAY_WEBHOOK_SECRET;
+  const webhookSecret = env.FEDAPAY_WEBHOOK_SECRET?.trim();
+  if (!webhookSecret) return false;
 
   const expectedSignature = crypto
     .createHmac("sha256", webhookSecret)

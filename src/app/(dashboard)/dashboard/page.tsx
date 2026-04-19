@@ -18,8 +18,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SubscriptionUsageCard } from "@/components/dashboard/subscription-usage-card";
 import { VoiceButton } from "@/components/voice/voice-button";
 import { VoiceConversation } from "@/components/voice/voice-conversation";
+import { useOffline } from "@/hooks/use-offline";
 import { useSubscriptionStatus } from "@/hooks/use-subscription-status";
 import { useLanguage } from "@/i18n/context";
+import { createClient } from "@/lib/supabase/client";
 import { useInvoiceStore } from "@/stores/invoice-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import type { InvoiceItem } from "@/types";
@@ -30,6 +32,7 @@ import { useEffect, useState } from "react";
 export default function DashboardPage() {
   const { t } = useLanguage();
   const subscriptionStatus = useSubscriptionStatus();
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
@@ -68,6 +71,44 @@ export default function DashboardPage() {
     invoicePrefix,
     vatRatePercent,
   } = useSettingsStore();
+
+  const { persistCurrentDraft, pendingCount: pendingSyncCount } = useOffline(
+    authUserId ?? "",
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!cancelled) setAuthUserId(user?.id ?? null);
+    };
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!authUserId) return;
+    const hasWork = items.length > 0 || customerName.trim().length > 0;
+    if (!hasWork) return;
+    const handle = setTimeout(() => {
+      void persistCurrentDraft();
+    }, 2500);
+    return () => clearTimeout(handle);
+  }, [
+    authUserId,
+    documentId,
+    customerName,
+    customerPhone,
+    items,
+    total,
+    type,
+    persistCurrentDraft,
+  ]);
 
   useEffect(() => {
     setIsOnline(navigator.onLine);
@@ -232,6 +273,12 @@ export default function DashboardPage() {
           {t("dashboard.main.offline")}
         </div>
       )}
+      {authUserId && pendingSyncCount > 0 ? (
+        <div className="bg-muted px-4 py-1.5 text-center text-xs text-muted-foreground">
+          <span>{t("dashboard.main.pendingSync")}</span>{" "}
+          <span className="tabular-nums">({pendingSyncCount})</span>
+        </div>
+      ) : null}
 
       <div className="hidden flex-1 flex-row overflow-hidden bg-surface md:flex">
         <div className="flex min-h-0 w-1/3 min-w-0 flex-col bg-background">
@@ -366,6 +413,7 @@ export default function DashboardPage() {
         quotePrefix={quotePrefix || "DV-"}
         invoicePrefix={invoicePrefix || "FAC-"}
         vatRatePercent={vatRatePercent ?? 20}
+        userId={authUserId}
       />
 
       <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>

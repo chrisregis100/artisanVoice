@@ -17,6 +17,8 @@ import {
   canShareFiles,
   type ShareMethod,
 } from "@/lib/utils/share";
+import { db, putSyncedInvoiceMirror } from "@/lib/offline/db";
+import { upsertInvoiceToSupabase } from "@/lib/invoices/persist-client";
 import type { InvoiceItem } from "@/types";
 import {
   MessageCircle,
@@ -44,6 +46,8 @@ interface ShareDialogProps {
   quotePrefix: string;
   invoicePrefix: string;
   vatRatePercent: number;
+  /** Required for saving the document to Supabase after export. */
+  userId?: string | null;
 }
 
 const QUOTA_ERROR: Record<"quota_exceeded" | "no_subscription", string> = {
@@ -70,6 +74,7 @@ export function ShareDialog({
   quotePrefix,
   invoicePrefix,
   vatRatePercent,
+  userId,
 }: ShareDialogProps) {
   const [isSharing, setIsSharing] = useState(false);
   const [customerPhone, setCustomerPhone] = useState(initialPhone || "");
@@ -137,6 +142,39 @@ export function ShareDialog({
       const duplicate = preData.duplicate === true;
 
       await shareAction();
+
+      if (userId) {
+        try {
+          const sentAtMs = Date.now();
+          await upsertInvoiceToSupabase({
+            userId,
+            invoiceId: documentId,
+            customerName,
+            items,
+            total,
+            type,
+            status: "sent",
+            sentAtIso: new Date(sentAtMs).toISOString(),
+          });
+          const existingLocal = await db.invoices.get(documentId);
+          await putSyncedInvoiceMirror({
+            id: documentId,
+            userId,
+            customerName,
+            customerPhone: customerPhone || "",
+            items,
+            total,
+            type,
+            status: "sent",
+            sentAt: sentAtMs,
+            syncStatus: "synced",
+            createdAt: existingLocal?.createdAt ?? sentAtMs,
+            updatedAt: sentAtMs,
+          });
+        } catch (persistErr) {
+          console.error("Persist invoice after export failed:", persistErr);
+        }
+      }
 
       if (!duplicate) {
         const commitRes = await fetch("/api/subscription/document-export", {

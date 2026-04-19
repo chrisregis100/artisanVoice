@@ -15,7 +15,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-type PaymentProvider = "flutterwave" | "fedapay";
+// Flutterwave retiré du checkout — ne garder que fedapay tant que IS_FLUTTERWAVE_ENABLED est false.
+type PaymentProvider = "fedapay";
 
 interface ProviderOption {
   id: PaymentProvider;
@@ -25,12 +26,6 @@ interface ProviderOption {
 }
 
 const PROVIDERS: ProviderOption[] = [
-  {
-    id: "flutterwave",
-    name: "Flutterwave",
-    descKey: "auth.checkout.flutterwaveDesc",
-    logo: "FLW",
-  },
   {
     id: "fedapay",
     name: "FedaPay",
@@ -136,7 +131,7 @@ function CheckoutForm() {
   const router = useRouter();
   const { t } = useLanguage();
   const [selectedProvider, setSelectedProvider] =
-    useState<PaymentProvider | null>(null);
+    useState<PaymentProvider | null>("fedapay");
   const [isLoading, setIsLoading] = useState(false);
 
   const proFeatures = [
