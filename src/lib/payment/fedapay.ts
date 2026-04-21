@@ -1,5 +1,5 @@
-import crypto from "crypto";
 import { env } from "@/lib/env";
+import crypto from "crypto";
 
 interface FedaPaymentParams {
   amount: number;
@@ -11,31 +11,33 @@ interface FedaPaymentParams {
   redirectUrl: string;
 }
 
-interface FedaPayTransactionResponse {
-  v1: {
-    transaction: {
-      id: number;
-      klass: string;
-      transaction_key: string;
-      reference: string;
-      amount: number;
-      description: string;
-      callback_url: string | null;
-      status: string;
-      customer_id: number;
-      currency_id: number;
-      mode: string;
-      operation: string;
-      created_at: string;
-      updated_at: string;
-      approved_at: string | null;
-      canceled_at: string | null;
-      declined_at: string | null;
-      transferred_at: string | null;
-      reversed_at: string | null;
-      deleted_at: string | null;
-    };
-  };
+/** POST /transactions returns nested `v1/transaction` (slash key) with payment_url. */
+function parseCreatedTransaction(txData: unknown): {
+  id: number;
+  paymentUrl: string | null;
+} | null {
+  if (!txData || typeof txData !== "object") return null;
+  const root = txData as Record<string, unknown>;
+  const node =
+    root["v1/transaction"] ??
+    (root.v1 as Record<string, unknown> | undefined)?.transaction;
+  if (node && typeof node === "object") {
+    const t = node as Record<string, unknown>;
+    const id = typeof t.id === "number" ? t.id : Number(t.id);
+    if (!Number.isFinite(id)) return null;
+    const paymentUrl =
+      typeof t.payment_url === "string" && t.payment_url.length > 0
+        ? t.payment_url
+        : null;
+    return { id, paymentUrl };
+  }
+  const id = typeof root.id === "number" ? root.id : Number(root.id);
+  if (!Number.isFinite(id)) return null;
+  const paymentUrl =
+    typeof root.payment_url === "string" && root.payment_url.length > 0
+      ? root.payment_url
+      : null;
+  return { id, paymentUrl };
 }
 
 interface FedaPayTokenResponse {
@@ -43,16 +45,67 @@ interface FedaPayTokenResponse {
   url: string;
 }
 
-interface FedaPayVerifyResponse {
-  v1: {
-    transaction: {
-      id: number;
-      status: string;
-      amount: number;
-      currency_id: number;
-      reference: string;
-    };
-  };
+export interface FedaPayTransactionRecord {
+  id: number;
+  status: string;
+  amount: number;
+  reference: string;
+  metadata: { user_id?: string; plan_id?: string } | null;
+  /** Email du client sur la transaction (GET API), pour repli si metadata absente. */
+  customerEmail: string | null;
+}
+
+function coerceMetaString(value: unknown): string | undefined {
+  if (typeof value === "string" && value.length > 0) return value;
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return undefined;
+}
+
+function parseMetadataFromTransactionNode(
+  t: Record<string, unknown>,
+): { user_id?: string; plan_id?: string } | null {
+  const raw = t.metadata;
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const m = raw as Record<string, unknown>;
+  const user_id = coerceMetaString(
+    m.user_id ?? m.userId ?? m["user-id"],
+  );
+  const plan_id = coerceMetaString(
+    m.plan_id ?? m.planId ?? m["plan-id"],
+  );
+  if (!user_id && !plan_id) return null;
+  return { user_id, plan_id };
+}
+
+function parseCustomerEmailFromTransactionNode(
+  t: Record<string, unknown>,
+): string | null {
+  const c = t.customer;
+  if (!c || typeof c !== "object" || Array.isArray(c)) return null;
+  const email = (c as Record<string, unknown>).email;
+  if (typeof email !== "string" || !email.includes("@")) return null;
+  return email.trim().toLowerCase();
+}
+
+function parseTransactionFromApiPayload(data: unknown): FedaPayTransactionRecord | null {
+  if (!data || typeof data !== "object") return null;
+  const root = data as Record<string, unknown>;
+  const node =
+    root["v1/transaction"] ??
+    (root.v1 as Record<string, unknown> | undefined)?.transaction;
+  if (!node || typeof node !== "object") return null;
+  const t = node as Record<string, unknown>;
+  const id = typeof t.id === "number" ? t.id : Number(t.id);
+  if (!Number.isFinite(id)) return null;
+  const status = typeof t.status === "string" ? t.status : "";
+  const amount = typeof t.amount === "number" ? t.amount : Number(t.amount);
+  const reference = typeof t.reference === "string" ? t.reference : "";
+  if (!Number.isFinite(amount) || !reference) return null;
+
+  const metadata = parseMetadataFromTransactionNode(t);
+  const customerEmail = parseCustomerEmailFromTransactionNode(t);
+
+  return { id, status, amount, reference, metadata, customerEmail };
 }
 
 const getFedaPayBaseUrl = (): string => {
@@ -103,6 +156,7 @@ export const initiateFedaPayPayment = async (
       firstname: firstName,
       lastname: lastName,
     },
+    mode: "mtn_open",
   };
 
   const txResponse = await fetch(`${baseUrl}/transactions`, {
@@ -122,11 +176,18 @@ export const initiateFedaPayPayment = async (
     );
   }
 
-  const txData: FedaPayTransactionResponse = await txResponse.json();
-  const transactionId = txData.v1.transaction.id;
+  const txData = await txResponse.json();
+  const created = parseCreatedTransaction(txData);
+  if (!created) {
+    throw new Error("FedaPay: réponse de création de transaction invalide.");
+  }
+
+  if (created.paymentUrl) {
+    return { paymentUrl: created.paymentUrl };
+  }
 
   const tokenResponse = await fetch(
-    `${baseUrl}/transactions/${transactionId}/token`,
+    `${baseUrl}/transactions/${created.id}/token`,
     {
       method: "POST",
       headers,
@@ -135,7 +196,9 @@ export const initiateFedaPayPayment = async (
 
   if (!tokenResponse.ok) {
     const errorText = await tokenResponse.text();
-    throw new Error(`FedaPay token error: ${tokenResponse.status} — ${errorText}`);
+    throw new Error(
+      `FedaPay token error: ${tokenResponse.status} — ${errorText}`,
+    );
   }
 
   const tokenData: FedaPayTokenResponse = await tokenResponse.json();
@@ -143,28 +206,39 @@ export const initiateFedaPayPayment = async (
   return { paymentUrl: tokenData.url };
 };
 
-export const verifyFedaPayPayment = async (
+export const getFedaPayTransaction = async (
   transactionId: string,
-  options: { minimumAmount: number },
-): Promise<{ success: boolean; reference: string | null; amount: number | null }> => {
+): Promise<FedaPayTransactionRecord> => {
   const baseUrl = getFedaPayBaseUrl();
   const headers = getFedaPayHeaders();
 
-  const response = await fetch(
-    `${baseUrl}/transactions/${transactionId}`,
-    {
-      method: "GET",
-      headers,
-    },
-  );
+  const response = await fetch(`${baseUrl}/transactions/${transactionId}`, {
+    method: "GET",
+    headers,
+  });
 
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(`FedaPay verify error: ${response.status} — ${errorText}`);
   }
 
-  const data: FedaPayVerifyResponse = await response.json();
-  const tx = data.v1.transaction;
+  const data: unknown = await response.json();
+  const tx = parseTransactionFromApiPayload(data);
+  if (!tx) {
+    throw new Error("FedaPay: réponse transaction invalide.");
+  }
+  return tx;
+};
+
+export const verifyFedaPayPayment = async (
+  transactionId: string,
+  options: { minimumAmount: number },
+): Promise<{
+  success: boolean;
+  reference: string | null;
+  amount: number | null;
+}> => {
+  const tx = await getFedaPayTransaction(transactionId);
 
   const isSuccessful =
     tx.status === "approved" && tx.amount >= options.minimumAmount;

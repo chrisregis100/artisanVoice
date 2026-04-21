@@ -376,6 +376,8 @@
       "failedTitle": "Payment failed",
       "failedSubtitle": "The payment could not be completed.",
       "failedToast": "Payment cancelled or failed. Please try again.",
+      "confirmError": "Could not activate your subscription after payment. Retry or contact support.",
+      "missingReturnParams": "Incomplete payment return. Start again from the Pro plan.",
       "retryBtn": "Retry",
       "pf1": "Unlimited documents",
       "pf2": "Unlimited clients",

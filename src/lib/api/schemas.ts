@@ -113,5 +113,7 @@ export type AdminSettingKeyValue = z.infer<typeof adminSettingKeyValueSchema>;
 export type AdminApiKeyUpdate = z.infer<typeof adminApiKeyUpdateSchema>;
 export type SubscriptionCreateBody = z.infer<typeof subscriptionCreateSchema>;
 export type DocumentExportBody = z.infer<typeof documentExportSchema>;
-export type FlutterwaveWebhookPayload = z.infer<typeof flutterwaveWebhookSchema>;
+export type FlutterwaveWebhookPayload = z.infer<
+  typeof flutterwaveWebhookSchema
+>;
 export type FedapayWebhookPayload = z.infer<typeof fedapayWebhookSchema>;

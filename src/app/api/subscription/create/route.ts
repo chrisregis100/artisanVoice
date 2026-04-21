@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/lib/api/auth";
+import { subscriptionCreateSchema } from "@/lib/api/schemas";
+import { clientEnv } from "@/lib/env";
 import { initiateFedaPayPayment } from "@/lib/payment/fedapay";
 import { rateLimit } from "@/lib/utils/rate-limit";
-import { requireAuth } from "@/lib/api/auth";
-import { clientEnv } from "@/lib/env";
-import { subscriptionCreateSchema } from "@/lib/api/schemas";
+import { NextRequest, NextResponse } from "next/server";
 
 const limiter = rateLimit({ interval: 60_000, maxRequests: 5 });
 
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   if (!success) {
     return NextResponse.json(
       { error: "Trop de requêtes. Réessayez dans une minute." },
-      { status: 429 }
+      { status: 429 },
     );
   }
 
@@ -27,10 +27,7 @@ export async function POST(request: NextRequest) {
 
   const { error: ensureUserError } = await supabase
     .from("users")
-    .upsert(
-      { id: user.id, business_name: businessName },
-      { onConflict: "id" },
-    );
+    .upsert({ id: user.id, business_name: businessName }, { onConflict: "id" });
 
   if (ensureUserError) {
     console.error("Failed to ensure public.users row:", ensureUserError);
@@ -68,10 +65,7 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (planError || !plan) {
-    return NextResponse.json(
-      { error: "Plan introuvable" },
-      { status: 404 },
-    );
+    return NextResponse.json({ error: "Plan introuvable" }, { status: 404 });
   }
 
   if (planName === "free") {
@@ -83,22 +77,18 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (existingSubscription) {
-      return NextResponse.json(
-        { success: true, redirect: "/dashboard" },
-      );
+      return NextResponse.json({ success: true, redirect: "/dashboard" });
     }
 
-    const { error: insertError } = await supabase
-      .from("subscriptions")
-      .insert({
-        user_id: user.id,
-        plan_id: plan.id,
-        status: "active",
-        payment_provider: null,
-        payment_reference: null,
-        current_period_start: new Date().toISOString(),
-        current_period_end: null,
-      });
+    const { error: insertError } = await supabase.from("subscriptions").insert({
+      user_id: user.id,
+      plan_id: plan.id,
+      status: "active",
+      payment_provider: null,
+      payment_reference: null,
+      current_period_start: new Date().toISOString(),
+      current_period_end: null,
+    });
 
     if (insertError) {
       console.error("Failed to create free subscription:", insertError);
@@ -122,9 +112,7 @@ export async function POST(request: NextRequest) {
 
     const email = user.email ?? "";
     const name =
-      user.user_metadata?.business_name ||
-      user.user_metadata?.name ||
-      email;
+      user.user_metadata?.business_name || user.user_metadata?.name || email;
 
     const baseUrl = clientEnv.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
     const redirectUrl = `${baseUrl}/subscribe/checkout/callback?provider=${provider}&userId=${user.id}&planId=${plan.id}`;
@@ -140,7 +128,10 @@ export async function POST(request: NextRequest) {
         redirectUrl,
       });
 
-      return NextResponse.json({ success: true, paymentUrl: result.paymentUrl });
+      return NextResponse.json({
+        success: true,
+        paymentUrl: result.paymentUrl,
+      });
     } catch (err) {
       console.error("Payment initiation error:", err);
       return NextResponse.json(

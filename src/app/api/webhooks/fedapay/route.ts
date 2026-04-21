@@ -1,18 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { verifyFedaPayPayment, verifyFedaPayWebhookSignature } from "@/lib/payment/fedapay";
 import { fedapayWebhookSchema } from "@/lib/api/schemas";
+import {
+  verifyFedaPayPayment,
+  verifyFedaPayWebhookSignature,
+} from "@/lib/payment/fedapay";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   const rawBody = await request.text();
   const signature = request.headers.get("x-fedapay-signature") ?? "";
 
   if (!verifyFedaPayWebhookSignature(rawBody, signature)) {
-    return NextResponse.json(
-      { error: "Requête invalide" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Requête invalide" }, { status: 400 });
   }
 
   let parsedJson: unknown;
@@ -24,15 +24,17 @@ export async function POST(request: NextRequest) {
 
   const payloadResult = fedapayWebhookSchema.safeParse(parsedJson);
   if (!payloadResult.success) {
-    console.error("Invalid FedaPay webhook payload:", payloadResult.error.flatten());
+    console.error(
+      "Invalid FedaPay webhook payload:",
+      payloadResult.error.flatten(),
+    );
     return NextResponse.json({ error: "Payload invalide." }, { status: 400 });
   }
 
   const { name, data } = payloadResult.data;
 
   const isApprovalEvent =
-    name === "transaction.approved" ||
-    name === "transaction.payment.created";
+    name === "transaction.approved" || name === "transaction.payment.created";
 
   if (!isApprovalEvent) {
     return NextResponse.json({ received: true });
@@ -48,7 +50,10 @@ export async function POST(request: NextRequest) {
   const planId = transaction.metadata?.plan_id;
 
   if (!userId || !planId) {
-    console.error("Missing metadata in FedaPay webhook:", transaction.reference);
+    console.error(
+      "Missing metadata in FedaPay webhook:",
+      transaction.reference,
+    );
     return NextResponse.json({ received: true });
   }
 
@@ -69,7 +74,10 @@ export async function POST(request: NextRequest) {
   });
 
   if (!verification.success) {
-    console.error("FedaPay payment verification failed for ref:", transaction.reference);
+    console.error(
+      "FedaPay payment verification failed for ref:",
+      transaction.reference,
+    );
     return NextResponse.json({ received: true });
   }
 

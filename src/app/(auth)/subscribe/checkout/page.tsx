@@ -1,20 +1,20 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { useLanguage } from "@/i18n/context";
-import { usePublicPlans } from "@/hooks/use-public-plans";
 import { BilloLogoMark } from "@/components/brand/billo-logo";
+import { Button } from "@/components/ui/button";
+import { usePublicPlans } from "@/hooks/use-public-plans";
+import { useLanguage } from "@/i18n/context";
 import {
+  AlertCircle,
   ArrowLeft,
+  CheckCircle2,
   Loader2,
   Shield,
-  CheckCircle2,
-  AlertCircle,
 } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { toast } from "sonner";
 
 // Flutterwave retiré du checkout — ne garder que fedapay tant que IS_FLUTTERWAVE_ENABLED est false.
 type PaymentProvider = "fedapay";
@@ -46,8 +46,7 @@ function CallbackHandler() {
   useEffect(() => {
     const status = searchParams.get("status");
     const transactionId =
-      searchParams.get("transaction_id") ||
-      searchParams.get("transaction-id");
+      searchParams.get("transaction_id") || searchParams.get("transaction-id");
 
     if (status === "cancelled" || status === "failed") {
       setCallbackStatus("failed");
@@ -170,9 +169,7 @@ function CheckoutForm() {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(
-          data.error ?? t("auth.checkout.paymentInitError"),
-        );
+        throw new Error(data.error ?? t("auth.checkout.paymentInitError"));
       }
 
       if (data.paymentUrl) {
@@ -197,9 +194,7 @@ function CheckoutForm() {
               aria-label="Billo — Accueil"
             >
               <BilloLogoMark className="h-9 w-9" size={36} />
-              <span className="text-lg font-bold text-brand">
-                Billo
-              </span>
+              <span className="text-lg font-bold text-brand">Billo</span>
             </Link>
             <button
               type="button"
@@ -226,7 +221,7 @@ function CheckoutForm() {
         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-10">
           {/* Left: Payment form — min-w-0 évite le débordement grid qui chevauche la colonne suivante */}
           <div className="min-w-0 lg:col-span-7">
-              <div className="overflow-hidden rounded-2xl border border-border/90 bg-card p-6 shadow-md shadow-border/30 sm:p-8">
+            <div className="overflow-hidden rounded-2xl border border-border/90 bg-card p-6 shadow-md shadow-border/30 sm:p-8">
               <h1 className="text-2xl font-bold tracking-tight text-foreground">
                 {t("auth.checkout.title")}
               </h1>

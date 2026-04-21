@@ -1,25 +1,25 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { z } from "zod";
-import { toast } from "sonner";
-import { createClient } from "@/lib/supabase/client";
-import { getPostAuthPath } from "@/lib/subscription/post-auth-redirect";
+import { BilloLogoMark } from "@/components/brand/billo-logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useLanguage } from "@/i18n/context";
-import { BilloLogoMark } from "@/components/brand/billo-logo";
+import { getPostAuthPath } from "@/lib/subscription/post-auth-redirect";
+import { createClient } from "@/lib/supabase/client";
 import {
-  Mic,
-  Loader2,
   ArrowRight,
   CheckCircle2,
   Eye,
   EyeOff,
+  Loader2,
+  Mic,
 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
+import { z } from "zod";
 
 type LoginFormValues = { email: string; password: string };
 
@@ -108,9 +108,7 @@ export default function LoginPage() {
             aria-label="Billo — Accueil"
           >
             <BilloLogoMark className="h-9 w-9" size={36} />
-            <span className="text-lg font-bold text-brand">
-              Billo
-            </span>
+            <span className="text-lg font-bold text-brand">Billo</span>
           </Link>
 
           <div className="mb-8">
@@ -264,9 +262,7 @@ export default function LoginPage() {
 
           <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-white">
             {t("auth.login.panelTitle1")}{" "}
-            <span className="text-primary">
-              {t("auth.login.panelTitle2")}
-            </span>
+            <span className="text-primary">{t("auth.login.panelTitle2")}</span>
           </h2>
 
           <p className="mt-4 text-base leading-relaxed text-brand-foreground/70">
