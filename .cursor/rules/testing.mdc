@@ -1,0 +1,16 @@
+---
+description: Unit testing conventions for Vitest
+globs: ["**/*.test.ts", "**/*.spec.ts", "**/vitest.*"]
+alwaysApply: false
+---
+
+- Runner: Vitest 3 with `environment: "node"` — tests run in Node.js, not jsdom
+- File placement: Co-locate `*.test.ts` next to the module under test (e.g., `schemas.ts` → `schemas.test.ts`)
+- Imports: Use `@/` alias (configured in `vitest.config.ts`) and import from `vitest`
+- Environment: `vitest.setup.ts` provides `NEXT_PUBLIC_*` placeholders; use `vi.stubEnv()` for per-test overrides
+- Patterns: One `describe()` per exported function, one `it()` per test case
+- Zod testing: Use `.safeParse()` to test error paths; inspect `result.error.issues` for specific field errors
+- Time testing: Use `vi.useFakeTimers()` + `vi.setSystemTime()` + `vi.useRealTimers()` for date-dependent code
+- Mocking: Prefer `vi.mock()` for module mocks, `vi.stubGlobal()` for `fetch`; keep mocks minimal and close to usage
+- Scope: Tests target `src/lib` (pure logic, API schemas, utilities) — no React component tests
+- CI: Tests run in `.github/workflows/ci.yml` with placeholder env vars for `NEXT_PUBLIC_*` values

@@ -31,11 +31,19 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Test
-        run: npm run test
+        run: npm run test:coverage
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY: placeholder-anon-key
           NEXT_PUBLIC_APP_URL: https://placeholder.example.com
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
 
       - name: Build
         run: npm run build
