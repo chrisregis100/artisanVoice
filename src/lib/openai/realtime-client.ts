@@ -10,34 +10,61 @@ export interface RealtimeConfig {
   onResponseDone?: () => void;
 }
 
+const MAX_RETRIES = 5;
+/** Cap individual backoff delay at 30 s */
+const MAX_RETRY_DELAY_MS = 30_000;
+
 export class RealtimeClient {
   private ws: WebSocket | null = null;
   private config: RealtimeConfig;
   private isSessionConfigured = false;
 
+  private token = "";
+  private wsUrl?: string;
+  private retryCount = 0;
+  private shouldReconnect = false;
+
   constructor(config: RealtimeConfig) {
     this.config = config;
   }
 
-  async connect(token: string): Promise<void> {
+  async connect(token: string, url?: string): Promise<void> {
+    this.token = token;
+    this.wsUrl = url;
+    this.shouldReconnect = true;
+    return this.openWebSocket();
+  }
+
+  private openWebSocket(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const url = `wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17`;
+      const url = this.wsUrl ?? `wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17`;
 
       this.ws = new WebSocket(url, [
         "realtime",
-        `openai-insecure-api-key.${token}`,
+        `openai-insecure-api-key.${this.token}`,
         "openai-beta.realtime-v1",
       ]);
 
       this.ws.onopen = () => {
+        this.retryCount = 0;
         this.config.onConnectionChange(true);
         this.configureSession();
         resolve();
       };
 
-      this.ws.onclose = () => {
-        this.config.onConnectionChange(false);
+      this.ws.onclose = (event) => {
         this.isSessionConfigured = false;
+        this.config.onConnectionChange(false);
+
+        // Only retry on abnormal closures (not when disconnect() was called)
+        if (this.shouldReconnect && !event.wasClean && this.retryCount < MAX_RETRIES) {
+          const delay = Math.min(
+            1000 * Math.pow(2, this.retryCount),
+            MAX_RETRY_DELAY_MS,
+          );
+          this.retryCount++;
+          setTimeout(() => void this.reconnect(), delay);
+        }
       };
 
       this.ws.onerror = () => {
@@ -45,10 +72,19 @@ export class RealtimeClient {
         reject(new Error("WebSocket connection failed"));
       };
 
-      this.ws.onmessage = (event) => {
+      this.ws.onmessage = (event: MessageEvent<string>) => {
         this.handleMessage(event.data);
       };
     });
+  }
+
+  /** Background reconnection — does not propagate errors to caller. */
+  private async reconnect(): Promise<void> {
+    try {
+      await this.openWebSocket();
+    } catch {
+      // onclose handler will schedule the next retry if retryCount allows
+    }
   }
 
   private configureSession(): void {
@@ -85,56 +121,88 @@ export class RealtimeClient {
   }
 
   private handleMessage(data: string): void {
+    let message: Record<string, unknown>;
+
     try {
-      const message = JSON.parse(data);
+      message = JSON.parse(data) as Record<string, unknown>;
+    } catch (err) {
+      console.error("RealtimeClient: failed to parse server message", err, data);
+      return;
+    }
 
-      switch (message.type) {
-        case "session.created":
-        case "session.updated":
-          break;
+    const type = message.type as string | undefined;
 
-        case "conversation.item.input_audio_transcription.completed":
-          if (message.transcript) {
-            this.config.onUserTranscript(message.transcript);
-          }
-          break;
+    switch (type) {
+      case "session.created":
+      case "session.updated":
+        break;
 
-        case "response.audio_transcript.delta":
-          if (message.delta) {
-            this.config.onAssistantTranscriptDelta(message.delta);
-          }
-          break;
-
-        case "response.audio.delta":
-          if (message.delta) {
-            const audioData = this.base64ToArrayBuffer(message.delta);
-            this.config.onAudioResponse(audioData);
-          }
-          break;
-
-        case "response.function_call_arguments.done":
-          if (message.name && message.arguments) {
-            try {
-              const args = JSON.parse(message.arguments);
-              this.config.onFunctionCall(message.name, args);
-
-              this.sendFunctionResult(message.call_id, { success: true });
-            } catch {
-              console.error("Failed to parse function arguments");
-            }
-          }
-          break;
-
-        case "response.done":
-          this.config.onResponseDone?.();
-          break;
-
-        case "error":
-          this.config.onError(message.error?.message || "Une erreur est survenue");
-          break;
+      case "conversation.item.input_audio_transcription.completed": {
+        const transcript = message.transcript;
+        if (typeof transcript === "string" && transcript) {
+          this.config.onUserTranscript(transcript);
+        }
+        break;
       }
-    } catch (error) {
-      console.error("Failed to parse message:", error);
+
+      case "response.audio_transcript.delta": {
+        const delta = message.delta;
+        if (typeof delta === "string" && delta) {
+          this.config.onAssistantTranscriptDelta(delta);
+        }
+        break;
+      }
+
+      case "response.audio.delta": {
+        const delta = message.delta;
+        if (typeof delta === "string" && delta) {
+          const audioData = this.base64ToArrayBuffer(delta);
+          this.config.onAudioResponse(audioData);
+        }
+        break;
+      }
+
+      case "response.function_call_arguments.done": {
+        const name = message.name;
+        const rawArgs = message.arguments;
+        const callId = message.call_id;
+
+        if (typeof name !== "string" || typeof rawArgs !== "string") break;
+
+        let args: Record<string, unknown>;
+        try {
+          args = JSON.parse(rawArgs) as Record<string, unknown>;
+        } catch (err) {
+          console.error(
+            `RealtimeClient: failed to parse function args for "${name}"`,
+            err,
+            rawArgs,
+          );
+          break;
+        }
+
+        this.config.onFunctionCall(name, args);
+
+        if (typeof callId === "string") {
+          this.sendFunctionResult(callId, { success: true });
+        }
+        break;
+      }
+
+      case "response.done":
+        this.config.onResponseDone?.();
+        break;
+
+      case "error": {
+        const errMsg =
+          (message.error as { message?: string } | undefined)?.message ??
+          "Une erreur est survenue";
+        this.config.onError(errMsg);
+        break;
+      }
+
+      default:
+        break;
     }
   }
 
@@ -142,23 +210,14 @@ export class RealtimeClient {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
 
     const base64Audio = this.arrayBufferToBase64(audioData);
-
-    this.send({
-      type: "input_audio_buffer.append",
-      audio: base64Audio,
-    });
+    this.send({ type: "input_audio_buffer.append", audio: base64Audio });
   }
 
   commitAudio(): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
 
-    this.send({
-      type: "input_audio_buffer.commit",
-    });
-
-    this.send({
-      type: "response.create",
-    });
+    this.send({ type: "input_audio_buffer.commit" });
+    this.send({ type: "response.create" });
   }
 
   private sendFunctionResult(callId: string, result: unknown): void {
@@ -170,14 +229,11 @@ export class RealtimeClient {
         output: JSON.stringify(result),
       },
     });
-
-    this.send({
-      type: "response.create",
-    });
+    this.send({ type: "response.create" });
   }
 
   private send(message: Record<string, unknown>): void {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+    if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(message));
     }
   }
@@ -201,6 +257,8 @@ export class RealtimeClient {
   }
 
   disconnect(): void {
+    this.shouldReconnect = false;
+    this.retryCount = 0;
     if (this.ws) {
       this.ws.close();
       this.ws = null;

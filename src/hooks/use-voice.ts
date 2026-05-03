@@ -2,10 +2,58 @@
 
 import { useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 import { useInvoiceStore } from "@/stores/invoice-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import { RealtimeClient } from "@/lib/openai/realtime-client";
 import { GeminiRealtimeClient } from "@/lib/gemini/realtime-client";
+
+// ---------------------------------------------------------------------------
+// Zod schemas — validate every function-call payload before touching the store
+// ---------------------------------------------------------------------------
+
+const AddItemSchema = z.object({
+  description: z.string().min(1),
+  quantity: z.number().positive(),
+  unit_price: z.number().nonnegative(),
+});
+
+const RemoveItemSchema = z.object({
+  item_index: z.number().int(),
+});
+
+const SetCustomerSchema = z.object({
+  name: z.string().min(1),
+  phone: z.string().optional(),
+});
+
+const FinalizeDocumentSchema = z.object({
+  send_via: z.enum(["whatsapp", "sms", "email"]).optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Constants
+// ---------------------------------------------------------------------------
+
+/** Input sample rate per provider (output playback is always 24 kHz). */
+const PROVIDER_SAMPLE_RATE: Record<"openai" | "gemini", number> = {
+  openai: 24000,
+  gemini: 16000,
+};
+
+/** Path to the AudioWorklet module (served from /public). */
+const WORKLET_PATH = "/audio-processor.js";
+
+/**
+ * Fallback delay before clearing the "processing" spinner when the AI
+ * response-done event never fires (e.g. network loss). Kept deliberately
+ * short so the UI doesn't feel stuck.
+ */
+const PROCESSING_FALLBACK_MS = 5000;
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
 interface VoiceClient {
   sendAudio(audioData: ArrayBuffer): void;
@@ -19,12 +67,24 @@ interface UseVoiceReturn {
   stopListening: () => void;
 }
 
+// ---------------------------------------------------------------------------
+// Hook
+// ---------------------------------------------------------------------------
+
 export function useVoice(): UseVoiceReturn {
   const clientRef = useRef<VoiceClient | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
+
+  // Two separate AudioContexts: one for recording, one for playback.
+  // Keeping them separate prevents closing one from disrupting the other.
+  const recordCtxRef = useRef<AudioContext | null>(null);
+  const playbackCtxRef = useRef<AudioContext | null>(null);
+
+  const workletNodeRef = useRef<AudioWorkletNode | null>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioQueueRef = useRef<ArrayBuffer[]>([]);
   const isPlayingRef = useRef(false);
+  const inputSampleRateRef = useRef<number>(24000);
+  const processingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { openaiApiKey } = useSettingsStore();
 
@@ -39,7 +99,12 @@ export function useVoice(): UseVoiceReturn {
     removeItem,
     setCustomer,
     reset,
+    requestFinalize,
   } = useInvoiceStore();
+
+  // -------------------------------------------------------------------------
+  // Audio playback
+  // -------------------------------------------------------------------------
 
   const playAudioQueue = useCallback(async () => {
     if (isPlayingRef.current || audioQueueRef.current.length === 0) return;
@@ -51,8 +116,16 @@ export function useVoice(): UseVoiceReturn {
       if (!audioData) continue;
 
       try {
-        if (!audioContextRef.current) {
-          audioContextRef.current = new AudioContext({ sampleRate: 24000 });
+        if (
+          !playbackCtxRef.current ||
+          playbackCtxRef.current.state === "closed"
+        ) {
+          playbackCtxRef.current = new AudioContext({ sampleRate: 24000 });
+        }
+
+        // Resume context if suspended (browser autoplay policy)
+        if (playbackCtxRef.current.state === "suspended") {
+          await playbackCtxRef.current.resume();
         }
 
         const int16Array = new Int16Array(audioData);
@@ -61,143 +134,186 @@ export function useVoice(): UseVoiceReturn {
           float32Array[i] = int16Array[i] / 32768;
         }
 
-        const audioBuffer = audioContextRef.current.createBuffer(
+        const audioBuffer = playbackCtxRef.current.createBuffer(
           1,
           float32Array.length,
-          24000
+          24000,
         );
         audioBuffer.copyToChannel(float32Array, 0);
 
-        const source = audioContextRef.current.createBufferSource();
+        const source = playbackCtxRef.current.createBufferSource();
         source.buffer = audioBuffer;
-        source.connect(audioContextRef.current.destination);
+        source.connect(playbackCtxRef.current.destination);
         source.start();
 
-        await new Promise((resolve) => {
-          source.onended = resolve;
+        await new Promise<void>((resolve) => {
+          source.onended = () => resolve();
         });
-      } catch (error) {
-        console.error("Audio playback error:", error);
+      } catch (err) {
+        console.error("Audio playback error:", err);
       }
     }
 
     isPlayingRef.current = false;
   }, []);
 
+  // -------------------------------------------------------------------------
+  // Function-call handler (Zod-validated)
+  // -------------------------------------------------------------------------
+
   const handleFunctionCall = useCallback(
     (name: string, args: Record<string, unknown>) => {
       switch (name) {
-        case "add_item":
+        case "add_item": {
+          const parsed = AddItemSchema.safeParse(args);
+          if (!parsed.success) {
+            console.error("add_item: invalid args", parsed.error.flatten());
+            toast.error("Erreur", {
+              description: "Arguments invalides pour ajouter un article",
+            });
+            return;
+          }
           addItem(
-            args.description as string,
-            args.quantity as number,
-            args.unit_price as number
+            parsed.data.description,
+            parsed.data.quantity,
+            parsed.data.unit_price,
           );
           break;
-        case "remove_item":
-          removeItem(args.item_index as number);
+        }
+
+        case "remove_item": {
+          const parsed = RemoveItemSchema.safeParse(args);
+          if (!parsed.success) {
+            console.error("remove_item: invalid args", parsed.error.flatten());
+            return;
+          }
+          removeItem(parsed.data.item_index);
           break;
-        case "set_customer":
-          setCustomer(args.name as string, args.phone as string | undefined);
+        }
+
+        case "set_customer": {
+          const parsed = SetCustomerSchema.safeParse(args);
+          if (!parsed.success) {
+            console.error("set_customer: invalid args", parsed.error.flatten());
+            return;
+          }
+          setCustomer(parsed.data.name, parsed.data.phone);
           break;
+        }
+
         case "clear_document":
           reset();
           break;
+
         case "finalize_document": {
-          const event = new CustomEvent("finalize-document", {
-            detail: { sendVia: args.send_via },
-          });
-          window.dispatchEvent(event);
+          const parsed = FinalizeDocumentSchema.safeParse(args);
+          requestFinalize(parsed.success ? parsed.data.send_via : undefined);
           break;
         }
+
         default:
-          console.warn("Unknown function:", name);
+          console.warn("useVoice: unknown function call:", name);
       }
     },
-    [addItem, removeItem, setCustomer, reset]
+    [addItem, removeItem, setCustomer, reset, requestFinalize],
   );
 
-  const initializeClient = useCallback(async () => {
-    try {
-      // Build request body — include personal key only if user has set one
-      const body: Record<string, string> = {};
-      if (openaiApiKey) {
-        body.userApiKey = openaiApiKey;
-      }
+  // -------------------------------------------------------------------------
+  // Cleanup helpers
+  // -------------------------------------------------------------------------
 
-      const response = await fetch("/api/realtime/session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error ?? "Impossible de créer la session vocale");
-      }
-
-      const { provider, url, token } = (await response.json()) as {
-        provider: "openai" | "gemini";
-        url: string;
-        token: string;
-        model: string;
-      };
-
-      const clientConfig = {
-        onUserTranscript: (text: string) => {
-          pushUserMessage(text);
-        },
-        onAssistantTranscriptDelta: (delta: string) => {
-          appendAssistantDelta(delta);
-        },
-        onFunctionCall: handleFunctionCall,
-        onAudioResponse: (audio: ArrayBuffer) => {
-          audioQueueRef.current.push(audio);
-          playAudioQueue();
-        },
-        onError: (error: string) => {
-          setError(error);
-          setProcessing(false);
-        },
-        onConnectionChange: (connected: boolean) => {
-          setConnected(connected);
-          if (!connected) {
-            setListening(false);
-            setProcessing(false);
-          }
-        },
-      };
-
-      let client: VoiceClient;
-
-      if (provider === "gemini") {
-        const geminiClient = new GeminiRealtimeClient(clientConfig);
-        await geminiClient.connect(url);
-        client = geminiClient;
-      } else {
-        const openaiClient = new RealtimeClient(clientConfig);
-        await openaiClient.connect(token);
-        client = openaiClient;
-      }
-
-      clientRef.current = client;
-
-      toast.success("Connexion établie", {
-        description: "Le serveur vocal est prêt.",
-      });
-
-      return client;
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Impossible de se connecter au serveur vocal";
-      toast.error("Erreur de connexion", {
-        description: message,
-      });
-      console.error("Failed to initialize client:", error);
-      throw error;
+  /** Tears down the microphone capture pipeline (worklet + stream + context). */
+  const cleanupRecording = useCallback(async () => {
+    if (workletNodeRef.current) {
+      workletNodeRef.current.port.close();
+      workletNodeRef.current.disconnect();
+      workletNodeRef.current = null;
     }
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+    }
+    if (
+      recordCtxRef.current &&
+      recordCtxRef.current.state !== "closed"
+    ) {
+      await recordCtxRef.current.close();
+      recordCtxRef.current = null;
+    }
+  }, []);
+
+  // -------------------------------------------------------------------------
+  // Client initialisation
+  // -------------------------------------------------------------------------
+
+  const initializeClient = useCallback(async (): Promise<VoiceClient> => {
+    const body: Record<string, string> = {};
+    if (openaiApiKey) body.userApiKey = openaiApiKey;
+
+    const response = await fetch("/api/realtime/session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.error ?? "Impossible de créer la session vocale");
+    }
+
+    const { provider, url, token } = (await response.json()) as {
+      provider: "openai" | "gemini";
+      url: string;
+      token: string;
+      model: string;
+    };
+
+    // Remember sample rate so the recording context uses the right rate
+    inputSampleRateRef.current = PROVIDER_SAMPLE_RATE[provider] ?? 24000;
+
+    const clientConfig = {
+      onUserTranscript: pushUserMessage,
+      onAssistantTranscriptDelta: appendAssistantDelta,
+      onFunctionCall: handleFunctionCall,
+      onAudioResponse: (audio: ArrayBuffer) => {
+        audioQueueRef.current.push(audio);
+        playAudioQueue();
+      },
+      onError: (error: string) => {
+        setError(error);
+        setProcessing(false);
+      },
+      onConnectionChange: (connected: boolean) => {
+        setConnected(connected);
+        if (!connected) {
+          setListening(false);
+          setProcessing(false);
+        }
+      },
+      onResponseDone: () => {
+        // AI finished responding — clear the processing spinner immediately
+        if (processingTimerRef.current) {
+          clearTimeout(processingTimerRef.current);
+          processingTimerRef.current = null;
+        }
+        setProcessing(false);
+      },
+    };
+
+    let client: VoiceClient;
+
+    if (provider === "gemini") {
+      const geminiClient = new GeminiRealtimeClient(clientConfig);
+      await geminiClient.connect(url);
+      client = geminiClient;
+    } else {
+      const openaiClient = new RealtimeClient(clientConfig);
+      await openaiClient.connect(token, url);
+      client = openaiClient;
+    }
+
+    clientRef.current = client;
+    return client;
   }, [
     openaiApiKey,
     appendAssistantDelta,
@@ -210,103 +326,119 @@ export function useVoice(): UseVoiceReturn {
     setProcessing,
   ]);
 
+  // -------------------------------------------------------------------------
+  // startListening / stopListening
+  // -------------------------------------------------------------------------
+
   const startListening = useCallback(async () => {
     try {
       setError(null);
+
+      // Connect to the AI provider first so we know the required sample rate
+      if (!clientRef.current?.isConnected) {
+        await initializeClient();
+      }
+
+      const sampleRate = inputSampleRateRef.current;
+
+      // Stop any previous recording context before creating a new one
+      await cleanupRecording();
 
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
           noiseSuppression: true,
-          sampleRate: 24000,
+          sampleRate,
           channelCount: 1,
         },
       });
+      mediaStreamRef.current = stream;
 
-      if (!clientRef.current?.isConnected) {
-        await initializeClient();
-      }
+      recordCtxRef.current = new AudioContext({ sampleRate });
 
-      setListening(true);
+      // Load the AudioWorklet module (browser caches after first load)
+      await recordCtxRef.current.audioWorklet.addModule(WORKLET_PATH);
 
-      audioContextRef.current = new AudioContext({ sampleRate: 24000 });
-      const source = audioContextRef.current.createMediaStreamSource(stream);
-      const processor = audioContextRef.current.createScriptProcessor(4096, 1, 1);
+      const source = recordCtxRef.current.createMediaStreamSource(stream);
+      const workletNode = new AudioWorkletNode(
+        recordCtxRef.current,
+        "pcm16-processor",
+      );
+      workletNodeRef.current = workletNode;
 
-      processor.onaudioprocess = (e) => {
-        if (!clientRef.current?.isConnected) return;
-
-        const inputData = e.inputBuffer.getChannelData(0);
-        const int16Data = new Int16Array(inputData.length);
-        for (let i = 0; i < inputData.length; i++) {
-          const s = Math.max(-1, Math.min(1, inputData[i]));
-          int16Data[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+      workletNode.port.onmessage = (event: MessageEvent<ArrayBuffer>) => {
+        if (clientRef.current?.isConnected) {
+          clientRef.current.sendAudio(event.data);
         }
-
-        clientRef.current.sendAudio(int16Data.buffer);
       };
 
-      source.connect(processor);
-      processor.connect(audioContextRef.current.destination);
+      // Connect source → worklet (NOT to destination — avoids mic echo)
+      source.connect(workletNode);
 
-      mediaRecorderRef.current = { stream, processor, source } as unknown as MediaRecorder;
+      setListening(true);
+      toast.success("Connexion établie", {
+        description: "Le serveur vocal est prêt.",
+      });
     } catch (error) {
       setListening(false);
+      await cleanupRecording();
+
       let errorMessage = "Erreur lors du démarrage de l'enregistrement";
       if (error instanceof DOMException && error.name === "NotAllowedError") {
         errorMessage = "Accès au microphone refusé";
       } else if (error instanceof Error && error.message) {
         errorMessage = error.message;
       }
-      setError(errorMessage);
-      toast.error("Erreur", {
-        description: errorMessage,
-      });
-      console.error("Start listening error:", error);
-    }
-  }, [initializeClient, setError, setListening]);
 
-  const stopListening = useCallback(() => {
+      setError(errorMessage);
+      toast.error("Erreur", { description: errorMessage });
+      console.error("startListening error:", error);
+    }
+  }, [initializeClient, setError, setListening, cleanupRecording]);
+
+  const stopListening = useCallback(async () => {
     setListening(false);
     setProcessing(true);
 
-    if (mediaRecorderRef.current) {
-      const { stream, processor, source } = mediaRecorderRef.current as unknown as {
-        stream: MediaStream;
-        processor: ScriptProcessorNode;
-        source: MediaStreamAudioSourceNode;
-      };
-
-      source?.disconnect();
-      processor?.disconnect();
-      stream?.getTracks().forEach((track) => track.stop());
-      mediaRecorderRef.current = null;
-    }
+    // Disconnect microphone pipeline synchronously-ish
+    await cleanupRecording();
 
     if (clientRef.current?.isConnected) {
       clientRef.current.commitAudio();
     }
 
-    setTimeout(() => {
+    // Fallback: clear spinner if onResponseDone never fires (e.g. network loss)
+    if (processingTimerRef.current) {
+      clearTimeout(processingTimerRef.current);
+    }
+    processingTimerRef.current = setTimeout(() => {
       setProcessing(false);
-    }, 3000);
-  }, [setListening, setProcessing]);
+      processingTimerRef.current = null;
+    }, PROCESSING_FALLBACK_MS);
+  }, [setListening, setProcessing, cleanupRecording]);
+
+  // -------------------------------------------------------------------------
+  // Cleanup on unmount
+  // -------------------------------------------------------------------------
 
   useEffect(() => {
     return () => {
+      void cleanupRecording();
+
       clientRef.current?.disconnect();
-      audioContextRef.current?.close();
-      if (mediaRecorderRef.current) {
-        const { stream } = mediaRecorderRef.current as unknown as {
-          stream: MediaStream;
-        };
-        stream?.getTracks().forEach((track) => track.stop());
+
+      if (
+        playbackCtxRef.current &&
+        playbackCtxRef.current.state !== "closed"
+      ) {
+        playbackCtxRef.current.close();
+      }
+
+      if (processingTimerRef.current) {
+        clearTimeout(processingTimerRef.current);
       }
     };
-  }, []);
+  }, [cleanupRecording]);
 
-  return {
-    startListening,
-    stopListening,
-  };
+  return { startListening, stopListening };
 }

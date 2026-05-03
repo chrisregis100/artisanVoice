@@ -13,7 +13,7 @@ const csp = [
   "img-src 'self' data: blob: https:",
   "font-src 'self'",
   // api.flutterwave.com retiré tant que Flutterwave est désactivé (voir lib/payment/flutterwave.ts).
-  `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://api.fedapay.com https://api.openai.com https://generativelanguage.googleapis.com`,
+  `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://api.fedapay.com https://api.openai.com wss://api.openai.com https://generativelanguage.googleapis.com wss://generativelanguage.googleapis.com`,
   "frame-src 'none'",
   "object-src 'none'",
   "base-uri 'self'",
