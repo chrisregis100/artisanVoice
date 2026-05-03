@@ -6,7 +6,6 @@ import {
   Text,
   View,
   StyleSheet,
-  Font,
 } from "@react-pdf/renderer";
 import type { InvoiceItem } from "@/types";
 import {
@@ -16,14 +15,6 @@ import {
   formatIsoDateForDocument,
   splitAddressLines,
 } from "@/lib/utils";
-
-Font.register({
-  family: "Helvetica",
-  fonts: [
-    { src: "Helvetica" },
-    { src: "Helvetica-Bold", fontWeight: "bold" },
-  ],
-});
 
 const styles = StyleSheet.create({
   page: {
