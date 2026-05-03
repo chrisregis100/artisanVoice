@@ -394,7 +394,7 @@ export default function DashboardPage() {
         items={items}
         total={total}
         type={type}
-        businessName={businessName}
+        businessName={businessName || "Mon Entreprise"}
         businessPhone={businessPhone}
         businessAddress={businessAddress}
         documentDate={documentDate}

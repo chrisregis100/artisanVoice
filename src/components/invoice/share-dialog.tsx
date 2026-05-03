@@ -19,14 +19,9 @@ import {
 } from "@/lib/utils/share";
 import { db, putSyncedInvoiceMirror } from "@/lib/offline/db";
 import { upsertInvoiceToSupabase } from "@/lib/invoices/persist-client";
+import { useLanguage } from "@/i18n/context";
 import type { InvoiceItem } from "@/types";
-import {
-  MessageCircle,
-  Download,
-  Share2,
-  Loader2,
-  Phone,
-} from "lucide-react";
+import { MessageCircle, Download, Share2, Loader2, Phone } from "lucide-react";
 
 interface ShareDialogProps {
   open: boolean;
@@ -50,13 +45,6 @@ interface ShareDialogProps {
   userId?: string | null;
 }
 
-const QUOTA_ERROR: Record<"quota_exceeded" | "no_subscription", string> = {
-  quota_exceeded:
-    "Limite mensuelle de factures atteinte. Passez à l’offre Pro pour continuer à exporter.",
-  no_subscription:
-    "Aucun abonnement actif. Reconnectez-vous ou choisissez une offre pour exporter.",
-};
-
 export function ShareDialog({
   open,
   onOpenChange,
@@ -76,9 +64,15 @@ export function ShareDialog({
   vatRatePercent,
   userId,
 }: ShareDialogProps) {
+  const { t } = useLanguage();
   const [isSharing, setIsSharing] = useState(false);
   const [customerPhone, setCustomerPhone] = useState(initialPhone || "");
   const [error, setError] = useState<string | null>(null);
+
+  const QUOTA_ERROR: Record<"quota_exceeded" | "no_subscription", string> = {
+    quota_exceeded: t("dashboard.share.quotaExceeded"),
+    no_subscription: t("dashboard.share.noSubscription"),
+  };
 
   const shareParams = {
     customerName,
@@ -98,11 +92,9 @@ export function ShareDialog({
 
   const formatShareError = (err: unknown, context: "pdf" | "whatsapp") => {
     console.error("Share error:", err);
-    const base =
-      context === "pdf"
-        ? "Le partage du PDF a échoué."
-        : "L’envoi WhatsApp a échoué.";
-    return `${base} Réessayez, vérifiez le numéro au format international, ou téléchargez le PDF pour l’envoyer autrement.`;
+    return context === "pdf"
+      ? t("dashboard.share.pdfShareError")
+      : t("dashboard.share.whatsappShareError");
   };
 
   const runWithUsageGate = async (
@@ -125,16 +117,16 @@ export function ShareDialog({
       };
 
       if (!preRes.ok) {
-        setError(
-          "Impossible de vérifier votre quota. Réessayez dans un instant.",
-        );
+        setError(t("dashboard.share.checkQuotaError"));
         return;
       }
 
       if (!preData.canExport) {
         const reason = preData.reason;
         setError(
-          reason && reason in QUOTA_ERROR ? QUOTA_ERROR[reason] : QUOTA_ERROR.quota_exceeded,
+          reason && reason in QUOTA_ERROR
+            ? QUOTA_ERROR[reason]
+            : QUOTA_ERROR.quota_exceeded,
         );
         return;
       }
@@ -188,17 +180,13 @@ export function ShareDialog({
         };
 
         if (commitRes.status === 403) {
-          setError(
-            "Le quota mensuel est atteint. Si un fichier a été généré, vous pouvez le renvoyer depuis ce même document sans nouveau décompte.",
-          );
+          setError(t("dashboard.share.quotaReached"));
           return;
         }
 
         if (!commitRes.ok) {
           console.error("commit document export failed:", commitData);
-          setError(
-            "L’export a réussi mais l’enregistrement du quota a échoué. Réessayez ou contactez le support.",
-          );
+          setError(t("dashboard.share.commitError"));
           return;
         }
       }
@@ -223,16 +211,25 @@ export function ShareDialog({
     }, "whatsapp");
   };
 
-  const documentTitle = type === "quote" ? "devis" : "facture";
+  const documentTitle =
+    type === "quote"
+      ? t("dashboard.preview.quote")
+      : t("dashboard.preview.invoice");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Envoyer le {documentTitle}</DialogTitle>
+          <DialogTitle>
+            {t("dashboard.share.sendDocument", {
+              documentType: documentTitle,
+            })}
+          </DialogTitle>
           <DialogDescription>
-            Choisissez comment partager ce document avec{" "}
-            {customerName || "votre client"}
+            {t("dashboard.share.shareWith", {
+              customerName:
+                customerName || t("dashboard.share.shareWithDefault"),
+            })}
           </DialogDescription>
         </DialogHeader>
 
@@ -241,12 +238,12 @@ export function ShareDialog({
           <div className="space-y-2">
             <Label htmlFor="phone">
               <Phone className="h-3 w-3 inline mr-1" />
-              Numéro WhatsApp du client (optionnel)
+              {t("dashboard.share.phoneLabel")}
             </Label>
             <Input
               id="phone"
               type="tel"
-              placeholder="+229 97 00 00 00"
+              placeholder={t("dashboard.share.phonePlaceholder")}
               value={customerPhone}
               onChange={(e) => setCustomerPhone(e.target.value)}
               disabled={isSharing}
@@ -276,7 +273,7 @@ export function ShareDialog({
               ) : (
                 <MessageCircle className="h-5 w-5 mr-3" />
               )}
-              WhatsApp (avec PDF)
+              {t("dashboard.share.whatsappWithPDF")}
             </Button>
 
             <Button
@@ -291,7 +288,7 @@ export function ShareDialog({
               ) : (
                 <MessageCircle className="h-5 w-5 mr-3" />
               )}
-              WhatsApp (message uniquement)
+              {t("dashboard.share.whatsappOnly")}
             </Button>
 
             {canShareFiles() && (
@@ -307,7 +304,7 @@ export function ShareDialog({
                 ) : (
                   <Share2 className="h-5 w-5 mr-3" />
                 )}
-                Autres applications
+                {t("dashboard.share.otherApps")}
               </Button>
             )}
 
@@ -323,7 +320,7 @@ export function ShareDialog({
               ) : (
                 <Download className="h-5 w-5 mr-3" />
               )}
-              Télécharger le PDF
+              {t("dashboard.share.downloadPDF")}
             </Button>
           </div>
         </div>

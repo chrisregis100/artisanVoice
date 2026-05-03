@@ -157,19 +157,19 @@ interface InvoicePDFProps {
 }
 
 export function InvoicePDF({
-  customerName,
+  customerName = "",
   customerPhone,
   customerAddress,
-  items,
-  total,
+  items = [],
+  total = 0,
   type,
-  businessName,
+  businessName = "",
   businessPhone,
   businessAddress,
   documentDate,
-  quotePrefix,
-  invoicePrefix,
-  vatRatePercent,
+  quotePrefix = "DV-",
+  invoicePrefix = "FAC-",
+  vatRatePercent = 0,
 }: InvoicePDFProps) {
   const documentTitle = type === "quote" ? "Devis" : "Facture";
   const documentNumber = buildDocumentNumber(
@@ -209,7 +209,7 @@ export function InvoicePDF({
         <View style={styles.twoCol}>
           <View style={styles.col}>
             <Text style={styles.colLabel}>Émetteur</Text>
-            <Text style={styles.colLineBold}>{businessName}</Text>
+            <Text style={styles.colLineBold}>{businessName || "—"}</Text>
             {issuerLines.map((line, i) => (
               <Text key={i} style={styles.colLine}>
                 {line}
@@ -254,16 +254,16 @@ export function InvoicePDF({
           items.map((item, index) => (
             <View key={index} style={styles.tableRow} wrap={false}>
               <Text style={[styles.itemDescription, styles.colDescription]}>
-                {item.description}
+                {item.description || ""}
               </Text>
               <Text style={[styles.itemMuted, styles.colQty]}>
-                {item.quantity}
+                {String(item.quantity ?? 0)}
               </Text>
               <Text style={[styles.itemMuted, styles.colPrice]}>
-                {item.unitPrice.toLocaleString("fr-FR")}
+                {(item.unitPrice ?? 0).toLocaleString("fr-FR")}
               </Text>
               <Text style={[styles.itemDescription, styles.colTotal]}>
-                {(item.quantity * item.unitPrice).toLocaleString("fr-FR")}
+                {((item.quantity ?? 0) * (item.unitPrice ?? 0)).toLocaleString("fr-FR")}
               </Text>
             </View>
           ))

@@ -16,7 +16,7 @@ const messages: Record<Locale, Record<string, unknown>> = { fr, en };
 interface LanguageContextValue {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  t: (key: string) => string;
+  t: (key: string, vars?: Record<string, string>) => string;
 }
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
@@ -69,11 +69,14 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const t = useCallback(
-    (key: string): string => {
+    (key: string, vars?: Record<string, string>): string => {
       const msgs = messages[locale];
-      const result = getNestedValue(msgs, key);
+      let result = getNestedValue(msgs, key);
       if (result === key && locale !== defaultLocale) {
-        return getNestedValue(messages[defaultLocale], key);
+        result = getNestedValue(messages[defaultLocale], key);
+      }
+      if (vars) {
+        result = result.replace(/\{\{(\w+)\}\}/g, (_, k) => vars[k] ?? `{{${k}}}`);
       }
       return result;
     },

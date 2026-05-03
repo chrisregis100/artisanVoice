@@ -23,19 +23,28 @@ export interface GeneratePDFParams {
 export async function generatePDF(params: GeneratePDFParams): Promise<Blob> {
   const document = <InvoicePDF {...params} />;
 
-  const blob = await pdf(document).toBlob();
-  return blob;
+  try {
+    const blob = await pdf(document).toBlob();
+    return blob;
+  } catch (error) {
+    throw new Error(
+      `PDF generation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
+  }
 }
 
 export function downloadPDF(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  try {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }
 
 export function generateFilename(
