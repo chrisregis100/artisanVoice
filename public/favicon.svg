@@ -6,12 +6,16 @@
     </linearGradient>
   </defs>
   <rect width="192" height="192" rx="48" fill="url(#billoG)"/>
-  <path
-    d="M 60 52 L 60 140 M 60 52 Q 114 70 60 88 M 60 88 Q 124 114 60 140"
+  <g
     fill="none"
     stroke="#ffffff"
-    stroke-width="19"
     stroke-linecap="round"
     stroke-linejoin="round"
-  />
+    stroke-width="10"
+    transform="translate(96 96) scale(1.88) translate(-65 -96)"
+  >
+    <path d="M42 86 Q102 96 42 106"/>
+    <path d="M42 74 Q118 96 42 118"/>
+    <path d="M42 58 Q134 96 42 134"/>
+  </g>
 </svg>

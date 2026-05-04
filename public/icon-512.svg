@@ -1,17 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="billoG512" x1="85" y1="85" x2="427" y2="427" gradientUnits="userSpaceOnUse">
+    <linearGradient id="billoG" x1="85.33" y1="85.33" x2="426.67" y2="426.67" gradientUnits="userSpaceOnUse">
       <stop stop-color="#059669"/>
       <stop offset="1" stop-color="#0f766e"/>
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="128" fill="url(#billoG512)"/>
-  <path
-    d="M 160 139 L 160 373 M 160 139 Q 304 187 160 235 M 160 235 Q 331 304 160 373"
+  <rect width="512" height="512" rx="128" fill="url(#billoG)"/>
+  <g
     fill="none"
     stroke="#ffffff"
-    stroke-width="51"
     stroke-linecap="round"
     stroke-linejoin="round"
-  />
+    stroke-width="26.67"
+    transform="translate(256 256) scale(5.01) translate(-65 -96)"
+  >
+    <path d="M42 86 Q102 96 42 106"/>
+    <path d="M42 74 Q118 96 42 118"/>
+    <path d="M42 58 Q134 96 42 134"/>
+  </g>
 </svg>

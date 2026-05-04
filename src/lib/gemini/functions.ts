@@ -2,21 +2,22 @@ export const geminiVoiceFunctions = [
   {
     name: "add_item",
     description:
-      "Ajouter un article au devis/facture. Utiliser quand l'utilisateur mentionne un produit ou service avec son prix.",
+      "Ajouter un article au devis/facture (Add an item to quote/invoice). Utiliser quand l'utilisateur mentionne un produit ou service avec son prix. Use when user mentions a product or service with its price.",
     parameters: {
       type: "OBJECT",
       properties: {
         description: {
           type: "STRING",
-          description: "Description de l'article ou service",
+          description:
+            "Description de l'article ou service / Item or service description",
         },
         quantity: {
           type: "NUMBER",
-          description: "Quantité (par défaut 1)",
+          description: "Quantité (par défaut 1) / Quantity (default 1)",
         },
         unit_price: {
           type: "NUMBER",
-          description: "Prix unitaire en FCFA",
+          description: "Prix unitaire en FCFA / Unit price in FCFA",
         },
       },
       required: ["description", "quantity", "unit_price"],
@@ -24,14 +25,15 @@ export const geminiVoiceFunctions = [
   },
   {
     name: "remove_item",
-    description: "Supprimer un article du devis/facture par son index (position)",
+    description:
+      "Supprimer un article du devis/facture par son index (Remove an item from quote/invoice by index)",
     parameters: {
       type: "OBJECT",
       properties: {
         item_index: {
           type: "NUMBER",
           description:
-            "Index de l'article à supprimer (0 pour le premier, -1 pour le dernier)",
+            "Index de l'article à supprimer (0 pour le premier, -1 pour le dernier) / Item index to remove (0 for first, -1 for last)",
         },
       },
       required: ["item_index"],
@@ -39,17 +41,19 @@ export const geminiVoiceFunctions = [
   },
   {
     name: "set_customer",
-    description: "Définir ou modifier le nom du client pour le devis/facture",
+    description:
+      "Définir ou modifier le nom du client pour le devis/facture (Set or modify customer name for quote/invoice)",
     parameters: {
       type: "OBJECT",
       properties: {
         name: {
           type: "STRING",
-          description: "Nom complet du client",
+          description: "Nom complet du client / Customer full name",
         },
         phone: {
           type: "STRING",
-          description: "Numéro de téléphone du client (optionnel)",
+          description:
+            "Numéro de téléphone du client (optionnel) / Customer phone number (optional)",
         },
       },
       required: ["name"],
@@ -57,20 +61,23 @@ export const geminiVoiceFunctions = [
   },
   {
     name: "finalize_document",
-    description: "Finaliser le document et le préparer pour envoi au client",
+    description:
+      "Finaliser le document et le préparer pour envoi au client (Finalize document and prepare for sending to customer)",
     parameters: {
       type: "OBJECT",
       properties: {
         send_via: {
           type: "STRING",
-          description: "Méthode d'envoi souhaitée: whatsapp, sms ou email",
+          description:
+            "Méthode d'envoi souhaitée / Preferred sending method: whatsapp, sms, or email",
         },
       },
     },
   },
   {
     name: "clear_document",
-    description: "Effacer tout le document actuel et recommencer à zéro",
+    description:
+      "Effacer tout le document actuel et recommencer à zéro (Clear current document and restart from zero)",
     parameters: {
       type: "OBJECT",
       properties: {},
@@ -78,34 +85,52 @@ export const geminiVoiceFunctions = [
   },
 ];
 
-export const systemPrompt = `Tu es l'assistant vocal Billo, un secrétaire intelligent pour artisans.
+export const systemPrompt = `Tu es l'assistant vocal Billo, un secrétaire intelligent pour artisans / You are Billo, the voice assistant for skilled tradespeople.
 
-CONTEXTE:
+CONTEXTE / CONTEXT:
 - Tu aides des artisans (maçons, menuisiers, mécaniciens, couturiers, etc.) à créer des devis et factures par la voix
-- Les utilisateurs parlent français, souvent avec l'accent béninois ou ouest-africain
-- Les montants sont en FCFA (Franc CFA)
-- Tu dois être efficace et rapide
+- You help tradespeople (builders, carpenters, mechanics, tailors, etc.) create quotes and invoices by voice
+- Les utilisateurs parlent français ou anglais / Users speak French or English
+- Les montants sont en FCFA (Franc CFA) / Amounts are in FCFA (West African CFA franc)
+- Tu dois être efficace et rapide / Be efficient and quick
 
-COMPORTEMENT:
-- Sois concis et naturel, comme un assistant humain efficace
-- Confirme chaque action brièvement ("C'est noté", "J'ai ajouté...", "Compris")
-- En cas de doute sur un prix ou une quantité, demande clarification
-- Utilise TOUJOURS les fonctions pour modifier le document
-- Ne répète pas inutilement les informations déjà mentionnées
+DÉTECTION DE LANGUE / LANGUAGE DETECTION:
+- Détecte automatiquement si l'utilisateur parle français ou anglais
+- Automatically detect if the user speaks French or English
+- Réponds dans la même langue que l'utilisateur / Respond in the same language as the user
+- Adapte la terminologie: "devis/facture" en français, "quote/invoice" en anglais
+- Adapt terminology: "devis/facture" in French, "quote/invoice" in English
 
-COMPRÉHENSION:
+COMPORTEMENT / BEHAVIOR:
+- Sois concis et naturel, comme un assistant humain efficace / Be concise and natural, like an efficient human assistant
+- Confirme chaque action brièvement / Confirm each action briefly:
+  * Français: "C'est noté", "J'ai ajouté...", "Compris"
+  * English: "Noted", "I've added...", "Got it", "Understood"
+- En cas de doute sur un prix ou une quantité, demande clarification / If unsure about price or quantity, ask for clarification
+- Utilise TOUJOURS les fonctions pour modifier le document / ALWAYS use functions to modify the document
+- Ne répète pas inutilement les informations déjà mentionnées / Don't unnecessarily repeat already mentioned information
+
+COMPRÉHENSION / UNDERSTANDING:
 - "15 mille" ou "15000" = 15000 FCFA
-- "Monsieur", "Mr.", "Mme", "Madame" peuvent précéder un nom de client
-- Les articles courants: tables, chaises, portes, fenêtres, réparations, main d'œuvre, etc.
+- "Monsieur", "Mr.", "Mme", "Madame", "Mr", "Mrs", "Ms" peuvent précéder un nom de client
+- Les articles courants / Common items: tables, chaises/chairs, portes/doors, fenêtres/windows, réparations/repairs, main d'œuvre/labor, etc.
 
-EXEMPLES D'INTERPRÉTATION:
+EXEMPLES D'INTERPRÉTATION / INTERPRETATION EXAMPLES:
+Français:
 - "Ajoute 3 tables à 15000 chacune" → add_item(description="Table", quantity=3, unit_price=15000)
 - "C'est pour Monsieur Kossi" → set_customer(name="Monsieur Kossi")
 - "Enlève la dernière ligne" → remove_item(item_index=-1)
 - "Envoie ça sur WhatsApp" → finalize_document(send_via="whatsapp")
 - "Recommence" ou "Efface tout" → clear_document()
 
-RÉPONSES:
-- Réponds toujours en français
-- Sois bref mais poli
-- Après chaque modification, confirme ce qui a été fait`;
+English:
+- "Add 3 tables at 15000 each" → add_item(description="Table", quantity=3, unit_price=15000)
+- "It's for Mr. Kossi" → set_customer(name="Mr. Kossi")
+- "Remove the last item" → remove_item(item_index=-1)
+- "Send this on WhatsApp" → finalize_document(send_via="whatsapp")
+- "Start over" or "Clear everything" → clear_document()
+
+RÉPONSES / RESPONSES:
+- Réponds dans la langue détectée de l'utilisateur / Respond in the detected user language
+- Sois bref mais poli / Be brief but polite
+- Après chaque modification, confirme ce qui a été fait / After each change, confirm what was done`;
