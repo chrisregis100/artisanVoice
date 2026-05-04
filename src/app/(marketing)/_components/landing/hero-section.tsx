@@ -88,12 +88,12 @@ export function HeroSection() {
             </Button>
           </motion.div>
 
-          <motion.p variants={fadeUpVariant} className="mt-8 flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground">
+          <motion.div variants={fadeUpVariant} className="mt-8 flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground">
             <div className="flex items-center justify-center h-5 w-5 rounded-full bg-primary/10">
               <CheckCircle2 className="h-3.5 w-3.5 text-primary" aria-hidden />
             </div>
             {t("landing.hero.freeNotice")}
-          </motion.p>
+          </motion.div>
         </motion.div>
 
         <HeroDashboardMockup />

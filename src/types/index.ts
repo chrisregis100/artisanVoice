@@ -61,6 +61,22 @@ export interface FunctionCallResult {
   arguments: Record<string, unknown>;
 }
 
+export interface GeneratePDFParams {
+  customerName: string;
+  customerPhone?: string;
+  customerAddress?: string;
+  items: InvoiceItem[];
+  total: number;
+  type: "quote" | "invoice";
+  businessName: string;
+  businessPhone?: string;
+  businessAddress?: string;
+  documentDate: Date | string;
+  quotePrefix: string;
+  invoicePrefix: string;
+  vatRatePercent: number;
+}
+
 export type DocumentType = "quote" | "invoice";
 export type DocumentStatus = "draft" | "sent" | "paid";
 export type ShareMethod = "whatsapp" | "sms" | "email";

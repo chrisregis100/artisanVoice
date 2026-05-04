@@ -2,29 +2,17 @@
 
 import { pdf } from "@react-pdf/renderer";
 import { InvoicePDF } from "@/components/invoice/invoice-pdf";
-import type { InvoiceItem } from "@/types";
-
-export interface GeneratePDFParams {
-  customerName: string;
-  customerPhone?: string;
-  customerAddress?: string;
-  items: InvoiceItem[];
-  total: number;
-  type: "quote" | "invoice";
-  businessName: string;
-  businessPhone?: string;
-  businessAddress?: string;
-  documentDate: Date | string;
-  quotePrefix: string;
-  invoicePrefix: string;
-  vatRatePercent: number;
-}
+import type { GeneratePDFParams } from "@/types";
 
 export async function generatePDF(params: GeneratePDFParams): Promise<Blob> {
-  const document = <InvoicePDF {...params} />;
+  if (typeof window === "undefined") {
+    throw new Error("PDF generation can only be performed in the browser");
+  }
+
+  const pdfElement = <InvoicePDF {...params} />;
 
   try {
-    const blob = await pdf(document).toBlob();
+    const blob = await pdf(pdfElement).toBlob();
     return blob;
   } catch (error) {
     throw new Error(

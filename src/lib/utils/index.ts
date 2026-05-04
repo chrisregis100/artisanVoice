@@ -74,7 +74,8 @@ export function buildDocumentNumber(
 }
 
 /** Affiche les lignes d’une adresse multiligne (trim des vides). */
-export function splitAddressLines(text: string): string[] {
+export function splitAddressLines(text: string | undefined): string[] {
+  if (!text) return [];
   return text
     .split(/\r?\n/)
     .map((line) => line.trim())

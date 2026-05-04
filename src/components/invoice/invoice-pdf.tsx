@@ -7,7 +7,7 @@ import {
   View,
   StyleSheet,
 } from "@react-pdf/renderer";
-import type { InvoiceItem } from "@/types";
+import type { GeneratePDFParams } from "@/types";
 import {
   buildDocumentNumber,
   calculateTotalTtc,
@@ -36,7 +36,6 @@ const styles = StyleSheet.create({
   },
   twoCol: {
     flexDirection: "row",
-    gap: 16,
     marginBottom: 20,
   },
   col: {
@@ -140,22 +139,6 @@ const styles = StyleSheet.create({
   },
 });
 
-interface InvoicePDFProps {
-  customerName: string;
-  customerPhone?: string;
-  customerAddress?: string;
-  items: InvoiceItem[];
-  total: number;
-  type: "quote" | "invoice";
-  businessName: string;
-  businessPhone?: string;
-  businessAddress?: string;
-  documentDate: Date | string;
-  quotePrefix: string;
-  invoicePrefix: string;
-  vatRatePercent: number;
-}
-
 export function InvoicePDF({
   customerName = "",
   customerPhone,
@@ -170,7 +153,7 @@ export function InvoicePDF({
   quotePrefix = "DV-",
   invoicePrefix = "FAC-",
   vatRatePercent = 0,
-}: InvoicePDFProps) {
+}: GeneratePDFParams) {
   const documentTitle = type === "quote" ? "Devis" : "Facture";
   const documentNumber = buildDocumentNumber(
     type,
@@ -207,7 +190,7 @@ export function InvoicePDF({
         <Text style={styles.headerDate}>Date : {formatDate(documentDate)}</Text>
 
         <View style={styles.twoCol}>
-          <View style={styles.col}>
+          <View style={[styles.col, { marginRight: 16 }]}>
             <Text style={styles.colLabel}>Émetteur</Text>
             <Text style={styles.colLineBold}>{businessName || "—"}</Text>
             {issuerLines.map((line, i) => (

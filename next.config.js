@@ -38,8 +38,24 @@ const securityHeaders = [
 
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    serverComponentsExternalPackages: ["@react-pdf/renderer"],
+  turbopack: {
+    resolveAlias: {
+      // Force the browser-compatible bundle (same as the webpack alias below).
+      // Turbopack ignores the webpack() callback, so this alias must be set here.
+      "@react-pdf/renderer":
+        "@react-pdf/renderer/lib/react-pdf.browser.js",
+    },
+  },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // @react-pdf/renderer's exports field has no "browser" condition, so webpack 5
+      // resolves the Node.js bundle (which uses fs/buffer) for client code.
+      // Force the browser-compatible bundle explicitly.
+      config.resolve.alias["@react-pdf/renderer"] = require.resolve(
+        "@react-pdf/renderer/lib/react-pdf.browser.js"
+      );
+    }
+    return config;
   },
   async headers() {
     return [
