@@ -1,5 +1,7 @@
 "use client";
 
+import { BilloLogoMark } from "@/components/brand/billo-logo";
+import { SubscriptionUsageCard } from "@/components/dashboard/subscription-usage-card";
 import { InvoicePreview } from "@/components/invoice/invoice-preview";
 import { PreviewModal } from "@/components/invoice/preview-modal";
 import { ShareDialog } from "@/components/invoice/share-dialog";
@@ -15,7 +17,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { SubscriptionUsageCard } from "@/components/dashboard/subscription-usage-card";
 import { VoiceButton } from "@/components/voice/voice-button";
 import { VoiceConversation } from "@/components/voice/voice-conversation";
 import { useOffline } from "@/hooks/use-offline";
@@ -25,7 +26,6 @@ import { createClient } from "@/lib/supabase/client";
 import { useInvoiceStore } from "@/stores/invoice-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import type { InvoiceItem } from "@/types";
-import { BilloLogoMark } from "@/components/brand/billo-logo";
 import { Eye, WifiOff } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -53,6 +53,7 @@ export default function DashboardPage() {
     conversationMessages,
     isListening,
     isProcessing,
+    finalizeSignal,
     setCustomer,
     setCustomerAddress,
     setDocumentDate,
@@ -126,18 +127,9 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
-    const handleFinalize = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      if (customEvent.detail?.sendVia === "whatsapp") {
-        setIsShareOpen(true);
-      }
-    };
-
-    window.addEventListener("finalize-document", handleFinalize);
-    return () => {
-      window.removeEventListener("finalize-document", handleFinalize);
-    };
-  }, []);
+    if (!finalizeSignal) return;
+    setIsShareOpen(true);
+  }, [finalizeSignal]);
 
   const handleResetConfirm = () => {
     reset();
@@ -222,12 +214,8 @@ export default function DashboardPage() {
   const assistantInner = (
     <div className="flex min-h-full flex-1 flex-col justify-between">
       <div className="mb-4">
-          <div className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-brand py-8 text-brand-foreground shadow-sm">
-          <BilloLogoMark
-            className="h-14 w-14"
-            size={56}
-            variant="onBrand"
-          />
+        <div className="flex flex-col items-center justify-center gap-3 rounded-2xl bg-brand py-8 text-brand-foreground shadow-sm">
+          <BilloLogoMark className="h-14 w-14" size={56} variant="onBrand" />
           <h2 className="text-xl font-bold tracking-wide">Billo</h2>
         </div>
       </div>
@@ -406,7 +394,7 @@ export default function DashboardPage() {
         items={items}
         total={total}
         type={type}
-        businessName={businessName}
+        businessName={businessName || "Mon Entreprise"}
         businessPhone={businessPhone}
         businessAddress={businessAddress}
         documentDate={documentDate}

@@ -13,7 +13,7 @@ const csp = [
   "img-src 'self' data: blob: https:",
   "font-src 'self'",
   // api.flutterwave.com retiré tant que Flutterwave est désactivé (voir lib/payment/flutterwave.ts).
-  `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://api.fedapay.com https://api.openai.com https://generativelanguage.googleapis.com`,
+  `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://api.fedapay.com https://api.openai.com wss://api.openai.com https://generativelanguage.googleapis.com wss://generativelanguage.googleapis.com`,
   "frame-src 'none'",
   "object-src 'none'",
   "base-uri 'self'",
@@ -38,8 +38,24 @@ const securityHeaders = [
 
 const nextConfig = {
   reactStrictMode: true,
-  experimental: {
-    serverComponentsExternalPackages: ["@react-pdf/renderer"],
+  turbopack: {
+    resolveAlias: {
+      // Force the browser-compatible bundle (same as the webpack alias below).
+      // Turbopack ignores the webpack() callback, so this alias must be set here.
+      "@react-pdf/renderer":
+        "@react-pdf/renderer/lib/react-pdf.browser.js",
+    },
+  },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // @react-pdf/renderer's exports field has no "browser" condition, so webpack 5
+      // resolves the Node.js bundle (which uses fs/buffer) for client code.
+      // Force the browser-compatible bundle explicitly.
+      config.resolve.alias["@react-pdf/renderer"] = require.resolve(
+        "@react-pdf/renderer/lib/react-pdf.browser.js"
+      );
+    }
+    return config;
   },
   async headers() {
     return [

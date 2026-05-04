@@ -13,7 +13,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL("/", origin));
   }
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const supabase = createServerClient<Database>(
     clientEnv.NEXT_PUBLIC_SUPABASE_URL,
     clientEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY,

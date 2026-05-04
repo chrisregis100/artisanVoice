@@ -4,6 +4,7 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useState,
 } from "react";
 import { defaultLocale, locales, type Locale } from "./config";
@@ -15,7 +16,7 @@ const messages: Record<Locale, Record<string, unknown>> = { fr, en };
 interface LanguageContextValue {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  t: (key: string) => string;
+  t: (key: string, vars?: Record<string, string>) => string;
 }
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
@@ -51,7 +52,16 @@ function getInitialLocale(): Locale {
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(getInitialLocale);
+  // Always initialize with defaultLocale so server and client render identically.
+  // Cookie-based locale is applied after mount to avoid hydration mismatch.
+  const [locale, setLocaleState] = useState<Locale>(defaultLocale);
+
+  useEffect(() => {
+    const saved = getCookie("locale");
+    if (saved && locales.includes(saved as Locale)) {
+      setLocaleState(saved as Locale);
+    }
+  }, []);
 
   const setLocale = useCallback((newLocale: Locale) => {
     setLocaleState(newLocale);
@@ -59,11 +69,14 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const t = useCallback(
-    (key: string): string => {
+    (key: string, vars?: Record<string, string>): string => {
       const msgs = messages[locale];
-      const result = getNestedValue(msgs, key);
+      let result = getNestedValue(msgs, key);
       if (result === key && locale !== defaultLocale) {
-        return getNestedValue(messages[defaultLocale], key);
+        result = getNestedValue(messages[defaultLocale], key);
+      }
+      if (vars) {
+        result = result.replace(/\{\{(\w+)\}\}/g, (_, k) => vars[k] ?? `{{${k}}}`);
       }
       return result;
     },

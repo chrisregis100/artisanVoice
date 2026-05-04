@@ -6,9 +6,8 @@ import {
   Text,
   View,
   StyleSheet,
-  Font,
 } from "@react-pdf/renderer";
-import type { InvoiceItem } from "@/types";
+import type { GeneratePDFParams } from "@/types";
 import {
   buildDocumentNumber,
   calculateTotalTtc,
@@ -16,14 +15,6 @@ import {
   formatIsoDateForDocument,
   splitAddressLines,
 } from "@/lib/utils";
-
-Font.register({
-  family: "Helvetica",
-  fonts: [
-    { src: "Helvetica" },
-    { src: "Helvetica-Bold", fontWeight: "bold" },
-  ],
-});
 
 const styles = StyleSheet.create({
   page: {
@@ -45,7 +36,6 @@ const styles = StyleSheet.create({
   },
   twoCol: {
     flexDirection: "row",
-    gap: 16,
     marginBottom: 20,
   },
   col: {
@@ -149,37 +139,21 @@ const styles = StyleSheet.create({
   },
 });
 
-interface InvoicePDFProps {
-  customerName: string;
-  customerPhone?: string;
-  customerAddress?: string;
-  items: InvoiceItem[];
-  total: number;
-  type: "quote" | "invoice";
-  businessName: string;
-  businessPhone?: string;
-  businessAddress?: string;
-  documentDate: Date | string;
-  quotePrefix: string;
-  invoicePrefix: string;
-  vatRatePercent: number;
-}
-
 export function InvoicePDF({
-  customerName,
+  customerName = "",
   customerPhone,
   customerAddress,
-  items,
-  total,
+  items = [],
+  total = 0,
   type,
-  businessName,
+  businessName = "",
   businessPhone,
   businessAddress,
   documentDate,
-  quotePrefix,
-  invoicePrefix,
-  vatRatePercent,
-}: InvoicePDFProps) {
+  quotePrefix = "DV-",
+  invoicePrefix = "FAC-",
+  vatRatePercent = 0,
+}: GeneratePDFParams) {
   const documentTitle = type === "quote" ? "Devis" : "Facture";
   const documentNumber = buildDocumentNumber(
     type,
@@ -216,9 +190,9 @@ export function InvoicePDF({
         <Text style={styles.headerDate}>Date : {formatDate(documentDate)}</Text>
 
         <View style={styles.twoCol}>
-          <View style={styles.col}>
+          <View style={[styles.col, { marginRight: 16 }]}>
             <Text style={styles.colLabel}>Émetteur</Text>
-            <Text style={styles.colLineBold}>{businessName}</Text>
+            <Text style={styles.colLineBold}>{businessName || "—"}</Text>
             {issuerLines.map((line, i) => (
               <Text key={i} style={styles.colLine}>
                 {line}
@@ -263,16 +237,16 @@ export function InvoicePDF({
           items.map((item, index) => (
             <View key={index} style={styles.tableRow} wrap={false}>
               <Text style={[styles.itemDescription, styles.colDescription]}>
-                {item.description}
+                {item.description || ""}
               </Text>
               <Text style={[styles.itemMuted, styles.colQty]}>
-                {item.quantity}
+                {String(item.quantity ?? 0)}
               </Text>
               <Text style={[styles.itemMuted, styles.colPrice]}>
-                {item.unitPrice.toLocaleString("fr-FR")}
+                {(item.unitPrice ?? 0).toLocaleString("fr-FR")}
               </Text>
               <Text style={[styles.itemDescription, styles.colTotal]}>
-                {(item.quantity * item.unitPrice).toLocaleString("fr-FR")}
+                {((item.quantity ?? 0) * (item.unitPrice ?? 0)).toLocaleString("fr-FR")}
               </Text>
             </View>
           ))
