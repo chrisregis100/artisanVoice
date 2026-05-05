@@ -6,6 +6,13 @@ import {
   getTodayIsoDateString,
 } from "@/lib/utils";
 
+/** Emitted when the AI requests document finalization. */
+interface FinalizeSignal {
+  sendVia: "whatsapp" | "sms" | "email" | undefined;
+  /** Monotonic id so repeated calls with the same sendVia still trigger effects. */
+  ts: number;
+}
+
 interface InvoiceState {
   id: string;
   customerName: string;
@@ -23,6 +30,7 @@ interface InvoiceState {
   isProcessing: boolean;
   isConnected: boolean;
   error: string | null;
+  finalizeSignal: FinalizeSignal | null;
 }
 
 interface InvoiceActions {
@@ -40,6 +48,7 @@ interface InvoiceActions {
   setProcessing: (isProcessing: boolean) => void;
   setConnected: (isConnected: boolean) => void;
   setError: (error: string | null) => void;
+  requestFinalize: (sendVia?: "whatsapp" | "sms" | "email") => void;
   reset: () => void;
 }
 
@@ -59,6 +68,7 @@ function buildInitialInvoiceState(): InvoiceState {
     isProcessing: false,
     isConnected: false,
     error: null,
+    finalizeSignal: null,
   };
 }
 
@@ -179,6 +189,9 @@ export const useInvoiceStore = create<InvoiceState & InvoiceActions>((set) => ({
   setConnected: (isConnected) => set({ isConnected }),
 
   setError: (error) => set({ error }),
+
+  requestFinalize: (sendVia) =>
+    set({ finalizeSignal: { sendVia, ts: Date.now() } }),
 
   reset: () => set({ ...buildInitialInvoiceState() }),
 }));

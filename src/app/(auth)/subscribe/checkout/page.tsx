@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/context";
+import { usePublicPlans } from "@/hooks/use-public-plans";
 import { BilloLogoMark } from "@/components/brand/billo-logo";
 import {
   ArrowLeft,
@@ -15,7 +16,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-type PaymentProvider = "flutterwave" | "fedapay";
+// Flutterwave retiré du checkout — ne garder que fedapay tant que IS_FLUTTERWAVE_ENABLED est false.
+type PaymentProvider = "fedapay";
 
 interface ProviderOption {
   id: PaymentProvider;
@@ -25,12 +27,6 @@ interface ProviderOption {
 }
 
 const PROVIDERS: ProviderOption[] = [
-  {
-    id: "flutterwave",
-    name: "Flutterwave",
-    descKey: "auth.checkout.flutterwaveDesc",
-    logo: "FLW",
-  },
   {
     id: "fedapay",
     name: "FedaPay",
@@ -134,10 +130,20 @@ function CallbackHandler() {
 
 function CheckoutForm() {
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const { proMonthlyAmount } = usePublicPlans();
   const [selectedProvider, setSelectedProvider] =
-    useState<PaymentProvider | null>(null);
+    useState<PaymentProvider | null>("fedapay");
   const [isLoading, setIsLoading] = useState(false);
+
+  const proPriceFormatted = proMonthlyAmount.toLocaleString(
+    locale === "en" ? "en-US" : "fr-FR",
+  );
+  const proPriceLine = `${proPriceFormatted} FCFA`;
+  const payButtonLabel =
+    locale === "en"
+      ? `Pay ${proPriceFormatted} FCFA`
+      : `Payer ${proPriceFormatted} FCFA`;
 
   const proFeatures = [
     t("auth.checkout.pf1"),
@@ -294,7 +300,7 @@ function CheckoutForm() {
                 disabled={isLoading || !selectedProvider}
                 size="lg"
                 className="mt-8 h-12 w-full gap-2 rounded-xl bg-primary font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition hover:bg-primary/90 disabled:opacity-60"
-                aria-label={t("auth.checkout.payBtn")}
+                aria-label={payButtonLabel}
               >
                 {isLoading ? (
                   <>
@@ -302,7 +308,7 @@ function CheckoutForm() {
                     {t("auth.checkout.payLoading")}
                   </>
                 ) : (
-                  t("auth.checkout.payBtn")
+                  payButtonLabel
                 )}
               </Button>
 
@@ -324,7 +330,7 @@ function CheckoutForm() {
                   {t("auth.checkout.proPlan")}
                 </span>
                 <span className="text-lg font-bold tabular-nums text-foreground">
-                  5 000 FCFA
+                  {proPriceLine}
                 </span>
               </div>
               <p className="mt-3 text-xs text-muted-foreground">
@@ -356,7 +362,7 @@ function CheckoutForm() {
                   {t("auth.checkout.totalPerMonth")}
                 </span>
                 <span className="text-xl font-black tabular-nums text-foreground">
-                  5 000 FCFA
+                  {proPriceLine}
                 </span>
               </div>
             </div>

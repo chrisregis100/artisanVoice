@@ -20,14 +20,28 @@ class OpenAIProvider implements AIRealtimeProvider {
   ): Promise<{ url: string; token: string; model: string }> {
     const model = "gpt-4o-realtime-preview-2024-12-17";
 
-    const response = await fetch("https://api.openai.com/v1/realtime/sessions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ model, voice: "alloy" }),
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30_000);
+
+    let response: Response;
+    try {
+      response = await fetch("https://api.openai.com/v1/realtime/sessions", {
+        signal: controller.signal,
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ model, voice: "alloy" }),
+      });
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new Error("Timeout connecting to OpenAI API (30s)");
+      }
+      throw error;
+    }
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const status = response.status;

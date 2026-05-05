@@ -7,13 +7,17 @@ const serverSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   OPENAI_API_KEY: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
+  // Flutterwave : optionnels tant que le fournisseur est désactivé (voir lib/payment/flutterwave.ts).
+  // Sans clés, l’init de paiement et le webhook Flutterwave ne doivent pas être utilisés.
   FLUTTERWAVE_PUBLIC_KEY: z.string().optional(),
-  FLUTTERWAVE_SECRET_KEY: z.string().min(1),
-  FLUTTERWAVE_WEBHOOK_SECRET: z.string().min(1),
+  FLUTTERWAVE_SECRET_KEY: z.string().optional(),
+  FLUTTERWAVE_WEBHOOK_SECRET: z.string().optional(),
   FEDAPAY_PUBLIC_KEY: z.string().optional(),
-  FEDAPAY_SECRET_KEY: z.string().min(1),
-  FEDAPAY_WEBHOOK_SECRET: z.string().min(1),
+  FEDAPAY_SECRET_KEY: z.string().optional(),
+  FEDAPAY_WEBHOOK_SECRET: z.string().optional(),
   ADMIN_EMAIL: z.string().email(),
+  /** Base64, 32 bytes — encrypts API keys stored via the admin UI (`openssl rand -base64 32`). */
+  ADMIN_SECRETS_ENCRYPTION_KEY: z.string().optional(),
 });
 
 const clientSchema = z.object({

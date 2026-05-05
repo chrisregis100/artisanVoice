@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { initiateFlutterwavePayment } from "@/lib/payment/flutterwave";
 import { initiateFedaPayPayment } from "@/lib/payment/fedapay";
 import { rateLimit } from "@/lib/utils/rate-limit";
 import { requireAuth } from "@/lib/api/auth";
@@ -113,7 +112,8 @@ export async function POST(request: NextRequest) {
   }
 
   if (planName === "pro") {
-    if (!provider || !["flutterwave", "fedapay"].includes(provider)) {
+    // Flutterwave : désactivé (checkout + schema z.enum(["fedapay"]) uniquement).
+    if (!provider || provider !== "fedapay") {
       return NextResponse.json(
         { error: "Fournisseur de paiement requis pour le plan Pro" },
         { status: 400 },
@@ -130,33 +130,17 @@ export async function POST(request: NextRequest) {
     const redirectUrl = `${baseUrl}/subscribe/checkout/callback?provider=${provider}&userId=${user.id}&planId=${plan.id}`;
 
     try {
-      let paymentUrl: string;
+      const result = await initiateFedaPayPayment({
+        amount: plan.price_amount,
+        currency: plan.currency,
+        email,
+        name,
+        userId: user.id,
+        planId: plan.id,
+        redirectUrl,
+      });
 
-      if (provider === "flutterwave") {
-        const result = await initiateFlutterwavePayment({
-          amount: plan.price_amount,
-          currency: plan.currency,
-          email,
-          name,
-          userId: user.id,
-          planId: plan.id,
-          redirectUrl,
-        });
-        paymentUrl = result.paymentUrl;
-      } else {
-        const result = await initiateFedaPayPayment({
-          amount: plan.price_amount,
-          currency: plan.currency,
-          email,
-          name,
-          userId: user.id,
-          planId: plan.id,
-          redirectUrl,
-        });
-        paymentUrl = result.paymentUrl;
-      }
-
-      return NextResponse.json({ success: true, paymentUrl });
+      return NextResponse.json({ success: true, paymentUrl: result.paymentUrl });
     } catch (err) {
       console.error("Payment initiation error:", err);
       return NextResponse.json(

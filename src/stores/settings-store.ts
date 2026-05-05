@@ -16,7 +16,7 @@ interface SettingsState {
    * Si renseignée, elle est utilisée à la place de la clé serveur par défaut.
    */
   openaiApiKey: string;
-  /** Passerelle de paiement préférée pour les abonnements. */
+  /** Passerelle de paiement préférée (flutterwave = valeur historique persistée si ancien cache). */
   preferredPaymentProvider?: "flutterwave" | "fedapay";
 }
 
@@ -31,6 +31,7 @@ interface SettingsActions {
   setCurrency: (currency: "XOF" | "EUR" | "USD") => void;
   setOpenaiApiKey: (key: string) => void;
   setPreferredPaymentProvider: (
+    // flutterwave conservé pour compatibilité store persisté — le checkout n’expose plus Flutterwave.
     provider: "flutterwave" | "fedapay" | undefined
   ) => void;
   updateSettings: (updates: Partial<SettingsState>) => void;

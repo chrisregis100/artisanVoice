@@ -2,14 +2,23 @@
 
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/context";
+import { usePublicPlans } from "@/hooks/use-public-plans";
 import { CheckCircle2, X } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 
 export function PricingSection() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const { proMonthlyAmount } = usePublicPlans();
   const [isAnnual, setIsAnnual] = useState(false);
+
+  const { monthlyStr, annualStr } = useMemo(() => {
+    const loc = locale === "en" ? "en-US" : "fr-FR";
+    const monthly = proMonthlyAmount.toLocaleString(loc);
+    const annual = Math.round(proMonthlyAmount * 0.8).toLocaleString(loc);
+    return { monthlyStr: monthly, annualStr: annual };
+  }, [locale, proMonthlyAmount]);
 
   const plans = [
     {
@@ -36,7 +45,7 @@ export function PricingSection() {
     },
     {
       name: t("landing.pricing.proName"),
-      price: isAnnual ? "4 000" : "5 000",
+      price: isAnnual ? annualStr : monthlyStr,
       period: t("landing.pricing.proPeriod"),
       description: t("landing.pricing.proDesc"),
       cta: t("landing.pricing.proCta"),

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/api/auth";
+import { downgradeExpiredProIfNeeded } from "@/lib/subscription/expire";
 
 const getCurrentMonthYear = (): string => {
   const now = new Date();
@@ -10,6 +11,8 @@ export async function GET(request: NextRequest) {
   const auth = await requireAuth(request);
   if (!auth.ok) return auth.response;
   const { user, supabase } = auth;
+
+  await downgradeExpiredProIfNeeded(supabase, user.id);
 
   const { data: subscription } = await supabase
     .from("subscriptions")

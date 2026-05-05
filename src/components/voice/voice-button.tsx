@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Mic, MicOff, Loader2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/i18n/context";
 import { useInvoiceStore } from "@/stores/invoice-store";
 import { useVoice } from "@/hooks/use-voice";
 
@@ -13,36 +14,37 @@ function isApiKeyError(error: string): boolean {
   return lower.includes("clé api") || lower.includes("api key");
 }
 
-function getErrorDescription(error: string): string {
+function getErrorDescription(error: string, t: (key: string, vars?: Record<string, string>) => string): string {
   const lower = error.toLowerCase();
   if (
     lower.includes("microphone") ||
     lower.includes("micro")
   ) {
-    return `${error} — Dans les paramètres du navigateur, autorisez l'accès au microphone pour ce site.`;
+    return t("dashboard.voice.microphoneError", { error });
   }
   if (lower.includes("connexion") || lower.includes("websocket")) {
-    return `${error} — Vérifiez votre connexion internet, puis réessayez.`;
+    return t("dashboard.voice.connectionError", { error });
   }
   if (isApiKeyError(error) && !error.includes("Paramètres")) {
-    return `${error} — Rendez-vous dans Paramètres → Clé API.`;
+    return t("dashboard.voice.apiKeyError", { error });
   }
   return error;
 }
 
 export function VoiceButton() {
+  const { t } = useLanguage();
   const { isListening, isProcessing, isConnected, error } = useInvoiceStore();
   const { startListening, stopListening } = useVoice();
 
   const connectionLabel = useMemo(
     () =>
       isConnected
-        ? "Connexion au serveur vocal : connecté"
-        : "Connexion au serveur vocal : déconnecté",
-    [isConnected]
+        ? t("dashboard.voice.connectionConnected")
+        : t("dashboard.voice.connectionDisconnected"),
+    [isConnected, t]
   );
 
-  const errorText = error ? getErrorDescription(error) : null;
+  const errorText = error ? getErrorDescription(error, t) : null;
   const showApiKeyLink = error ? isApiKeyError(error) : false;
 
   const errorParts = errorText?.split(" — ");
@@ -53,20 +55,20 @@ export function VoiceButton() {
   // Show toast notification for errors (complements inline alert)
   useEffect(() => {
     if (error) {
-      toast.error("Erreur", {
-        description: getErrorDescription(error),
+      toast.error(t("dashboard.voice.errorTitle"), {
+        description: getErrorDescription(error, t),
       });
     }
-  }, [error]);
+  }, [error, t]);
 
   // Show toast when successfully connected
   useEffect(() => {
     if (isConnected && !error) {
-      toast.success("Connecté", {
-        description: "Le serveur vocal est prêt.",
+      toast.success(t("dashboard.voice.connectedTitle"), {
+        description: t("dashboard.voice.connectedDesc"),
       });
     }
-  }, [isConnected, error]);
+  }, [isConnected, error, t]);
 
   const handleClick = useCallback(() => {
     if (isListening) {
@@ -115,7 +117,7 @@ export function VoiceButton() {
                   href="/settings"
                   className="inline-flex items-center text-sm font-medium text-primary underline underline-offset-2 hover:text-primary/80 focus:outline-none focus:ring-2 focus:ring-primary/40 rounded-sm"
                 >
-                  Aller dans Paramètres
+                  {t("dashboard.voice.goToSettings")}
                 </Link>
               )}
             </div>
@@ -142,8 +144,8 @@ export function VoiceButton() {
           tabIndex={0}
           aria-label={
             isListening
-              ? "Arrêter l'enregistrement"
-              : "Commencer l'enregistrement vocal"
+              ? t("dashboard.voice.stopRecordingAria")
+              : t("dashboard.voice.startRecordingAria")
           }
           aria-pressed={isListening}
           className={cn(

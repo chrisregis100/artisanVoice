@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { ConversationMessage } from "@/types";
+import { useLanguage } from "@/i18n/context";
 import { cn } from "@/lib/utils";
 
 interface VoiceConversationProps {
@@ -15,6 +16,7 @@ export function VoiceConversation({
   isListening,
   isProcessing,
 }: VoiceConversationProps) {
+  const { t } = useLanguage();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -23,9 +25,9 @@ export function VoiceConversation({
 
   const statusLabel =
     isListening
-      ? "Écoute en cours — parlez maintenant."
+      ? t("dashboard.voice.listening")
       : isProcessing
-        ? "Traitement de votre message en cours…"
+        ? t("dashboard.voice.processing")
         : null;
 
   return (
@@ -42,13 +44,13 @@ export function VoiceConversation({
       <div
         className="flex-1 space-y-3 overflow-y-auto rounded-2xl border border-border/70 bg-card/90 px-3 py-4 shadow-[0_4px_24px_-4px_rgba(15,23,42,0.08)] backdrop-blur-sm"
         role="log"
-        aria-label="Conversation avec l’assistant"
+        aria-label={t("dashboard.voice.conversationAria")}
         aria-live="polite"
         aria-relevant="additions text"
       >
         {messages.length === 0 && !isListening && !isProcessing && (
           <p className="px-2 py-10 text-center text-sm text-muted-foreground">
-            Votre échange avec l’assistant apparaîtra ici.
+            {t("dashboard.voice.emptyConversation")}
           </p>
         )}
 
@@ -61,7 +63,7 @@ export function VoiceConversation({
             )}
           >
             <span className="px-1 text-xs font-medium text-muted-foreground">
-              {msg.role === "user" ? "Vous" : "Assistant"}
+              {msg.role === "user" ? t("dashboard.voice.you") : t("dashboard.voice.assistant")}
             </span>
             <div
               className={cn(

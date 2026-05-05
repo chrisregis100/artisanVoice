@@ -68,6 +68,32 @@ export async function saveInvoiceLocally(
   return invoice.id;
 }
 
+/** Insert or update a local invoice while preserving `createdAt` when the row already exists. */
+export async function upsertLocalInvoiceDraft(
+  invoice: Omit<LocalInvoice, "createdAt" | "updatedAt" | "syncStatus"> & {
+    createdAt?: number;
+  },
+): Promise<void> {
+  const existing = await db.invoices.get(invoice.id);
+  const now = Date.now();
+  const localInvoice: LocalInvoice = {
+    ...invoice,
+    syncStatus: "local",
+    createdAt: invoice.createdAt ?? existing?.createdAt ?? now,
+    updatedAt: now,
+  };
+  await db.invoices.put(localInvoice);
+}
+
+/** After a successful server save, keep IndexedDB aligned without re-uploading. */
+export async function putSyncedInvoiceMirror(invoice: LocalInvoice): Promise<void> {
+  await db.invoices.put({
+    ...invoice,
+    syncStatus: "synced",
+    updatedAt: Date.now(),
+  });
+}
+
 export async function updateInvoiceLocally(
   id: string,
   updates: Partial<LocalInvoice>
@@ -89,6 +115,16 @@ export async function getLocalInvoices(userId: string): Promise<LocalInvoice[]> 
 
 export async function getUnsyncedInvoices(): Promise<LocalInvoice[]> {
   return db.invoices.where("syncStatus").equals("local").toArray();
+}
+
+export async function getUnsyncedInvoicesForUser(
+  userId: string,
+): Promise<LocalInvoice[]> {
+  return db.invoices
+    .where("userId")
+    .equals(userId)
+    .filter((inv) => inv.syncStatus === "local")
+    .toArray();
 }
 
 export async function markInvoiceSynced(id: string): Promise<void> {

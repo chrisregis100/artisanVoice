@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
 import {
   db,
-  getUnsyncedInvoices,
+  getUnsyncedInvoicesForUser,
   markInvoiceSynced,
   markInvoiceSyncError,
   type LocalInvoice,
@@ -18,7 +18,12 @@ export async function syncInvoicesToServer(): Promise<{
   failed: number;
 }> {
   const supabase = createClient();
-  const unsyncedInvoices = await getUnsyncedInvoices();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user?.id) return { synced: 0, failed: 0 };
+
+  const unsyncedInvoices = await getUnsyncedInvoicesForUser(user.id);
 
   let synced = 0;
   let failed = 0;

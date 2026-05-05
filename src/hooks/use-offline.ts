@@ -5,8 +5,8 @@ import { useLiveQuery } from "dexie-react-hooks";
 import {
   db,
   saveInvoiceLocally,
-  updateInvoiceLocally,
   getLocalInvoices,
+  upsertLocalInvoiceDraft,
   type LocalInvoice,
 } from "@/lib/offline/db";
 import {
@@ -22,6 +22,8 @@ interface UseOfflineReturn {
   isSyncing: boolean;
   pendingCount: number;
   localInvoices: LocalInvoice[];
+  /** Save draft locally and sync to Supabase when online (does not reset the form). */
+  persistCurrentDraft: () => Promise<void>;
   saveCurrentInvoice: () => Promise<string>;
   syncNow: () => Promise<void>;
 }
@@ -40,12 +42,21 @@ export function useOffline(userId: string): UseOfflineReturn {
     []
   );
 
-  // Count pending invoices
+  // Count pending invoices for this user
   const pendingCount = useLiveQuery(
     () =>
-      db.invoices.where("syncStatus").anyOf(["local", "error"]).count(),
-    [],
-    0
+      userId
+        ? db.invoices
+            .where("userId")
+            .equals(userId)
+            .filter(
+              (inv) =>
+                inv.syncStatus === "local" || inv.syncStatus === "error",
+            )
+            .count()
+        : Promise.resolve(0),
+    [userId],
+    0,
   );
 
   // Monitor online status
@@ -72,6 +83,39 @@ export function useOffline(userId: string): UseOfflineReturn {
 
     return cleanup;
   }, []);
+
+  const persistCurrentDraft = useCallback(async () => {
+    if (!userId) return;
+    const hasWork = items.length > 0 || customerName.trim().length > 0;
+    if (!hasWork) return;
+
+    await upsertLocalInvoiceDraft({
+      id,
+      userId,
+      customerName,
+      customerPhone,
+      items,
+      total,
+      type,
+      status: "draft",
+    });
+
+    if (isOnline()) {
+      try {
+        await syncInvoicesToServer();
+      } catch (error) {
+        console.error("Draft sync failed:", error);
+      }
+    }
+  }, [
+    userId,
+    id,
+    customerName,
+    customerPhone,
+    items,
+    total,
+    type,
+  ]);
 
   // Save current invoice to local storage
   const saveCurrentInvoice = useCallback(async () => {
@@ -122,6 +166,7 @@ export function useOffline(userId: string): UseOfflineReturn {
     isSyncing,
     pendingCount: pendingCount || 0,
     localInvoices: localInvoices || [],
+    persistCurrentDraft,
     saveCurrentInvoice,
     syncNow,
   };

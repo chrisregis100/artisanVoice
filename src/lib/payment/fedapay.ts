@@ -57,9 +57,19 @@ interface FedaPayVerifyResponse {
 
 const FEDAPAY_BASE_URL = "https://api.fedapay.com/v1";
 
+const requireFedaPaySecretKey = (): string => {
+  const key = env.FEDAPAY_SECRET_KEY?.trim();
+  if (!key) {
+    throw new Error(
+      "FedaPay n'est pas configuré : renseignez FEDAPAY_SECRET_KEY.",
+    );
+  }
+  return key;
+};
+
 const getFedaPayHeaders = (): HeadersInit => {
   return {
-    Authorization: `Bearer ${env.FEDAPAY_SECRET_KEY}`,
+    Authorization: `Bearer ${requireFedaPaySecretKey()}`,
     "Content-Type": "application/json",
     "FedaPay-Version": "2018-02-01",
   };
@@ -74,7 +84,7 @@ export const initiateFedaPayPayment = async (
   const lastName = lastParts.join(" ") || firstName;
 
   const transactionPayload = {
-    description: "Abonnement Billo Pro — 5 000 FCFA/mois",
+    description: `Abonnement Billo Pro — ${params.amount.toLocaleString("fr-FR")} ${params.currency}/mois`,
     amount: params.amount,
     currency: { iso: params.currency },
     callback_url: params.redirectUrl,
@@ -123,6 +133,7 @@ export const initiateFedaPayPayment = async (
 
 export const verifyFedaPayPayment = async (
   transactionId: string,
+  options: { minimumAmount: number },
 ): Promise<{ success: boolean; reference: string | null; amount: number | null }> => {
   const headers = getFedaPayHeaders();
 
@@ -142,7 +153,8 @@ export const verifyFedaPayPayment = async (
   const data: FedaPayVerifyResponse = await response.json();
   const tx = data.v1.transaction;
 
-  const isSuccessful = tx.status === "approved" && tx.amount >= 5000;
+  const isSuccessful =
+    tx.status === "approved" && tx.amount >= options.minimumAmount;
 
   return {
     success: isSuccessful,
@@ -155,7 +167,8 @@ export const verifyFedaPayWebhookSignature = (
   payload: string,
   signature: string,
 ): boolean => {
-  const webhookSecret = env.FEDAPAY_WEBHOOK_SECRET;
+  const webhookSecret = env.FEDAPAY_WEBHOOK_SECRET?.trim();
+  if (!webhookSecret) return false;
 
   const expectedSignature = crypto
     .createHmac("sha256", webhookSecret)

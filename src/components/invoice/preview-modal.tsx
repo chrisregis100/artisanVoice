@@ -4,6 +4,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Button } from "@/components/ui/button";
 import { DialogOverlay, DialogPortal } from "@/components/ui/dialog";
 import { InvoicePreview } from "@/components/invoice/invoice-preview";
+import { useLanguage } from "@/i18n/context";
 import type { InvoiceItem } from "@/types";
 import { X, Share2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -45,7 +46,8 @@ export function PreviewModal({
   invoicePrefix,
   vatRatePercent,
 }: PreviewModalProps) {
-  const documentTitle = type === "quote" ? "devis" : "facture";
+  const { t } = useLanguage();
+  const documentTitle = type === "quote" ? t("dashboard.preview.quote") : t("dashboard.preview.invoice");
 
   const handleShare = () => {
     onOpenChange(false);
@@ -72,7 +74,7 @@ export function PreviewModal({
           {/* Header */}
           <div className="flex items-center justify-between gap-3 border-b px-5 py-4 shrink-0">
             <DialogPrimitive.Title className="text-base font-semibold leading-none tracking-tight">
-              Aperçu du {documentTitle}
+              {t("dashboard.preview.previewTitle", { documentType: documentTitle })}
             </DialogPrimitive.Title>
             <div className="flex items-center gap-2">
               <Button
@@ -80,16 +82,16 @@ export function PreviewModal({
                 onClick={handleShare}
                 disabled={items.length === 0}
                 className="gap-2"
-                aria-label={`Partager le ${documentTitle}`}
+                aria-label={t("dashboard.preview.shareAria", { documentType: documentTitle })}
               >
                 <Share2 className="h-4 w-4" aria-hidden />
-                Partager
+                {t("dashboard.preview.shareButton")}
               </Button>
               <DialogPrimitive.Close asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  aria-label="Fermer l'aperçu"
+                  aria-label={t("dashboard.preview.closeAria")}
                   className="h-8 w-8 shrink-0"
                 >
                   <X className="h-4 w-4" aria-hidden />

@@ -16,10 +16,29 @@ export const adminSettingKeyValueSchema = z.object({
   value: z.unknown(),
 });
 
-// subscription/create POST
+// admin/settings PUT — encrypted API key (stored server-side, TLS in transit)
+export const adminApiKeyUpdateSchema = z
+  .object({
+    type: z.literal("api_key"),
+    provider: z.enum(["openai", "gemini"]),
+    apiKey: z.string().min(12).optional(),
+    clear: z.boolean().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.clear) return;
+    if (!data.apiKey?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "apiKey requis sauf si clear est true.",
+        path: ["apiKey"],
+      });
+    }
+  });
+
+// subscription/create POST — flutterwave retiré tant que désactivé côté API
 export const subscriptionCreateSchema = z.object({
   planName: z.enum(["free", "pro"]),
-  provider: z.enum(["flutterwave", "fedapay"]).optional(),
+  provider: z.enum(["fedapay"]).optional(),
 });
 
 // subscription/document-export POST
@@ -33,7 +52,7 @@ export const realtimeSessionSchema = z.object({
   userApiKey: z.string().trim().optional(),
 });
 
-// webhooks/flutterwave POST
+// webhooks/flutterwave — route renvoie 410 si Flutterwave désactivé ; schéma conservé pour la doc / réactivation
 export const flutterwaveWebhookSchema = z.object({
   event: z.string(),
   data: z.object({
@@ -91,6 +110,7 @@ export const fedapayWebhookSchema = z.object({
 
 export type AdminPlanUpdate = z.infer<typeof adminPlanUpdateSchema>;
 export type AdminSettingKeyValue = z.infer<typeof adminSettingKeyValueSchema>;
+export type AdminApiKeyUpdate = z.infer<typeof adminApiKeyUpdateSchema>;
 export type SubscriptionCreateBody = z.infer<typeof subscriptionCreateSchema>;
 export type DocumentExportBody = z.infer<typeof documentExportSchema>;
 export type FlutterwaveWebhookPayload = z.infer<typeof flutterwaveWebhookSchema>;

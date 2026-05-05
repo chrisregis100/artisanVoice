@@ -34,10 +34,19 @@ interface GeminiMessage {
   };
 }
 
+const MAX_RETRIES = 5;
+const MAX_RETRY_DELAY_MS = 30_000;
+
 export class GeminiRealtimeClient {
   private ws: WebSocket | null = null;
   private config: GeminiRealtimeConfig;
   private setupComplete = false;
+
+  private connectUrl = "";
+  private retryCount = 0;
+  private shouldReconnect = false;
+
+  /** Resolvers for the initial connect() promise. */
   private setupResolver: (() => void) | null = null;
   private setupRejecter: ((err: Error) => void) | null = null;
 
@@ -46,36 +55,70 @@ export class GeminiRealtimeClient {
   }
 
   async connect(url: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.setupResolver = resolve;
-      this.setupRejecter = reject;
+    this.connectUrl = url;
+    this.shouldReconnect = true;
+    return this.openWebSocket(true);
+  }
 
-      this.ws = new WebSocket(url);
+  private openWebSocket(initialConnect: boolean): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (initialConnect) {
+        this.setupResolver = resolve;
+        this.setupRejecter = reject;
+      }
+
+      this.ws = new WebSocket(this.connectUrl);
 
       this.ws.onopen = () => {
+        this.retryCount = 0;
         this.sendSetup();
       };
 
-      this.ws.onclose = () => {
-        this.config.onConnectionChange(false);
+      this.ws.onclose = (event) => {
         this.setupComplete = false;
+        this.config.onConnectionChange(false);
+
+        // Clear pending initial-connect promise if still waiting
         this.setupResolver = null;
         this.setupRejecter = null;
+
+        if (
+          this.shouldReconnect &&
+          !event.wasClean &&
+          this.retryCount < MAX_RETRIES
+        ) {
+          const delay = Math.min(
+            1000 * Math.pow(2, this.retryCount),
+            MAX_RETRY_DELAY_MS,
+          );
+          this.retryCount++;
+          setTimeout(() => void this.reconnect(), delay);
+        }
       };
 
       this.ws.onerror = () => {
         this.config.onError("Erreur de connexion Gemini");
         const err = new Error("Gemini WebSocket connection failed");
-        this.setupRejecter?.(err);
-        this.setupResolver = null;
-        this.setupRejecter = null;
+        if (this.setupRejecter) {
+          this.setupRejecter(err);
+          this.setupResolver = null;
+          this.setupRejecter = null;
+        }
         reject(err);
       };
 
-      this.ws.onmessage = (event) => {
+      this.ws.onmessage = (event: MessageEvent<string>) => {
         this.handleMessage(event.data);
       };
     });
+  }
+
+  private async reconnect(): Promise<void> {
+    try {
+      await this.openWebSocket(false);
+    } catch {
+      // onclose handler schedules the next retry
+    }
   }
 
   private sendSetup(): void {
@@ -105,50 +148,53 @@ export class GeminiRealtimeClient {
   }
 
   private handleMessage(data: string): void {
+    let message: GeminiMessage;
+
     try {
-      const message = JSON.parse(data) as GeminiMessage;
+      message = JSON.parse(data) as GeminiMessage;
+    } catch (err) {
+      console.error("GeminiRealtimeClient: failed to parse server message", err);
+      return;
+    }
 
-      if (message.setupComplete !== undefined) {
-        this.setupComplete = true;
-        this.config.onConnectionChange(true);
-        this.setupResolver?.();
-        this.setupResolver = null;
-        this.setupRejecter = null;
-        return;
-      }
+    if (message.setupComplete !== undefined) {
+      this.setupComplete = true;
+      this.config.onConnectionChange(true);
+      this.setupResolver?.();
+      this.setupResolver = null;
+      this.setupRejecter = null;
+      return;
+    }
 
-      if (message.server_content) {
-        const { model_turn, turn_complete } = message.server_content;
+    if (message.server_content) {
+      const { model_turn, turn_complete } = message.server_content;
 
-        if (model_turn?.parts) {
-          for (const part of model_turn.parts) {
-            if (part.text) {
-              this.config.onAssistantTranscriptDelta(part.text);
-            }
-            if (part.inline_data?.data) {
-              const audioData = this.base64ToArrayBuffer(part.inline_data.data);
-              this.config.onAudioResponse(audioData);
-            }
+      if (model_turn?.parts) {
+        for (const part of model_turn.parts) {
+          if (part.text) {
+            this.config.onAssistantTranscriptDelta(part.text);
+          }
+          if (part.inline_data?.data) {
+            const audioData = this.base64ToArrayBuffer(part.inline_data.data);
+            this.config.onAudioResponse(audioData);
           }
         }
-
-        if (turn_complete) {
-          this.config.onResponseDone?.();
-        }
       }
 
-      if (message.tool_call?.function_calls) {
-        for (const call of message.tool_call.function_calls) {
-          this.config.onFunctionCall(call.name, call.args ?? {});
-          this.sendToolResponse(call.id, { success: true });
-        }
+      if (turn_complete) {
+        this.config.onResponseDone?.();
       }
+    }
 
-      if (message.input_transcription?.text) {
-        this.config.onUserTranscript(message.input_transcription.text);
+    if (message.tool_call?.function_calls) {
+      for (const call of message.tool_call.function_calls) {
+        this.config.onFunctionCall(call.name, call.args ?? {});
+        this.sendToolResponse(call.id, { success: true });
       }
-    } catch (error) {
-      console.error("Failed to parse Gemini message:", error);
+    }
+
+    if (message.input_transcription?.text) {
+      this.config.onUserTranscript(message.input_transcription.text);
     }
   }
 
@@ -170,11 +216,10 @@ export class GeminiRealtimeClient {
   }
 
   commitAudio(): void {
-    // Gemini uses server-side VAD — no explicit commit needed.
-    // Signal end of user turn if supported.
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN || !this.setupComplete)
       return;
 
+    // Gemini uses server-side VAD; signal end of user turn
     this.send({
       realtime_input: {
         audio_stream_end: true,
@@ -196,7 +241,7 @@ export class GeminiRealtimeClient {
   }
 
   private send(message: Record<string, unknown>): void {
-    if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+    if (this.ws?.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(message));
     }
   }
@@ -220,6 +265,8 @@ export class GeminiRealtimeClient {
   }
 
   disconnect(): void {
+    this.shouldReconnect = false;
+    this.retryCount = 0;
     if (this.ws) {
       this.ws.close();
       this.ws = null;

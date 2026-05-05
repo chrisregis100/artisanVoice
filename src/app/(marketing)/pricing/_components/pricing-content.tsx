@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/i18n/context";
 import { BilloLogoMark } from "@/components/brand/billo-logo";
+import { usePublicPlans } from "@/hooks/use-public-plans";
 
 interface PlanFeature {
   labelKey: string;
@@ -25,7 +26,11 @@ interface PlanFeature {
 }
 
 export function PricingContent() {
-  const { t } = useLanguage();
+  const { t, locale } = useLanguage();
+  const { proMonthlyAmount } = usePublicPlans();
+  const proPriceLabel = proMonthlyAmount.toLocaleString(
+    locale === "en" ? "en-US" : "fr-FR",
+  );
 
   const planFeatures: PlanFeature[] = [
     {
@@ -174,7 +179,9 @@ export function PricingContent() {
                   {t("pricingPage.proName")}
                 </h2>
                 <div className="mt-3 flex items-baseline gap-1.5">
-                  <span className="text-5xl font-black text-brand-foreground">5 000</span>
+                  <span className="text-5xl font-black text-brand-foreground">
+                    {proPriceLabel}
+                  </span>
                   <span className="text-base font-medium text-brand-foreground/70">
                     {t("common.fcfaMonth")}
                   </span>
