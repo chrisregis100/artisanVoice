@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { useLanguage } from "@/i18n/context";
 import {
   buildDocumentNumber,
   calculateTotalTtc,
@@ -13,9 +13,9 @@ import {
   formatDate,
   splitAddressLines,
 } from "@/lib/utils";
-import { useLanguage } from "@/i18n/context";
-import { Plus, Trash2 } from "lucide-react";
 import type { InvoiceItem } from "@/types";
+import { Plus, Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 interface InvoicePreviewProps {
   customerName: string;
@@ -69,11 +69,13 @@ export function InvoicePreview({
   onItemFocusConsumed,
 }: InvoicePreviewProps) {
   const { t } = useLanguage();
-  const documentTitle = type === "quote" ? t("dashboard.invoice.quote") : t("dashboard.invoice.invoice");
+  const documentTitle =
+    type === "quote"
+      ? t("dashboard.invoice.quote")
+      : t("dashboard.invoice.invoice");
   const documentNumber = useMemo(
-    () =>
-      buildDocumentNumber(type, documentDate, quotePrefix, invoicePrefix),
-    [type, documentDate, quotePrefix, invoicePrefix]
+    () => buildDocumentNumber(type, documentDate, quotePrefix, invoicePrefix),
+    [type, documentDate, quotePrefix, invoicePrefix],
   );
 
   const subtotalHt = total;
@@ -146,7 +148,9 @@ export function InvoicePreview({
         <div className="mt-2 text-sm text-muted-foreground">
           {onDocumentDateChange ? (
             <label className="flex flex-wrap items-center gap-2">
-              <span className="font-medium text-foreground">{t("dashboard.invoice.date")}</span>
+              <span className="font-medium text-foreground">
+                {t("dashboard.invoice.date")}
+              </span>
               <Input
                 type="date"
                 value={documentDate}
@@ -170,7 +174,9 @@ export function InvoicePreview({
 
       <div className="mb-8 grid gap-6 sm:grid-cols-2">
         <div className="rounded-xl border border-border/50 bg-muted/40 p-4">
-          <p className="mb-2 text-sm font-bold text-foreground">{t("dashboard.invoice.issuer")}</p>
+          <p className="mb-2 text-sm font-bold text-foreground">
+            {t("dashboard.invoice.issuer")}
+          </p>
           <p className="font-semibold text-foreground">{businessName}</p>
           {issuerLines.map((line) => (
             <p key={line} className="text-sm text-muted-foreground">
@@ -178,11 +184,15 @@ export function InvoicePreview({
             </p>
           ))}
           {businessPhone ? (
-            <p className="mt-1 text-sm text-muted-foreground">{businessPhone}</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {businessPhone}
+            </p>
           ) : null}
         </div>
         <div className="rounded-xl border border-border/50 bg-muted/40 p-4">
-          <p className="mb-2 text-sm font-bold text-foreground">{t("dashboard.invoice.client")}</p>
+          <p className="mb-2 text-sm font-bold text-foreground">
+            {t("dashboard.invoice.client")}
+          </p>
           {onCustomerNameChange ? (
             <Input
               value={customerName}
@@ -204,7 +214,7 @@ export function InvoicePreview({
               rows={3}
               className={cn(
                 "mt-1 flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none min-h-[4.5rem]"
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none min-h-[4.5rem]",
               )}
               aria-label={t("dashboard.invoice.clientAddressAria")}
             />
@@ -223,7 +233,9 @@ export function InvoicePreview({
             </>
           )}
           {onCustomerAddressChange && customerPhone ? (
-            <p className="mt-2 text-sm text-muted-foreground">{customerPhone}</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {customerPhone}
+            </p>
           ) : null}
         </div>
       </div>
@@ -231,10 +243,18 @@ export function InvoicePreview({
       <div className="mb-6">
         <div className="mb-0 overflow-hidden rounded-t-lg border border-b-0 border-border/60 bg-muted/70">
           <div className="grid grid-cols-12 gap-2 px-3 py-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            <div className="col-span-5">{t("dashboard.invoice.description")}</div>
-            <div className="col-span-2 text-center">{t("dashboard.invoice.quantity")}</div>
-            <div className="col-span-2 text-right">{t("dashboard.invoice.unitPrice")}</div>
-            <div className="col-span-2 text-right">{t("dashboard.invoice.total")}</div>
+            <div className="col-span-5">
+              {t("dashboard.invoice.description")}
+            </div>
+            <div className="col-span-2 text-center">
+              {t("dashboard.invoice.quantity")}
+            </div>
+            <div className="col-span-2 text-right">
+              {t("dashboard.invoice.unitPrice")}
+            </div>
+            <div className="col-span-2 text-right">
+              {t("dashboard.invoice.total")}
+            </div>
             {onItemRemove && <div className="col-span-1" />}
           </div>
         </div>
@@ -267,15 +287,18 @@ export function InvoicePreview({
                     onItemUpdate &&
                       !isEditing &&
                       "cursor-pointer hover:bg-muted/40",
-                    isEditing &&
-                      "bg-card p-3 ring-1 ring-primary/20"
+                    isEditing && "bg-card p-3 ring-1 ring-primary/20",
                   )}
                   onClick={() => handleItemClick(item.id)}
                   onKeyDown={(e) => handleItemKeyDown(e, item.id)}
                   tabIndex={onItemUpdate ? 0 : undefined}
                   role={onItemUpdate ? "button" : undefined}
                   aria-label={
-                    onItemUpdate ? t("dashboard.invoice.editItemAria", { description: item.description }) : undefined
+                    onItemUpdate
+                      ? t("dashboard.invoice.editItemAria", {
+                          description: item.description,
+                        })
+                      : undefined
                   }
                 >
                   {isEditing ? (
@@ -335,7 +358,9 @@ export function InvoicePreview({
                               onItemRemove(index);
                             }}
                             className="p-2 text-destructive/80 hover:text-destructive-foreground hover:bg-destructive rounded-lg transition-colors"
-                            aria-label={t("dashboard.invoice.deleteItemAria", { description: item.description })}
+                            aria-label={t("dashboard.invoice.deleteItemAria", {
+                              description: item.description,
+                            })}
                             tabIndex={0}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -366,7 +391,9 @@ export function InvoicePreview({
                               onItemRemove(index);
                             }}
                             className="p-1.5 text-destructive/70 hover:bg-destructive hover:text-destructive-foreground rounded-lg transition-colors"
-                            aria-label={t("dashboard.invoice.deleteItemAria", { description: item.description })}
+                            aria-label={t("dashboard.invoice.deleteItemAria", {
+                              description: item.description,
+                            })}
                             tabIndex={0}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -397,21 +424,25 @@ export function InvoicePreview({
       <div className="mt-6 flex flex-col items-end gap-2 border-t border-border/50 pt-6">
         <div className="w-full max-w-xs space-y-2 text-sm">
           <div className="flex justify-between gap-8">
-            <span className="text-muted-foreground">{t("dashboard.invoice.subtotalHT")}</span>
+            <span className="text-muted-foreground">
+              {t("dashboard.invoice.subtotalHT")}
+            </span>
             <span className="font-medium tabular-nums">
               {formatCurrency(subtotalHt)}
             </span>
           </div>
           <div className="flex justify-between gap-8">
             <span className="text-muted-foreground">
-              {t("dashboard.invoice.vat", { rate: vatRatePercent })}
+              {t("dashboard.invoice.vat", { rate: vatRatePercent.toFixed(2) })}
             </span>
             <span className="font-medium tabular-nums">
               {formatCurrency(vatAmount)}
             </span>
           </div>
           <div className="flex justify-between gap-8 border-t border-border/60 pt-3 text-base">
-            <span className="font-bold text-foreground">{t("dashboard.invoice.totalTTC")}</span>
+            <span className="font-bold text-foreground">
+              {t("dashboard.invoice.totalTTC")}
+            </span>
             <span className="text-xl font-bold tabular-nums text-foreground">
               {formatCurrency(totalTtc)}
             </span>
@@ -420,7 +451,9 @@ export function InvoicePreview({
       </div>
 
       <div className="mt-10 border-t border-border/50 pt-8">
-        <p className="text-sm font-semibold text-foreground">{t("dashboard.invoice.approvalSignature")}</p>
+        <p className="text-sm font-semibold text-foreground">
+          {t("dashboard.invoice.approvalSignature")}
+        </p>
         <div
           className="mt-12 min-h-[4rem] rounded-md border border-dashed border-border/70 bg-muted/20"
           aria-hidden
