@@ -1,6 +1,13 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BilloLogoMark } from "@/components/brand/billo-logo";
+
+export const metadata: Metadata = {
+  title: "Bienvenue",
+  description: "Bienvenue sur Billo. Configurez votre compte pour commencer à facturer par la voix.",
+  robots: { index: false, follow: false },
+};
 
 export default function WelcomePage() {
   return (

@@ -13,74 +13,128 @@ import {
   Clock,
   Shield,
   Headphones,
+  Palette,
+  Globe,
+  Download,
 } from "lucide-react";
 import { useLanguage } from "@/i18n/context";
 import { BilloLogoMark } from "@/components/brand/billo-logo";
 import { usePublicPlans } from "@/hooks/use-public-plans";
+import { useCurrency } from "@/hooks/use-currency";
+import { useState } from "react";
 
 interface PlanFeature {
   labelKey: string;
   free: boolean | string;
+  earlyBird: boolean | string;
   pro: boolean | string;
+  business: boolean | string;
   icon: React.ComponentType<{ className?: string }>;
 }
 
 export function PricingContent() {
-  const { t, locale } = useLanguage();
-  const { proMonthlyAmount } = usePublicPlans();
-  const proPriceLabel = proMonthlyAmount.toLocaleString(
-    locale === "en" ? "en-US" : "fr-FR",
-  );
+  const { t } = useLanguage();
+  // Keep usePublicPlans for backward compat
+  const { proMonthlyAmount: _proMonthlyAmount } = usePublicPlans();
+  const { formatWithSymbol } = useCurrency();
+  const [isAnnual, setIsAnnual] = useState(false);
 
   const planFeatures: PlanFeature[] = [
     {
       labelKey: "pricingPage.docsPerMonth",
-      free: "3",
+      free: "5",
+      earlyBird: t("pricingPage.unlimited"),
       pro: t("pricingPage.unlimited"),
+      business: t("pricingPage.unlimited"),
       icon: FileText,
     },
-    { labelKey: "pricingPage.voiceBilling", free: true, pro: true, icon: Mic },
+    {
+      labelKey: "pricingPage.voiceBilling",
+      free: true,
+      earlyBird: true,
+      pro: true,
+      business: true,
+      icon: Mic,
+    },
     {
       labelKey: "pricingPage.pdfExport",
       free: true,
+      earlyBird: true,
       pro: true,
+      business: true,
       icon: FileText,
     },
     {
       labelKey: "pricingPage.whatsapp",
       free: true,
+      earlyBird: true,
       pro: true,
+      business: true,
       icon: Share2,
     },
     {
       labelKey: "pricingPage.offline",
       free: true,
+      earlyBird: true,
       pro: true,
+      business: true,
       icon: WifiOff,
     },
     {
       labelKey: "pricingPage.clientManagement",
       free: t("pricingPage.oneClient"),
+      earlyBird: t("pricingPage.unlimited"),
       pro: t("pricingPage.unlimited"),
+      business: t("pricingPage.unlimited"),
       icon: Users,
     },
     {
       labelKey: "pricingPage.history",
       free: t("pricingPage.sevenDays"),
+      earlyBird: t("pricingPage.unlimited"),
       pro: t("pricingPage.unlimited"),
+      business: t("pricingPage.unlimited"),
       icon: Clock,
     },
     {
       labelKey: "pricingPage.businessProfiles",
       free: "1",
+      earlyBird: "3",
       pro: "3",
+      business: t("pricingPage.unlimited"),
       icon: Shield,
     },
     {
       labelKey: "pricingPage.prioritySupport",
       free: false,
+      earlyBird: false,
       pro: true,
+      business: true,
       icon: Headphones,
+    },
+    {
+      labelKey: "pricingPage.customBranding",
+      free: false,
+      earlyBird: false,
+      pro: false,
+      business: true,
+      icon: Palette,
+    },
+    {
+      labelKey: "pricingPage.multiCurrency",
+      free: false,
+      earlyBird: false,
+      pro: false,
+      business: true,
+      icon: Globe,
+    },
+    {
+      labelKey: "pricingPage.csvExport",
+      free: false,
+      earlyBird: false,
+      pro: false,
+      business: true,
+      icon: Download,
     },
   ];
 
@@ -103,98 +157,171 @@ export function PricingContent() {
 
       {/* Plans */}
       <section className="bg-muted py-20">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:gap-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          {/* Monthly / Annual toggle */}
+          <div className="mb-10 flex justify-center">
+            <div className="relative flex items-center rounded-full bg-background p-1.5 shadow-inner border border-border">
+              <button
+                onClick={() => setIsAnnual(false)}
+                className={`relative z-10 w-32 rounded-full py-2 text-sm font-bold transition-all duration-300 ${
+                  !isAnnual
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground/70"
+                }`}
+              >
+                Mensuel
+              </button>
+              <button
+                onClick={() => setIsAnnual(true)}
+                className={`relative z-10 w-32 rounded-full py-2 text-sm font-bold transition-all duration-300 ${
+                  isAnnual
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground/70"
+                }`}
+              >
+                Annuel
+              </button>
+              <div
+                className={`absolute left-1.5 h-[calc(100%-12px)] w-32 rounded-full bg-muted shadow-md transition-transform duration-300 ${
+                  isAnnual ? "translate-x-32" : "translate-x-0"
+                }`}
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {/* Free plan */}
-            <div className="flex flex-col rounded-2xl border border-border bg-card p-8 shadow-sm">
-              <div className="mb-6">
-                <h2 className="text-xl font-bold text-foreground">
+            <div className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <div className="mb-5">
+                <h2 className="text-lg font-bold text-foreground">
                   {t("pricingPage.freeName")}
                 </h2>
-                <div className="mt-3 flex items-baseline gap-1.5">
-                  <span className="text-5xl font-black text-foreground">0</span>
-                  <span className="text-base font-medium text-muted-foreground">
-                    FCFA / {t("common.perMonth").replace("/ ", "")}
+                <div className="mt-3 flex items-baseline gap-1.5 flex-wrap">
+                  <span className="text-4xl font-black text-foreground">0</span>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    / mois
                   </span>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">
+                <p className="mt-2 text-xs text-muted-foreground">
                   {t("pricingPage.freeDesc")}
                 </p>
               </div>
 
               <Button
                 asChild
-                size="lg"
+                size="sm"
                 variant="outline"
-                className="mb-8 h-11 w-full rounded-xl border-brand text-brand font-semibold hover:bg-brand/5"
+                className="mb-6 h-10 w-full rounded-xl border-brand text-brand font-semibold hover:bg-brand/5"
               >
                 <Link href="/register">{t("pricingPage.freeCta")}</Link>
               </Button>
 
-              <ul className="flex flex-col gap-3">
-                {planFeatures.map((feature) => {
-                  const isMissing = feature.free === false;
-                  const isText =
-                    typeof feature.free === "string" &&
-                    feature.free !== "true" &&
-                    feature.free !== "false";
+              <ul className="flex flex-col gap-2.5">
+                {[
+                  t("pricingPage.freeF1"),
+                  t("pricingPage.freeF2"),
+                  t("pricingPage.freeF3"),
+                  t("pricingPage.freeF4"),
+                  t("pricingPage.freeF5"),
+                  t("pricingPage.freeF6"),
+                ].map((f) => (
+                  <li key={f} className="flex items-center gap-2.5">
+                    <CheckCircle2
+                      className="h-4 w-4 shrink-0 text-primary"
+                      aria-hidden
+                    />
+                    <span className="text-xs text-foreground/80">{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-                  return (
-                    <li
-                      key={feature.labelKey}
-                      className={`flex items-center gap-3 ${isMissing ? "opacity-40" : ""}`}
-                    >
-                      {isMissing ? (
-                        <div className="h-4 w-4 shrink-0 rounded-full border-2 border-muted-foreground/30" />
-                      ) : (
-                        <CheckCircle2
-                          className="h-4 w-4 shrink-0 text-primary"
-                          aria-hidden
-                        />
-                      )}
-                      <span className="text-sm text-foreground/80">
-                        {t(feature.labelKey)}
-                        {isText && (
-                          <span className="ml-1 text-xs font-semibold text-muted-foreground">
-                            ({feature.free})
-                          </span>
-                        )}
-                      </span>
-                    </li>
-                  );
-                })}
+            {/* Early Bird plan */}
+            <div className="relative flex flex-col rounded-2xl bg-foreground p-6 shadow-2xl shadow-brand/20 ring-2 ring-brand/40">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 flex items-center gap-2">
+                <span className="rounded-full bg-primary px-4 py-1 text-xs font-bold text-primary-foreground">
+                  {t("common.recommended")}
+                </span>
+                <span className="rounded-full bg-amber-500 px-3 py-1 text-xs font-bold text-white">
+                  {t("pricingPage.earlyBirdBadge")}
+                </span>
+              </div>
+
+              <div className="mb-5 mt-2">
+                <h2 className="text-lg font-bold text-background">
+                  {t("pricingPage.earlyBirdName")}
+                </h2>
+                <div className="mt-3 flex items-baseline gap-1.5 flex-wrap">
+                  <span className="text-4xl font-black text-background">
+                    {formatWithSymbol("early_bird")}
+                  </span>
+                  <span className="text-xs font-medium text-background/60">
+                    {t("pricingPage.earlyBirdPeriod")}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-background/60">
+                  {t("pricingPage.earlyBirdDesc")}
+                </p>
+              </div>
+
+              <Button
+                asChild
+                size="sm"
+                className="mb-6 h-10 w-full rounded-xl bg-primary font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 shadow-primary/30"
+              >
+                <Link href="/register?plan=early_bird">
+                  {t("pricingPage.earlyBirdCta")}
+                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                </Link>
+              </Button>
+
+              <ul className="flex flex-col gap-2.5">
+                {[
+                  t("pricingPage.earlyBirdF1"),
+                  t("pricingPage.earlyBirdF2"),
+                  t("pricingPage.earlyBirdF3"),
+                  t("pricingPage.earlyBirdF4"),
+                  t("pricingPage.earlyBirdF5"),
+                  t("pricingPage.earlyBirdF6"),
+                ].map((f) => (
+                  <li key={f} className="flex items-center gap-2.5">
+                    <CheckCircle2
+                      className="h-4 w-4 shrink-0 text-primary"
+                      aria-hidden
+                    />
+                    <span className="text-xs text-background/80">{f}</span>
+                  </li>
+                ))}
               </ul>
             </div>
 
             {/* Pro plan */}
-            <div className="relative flex flex-col rounded-2xl bg-brand p-8 shadow-xl">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                <span className="rounded-full bg-primary px-5 py-1 text-xs font-bold text-primary-foreground">
-                  {t("pricingPage.recommended")}
-                </span>
-              </div>
-
-              <div className="mb-6">
-                <h2 className="text-xl font-bold text-brand-foreground">
+            <div className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <div className="mb-5">
+                <h2 className="text-lg font-bold text-foreground">
                   {t("pricingPage.proName")}
                 </h2>
-                <div className="mt-3 flex items-baseline gap-1.5">
-                  <span className="text-5xl font-black text-brand-foreground">
-                    {proPriceLabel}
+                <div className="mt-3 flex items-baseline gap-1.5 flex-wrap">
+                  <span className="text-4xl font-black text-foreground">
+                    {isAnnual
+                      ? formatWithSymbol("pro_annual")
+                      : formatWithSymbol("pro_monthly")}
                   </span>
-                  <span className="text-base font-medium text-brand-foreground/70">
-                    {t("common.fcfaMonth")}
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {isAnnual
+                      ? t("pricingPage.proPeriod").replace("mois", "an")
+                      : t("pricingPage.proPeriod")}
                   </span>
                 </div>
-                <p className="mt-2 text-sm text-brand-foreground/70">
+                <p className="mt-2 text-xs text-muted-foreground">
                   {t("pricingPage.proDesc")}
                 </p>
               </div>
 
               <Button
                 asChild
-                size="lg"
-                className="mb-8 h-11 w-full rounded-xl bg-brand-foreground font-semibold text-brand shadow-sm hover:bg-brand-foreground/90"
+                size="sm"
+                className="mb-6 h-10 w-full rounded-xl bg-foreground font-semibold text-background shadow-sm hover:bg-foreground/90"
               >
                 <Link href="/register?plan=pro">
                   {t("pricingPage.proCta")}
@@ -202,30 +329,79 @@ export function PricingContent() {
                 </Link>
               </Button>
 
-              <ul className="flex flex-col gap-3">
-                {planFeatures.map((feature) => {
-                  const isText =
-                    typeof feature.pro === "string" &&
-                    feature.pro !== "true" &&
-                    feature.pro !== "false";
+              <ul className="flex flex-col gap-2.5">
+                {[
+                  t("pricingPage.proF1"),
+                  t("pricingPage.proF2"),
+                  t("pricingPage.proF3"),
+                  t("pricingPage.proF4"),
+                  t("pricingPage.proF5"),
+                  t("pricingPage.proF6"),
+                  t("pricingPage.proF7"),
+                ].map((f) => (
+                  <li key={f} className="flex items-center gap-2.5">
+                    <CheckCircle2
+                      className="h-4 w-4 shrink-0 text-primary"
+                      aria-hidden
+                    />
+                    <span className="text-xs text-foreground/80">{f}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-                  return (
-                    <li key={feature.labelKey} className="flex items-center gap-3">
-                      <CheckCircle2
-                        className="h-4 w-4 shrink-0 text-primary"
-                        aria-hidden
-                      />
-                      <span className="text-sm text-brand-foreground/90">
-                        {t(feature.labelKey)}
-                        {isText && (
-                          <span className="ml-1 text-xs font-semibold text-brand-foreground/60">
-                            ({feature.pro})
-                          </span>
-                        )}
-                      </span>
-                    </li>
-                  );
-                })}
+            {/* Business plan */}
+            <div className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-sm">
+              <div className="mb-5">
+                <h2 className="text-lg font-bold text-foreground">
+                  {t("pricingPage.businessName")}
+                </h2>
+                <div className="mt-3 flex items-baseline gap-1.5 flex-wrap">
+                  <span className="text-4xl font-black text-foreground">
+                    {isAnnual
+                      ? formatWithSymbol("business_annual")
+                      : formatWithSymbol("business_monthly")}
+                  </span>
+                  <span className="text-sm font-medium text-muted-foreground">
+                    {isAnnual
+                      ? t("pricingPage.businessPeriod").replace("mois", "an")
+                      : t("pricingPage.businessPeriod")}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  {t("pricingPage.businessDesc")}
+                </p>
+              </div>
+
+              <Button
+                asChild
+                size="sm"
+                className="mb-6 h-10 w-full rounded-xl bg-foreground font-semibold text-background shadow-sm hover:bg-foreground/90"
+              >
+                <Link href="/register?plan=business">
+                  {t("pricingPage.businessCta")}
+                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                </Link>
+              </Button>
+
+              <ul className="flex flex-col gap-2.5">
+                {[
+                  t("pricingPage.businessF1"),
+                  t("pricingPage.businessF2"),
+                  t("pricingPage.businessF3"),
+                  t("pricingPage.businessF4"),
+                  t("pricingPage.businessF5"),
+                  t("pricingPage.businessF6"),
+                  t("pricingPage.businessF7"),
+                ].map((f) => (
+                  <li key={f} className="flex items-center gap-2.5">
+                    <CheckCircle2
+                      className="h-4 w-4 shrink-0 text-primary"
+                      aria-hidden
+                    />
+                    <span className="text-xs text-foreground/80">{f}</span>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
@@ -238,7 +414,7 @@ export function PricingContent() {
 
       {/* Comparison table */}
       <section className="bg-background py-20">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <h2 className="mb-10 text-center text-2xl font-extrabold text-foreground">
             {t("pricingPage.comparison")}
           </h2>
@@ -247,14 +423,20 @@ export function PricingContent() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted">
-                  <th className="px-6 py-4 text-left font-semibold text-muted-foreground">
+                  <th className="px-4 py-4 text-left font-semibold text-muted-foreground">
                     {t("pricingPage.featureLabel")}
                   </th>
-                  <th className="px-6 py-4 text-center font-semibold text-muted-foreground">
+                  <th className="px-4 py-4 text-center font-semibold text-muted-foreground">
                     {t("pricingPage.freeName")}
                   </th>
-                  <th className="bg-muted/80 px-6 py-4 text-center font-semibold text-foreground">
+                  <th className="bg-brand/10 px-4 py-4 text-center font-semibold text-foreground">
+                    {t("pricingPage.earlyBirdName")}
+                  </th>
+                  <th className="px-4 py-4 text-center font-semibold text-muted-foreground">
                     {t("pricingPage.proName")}
+                  </th>
+                  <th className="px-4 py-4 text-center font-semibold text-muted-foreground">
+                    {t("pricingPage.businessName")}
                   </th>
                 </tr>
               </thead>
@@ -264,7 +446,7 @@ export function PricingContent() {
                     key={feature.labelKey}
                     className={`border-b border-border/60 ${index % 2 === 0 ? "bg-card" : "bg-muted/30"}`}
                   >
-                    <td className="px-6 py-3.5">
+                    <td className="px-4 py-3.5">
                       <div className="flex items-center gap-2.5">
                         <feature.icon
                           className="h-4 w-4 text-muted-foreground"
@@ -275,17 +457,31 @@ export function PricingContent() {
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-3.5 text-center">
+                    <td className="px-4 py-3.5 text-center">
                       <ComparisonCell
                         value={feature.free}
                         notIncluded={t("pricingPage.notIncluded")}
                         included={t("pricingPage.included")}
                       />
                     </td>
-                    <td className="bg-muted/30 px-6 py-3.5 text-center">
+                    <td className="bg-brand/5 px-4 py-3.5 text-center">
+                      <ComparisonCell
+                        value={feature.earlyBird}
+                        isHighlighted
+                        notIncluded={t("pricingPage.notIncluded")}
+                        included={t("pricingPage.included")}
+                      />
+                    </td>
+                    <td className="px-4 py-3.5 text-center">
                       <ComparisonCell
                         value={feature.pro}
-                        isPro
+                        notIncluded={t("pricingPage.notIncluded")}
+                        included={t("pricingPage.included")}
+                      />
+                    </td>
+                    <td className="px-4 py-3.5 text-center">
+                      <ComparisonCell
+                        value={feature.business}
                         notIncluded={t("pricingPage.notIncluded")}
                         included={t("pricingPage.included")}
                       />
@@ -319,7 +515,7 @@ export function PricingContent() {
               variant="outline"
               className="rounded-xl px-6 font-semibold"
             >
-              <Link href="mailto:contact@billo.app">
+              <Link href="mailto:contact@billo.regiskiki.me">
                 {t("pricingPage.contactBtn")}
               </Link>
             </Button>
@@ -352,12 +548,12 @@ export function PricingContent() {
 
 function ComparisonCell({
   value,
-  isPro = false,
+  isHighlighted = false,
   notIncluded,
   included,
 }: {
   value: boolean | string;
-  isPro?: boolean;
+  isHighlighted?: boolean;
   notIncluded: string;
   included: string;
 }) {
@@ -376,7 +572,7 @@ function ComparisonCell({
     );
   return (
     <span
-      className={`font-semibold ${isPro ? "text-foreground" : "text-foreground/80"}`}
+      className={`font-semibold ${isHighlighted ? "text-foreground" : "text-foreground/80"}`}
     >
       {value}
     </span>

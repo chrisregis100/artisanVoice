@@ -35,10 +35,58 @@ export const adminApiKeyUpdateSchema = z
     }
   });
 
-// subscription/create POST — flutterwave retiré tant que désactivé côté API
+// subscription/create POST
 export const subscriptionCreateSchema = z.object({
-  planName: z.enum(["free", "pro"]),
-  provider: z.enum(["fedapay"]).optional(),
+  planName: z.enum([
+    "free",
+    "free_xof",
+    "free_eur",
+    "free_usd",
+    "pro",
+    "early_bird",
+    "early_bird_xof",
+    "early_bird_eur",
+    "early_bird_usd",
+    "pro_monthly",
+    "pro_monthly_xof",
+    "pro_monthly_eur",
+    "pro_monthly_usd",
+    "pro_annual",
+    "pro_annual_xof",
+    "pro_annual_eur",
+    "pro_annual_usd",
+    "business_monthly",
+    "business_monthly_xof",
+    "business_monthly_eur",
+    "business_monthly_usd",
+    "business_annual",
+    "business_annual_xof",
+    "business_annual_eur",
+    "business_annual_usd",
+  ]),
+  provider: z.enum(["fedapay", "lemonsqueezy"]).optional(),
+});
+
+// webhooks/lemonsqueezy POST
+export const lemonsqueezyWebhookSchema = z.object({
+  meta: z.object({
+    event_name: z.string(),
+    custom_data: z
+      .object({
+        user_id: z.string().optional(),
+        plan_name: z.string().optional(),
+      })
+      .optional(),
+  }),
+  data: z.object({
+    id: z.union([z.string(), z.number()]),
+    attributes: z
+      .object({
+        status: z.string().optional(),
+        order_id: z.union([z.string(), z.number()]).optional(),
+      })
+      .optional(),
+  }),
 });
 
 // subscription/document-export POST
@@ -115,3 +163,4 @@ export type SubscriptionCreateBody = z.infer<typeof subscriptionCreateSchema>;
 export type DocumentExportBody = z.infer<typeof documentExportSchema>;
 export type FlutterwaveWebhookPayload = z.infer<typeof flutterwaveWebhookSchema>;
 export type FedapayWebhookPayload = z.infer<typeof fedapayWebhookSchema>;
+export type LemonsqueezyWebhookPayload = z.infer<typeof lemonsqueezyWebhookSchema>;

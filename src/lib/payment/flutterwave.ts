@@ -87,7 +87,7 @@ export const initiateFlutterwavePayment = async (
     customizations: {
       title: "Billo Pro",
       description: `Abonnement mensuel Plan Pro — ${params.amount.toLocaleString("fr-FR")} FCFA/mois`,
-      logo: "https://billo.app/billo-mark.svg",
+      logo: "https://billo.regiskiki.me/billo-mark.svg",
     },
   };
 
