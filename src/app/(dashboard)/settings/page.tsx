@@ -14,7 +14,8 @@ import { Select } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useLanguage } from "@/i18n/context";
-import { Building2, Check, ChevronDown, FileText, Key } from "lucide-react";
+import { updateUserSettings } from "./actions";
+import { Building2, Check, ChevronDown, FileText, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 const currencies = [
@@ -24,6 +25,7 @@ const currencies = [
 ];
 
 export default function SettingsPage() {
+  const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const { t } = useLanguage();
   const {
@@ -35,13 +37,27 @@ export default function SettingsPage() {
     vatRatePercent,
     legalMentions,
     currency,
-    openaiApiKey,
     updateSettings,
   } = useSettingsStore();
 
-  const handleSave = () => {
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 2000);
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await updateUserSettings({
+        business_name: businessName,
+        phone: businessPhone,
+        business_address: businessAddress,
+        quote_prefix: quotePrefix,
+        invoice_prefix: invoicePrefix,
+        vat_rate_percent: vatRatePercent,
+        legal_mentions: legalMentions,
+        currency: currency,
+      });
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 2000);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -225,48 +241,20 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Section 3: API Key */}
-        <Card className="rounded-xl border shadow-sm">
-          <CardHeader className="border-b pb-4">
-            <div className="flex items-center gap-3">
-              <Key className="h-6 w-6 text-foreground" />
-              <CardTitle className="text-xl font-semibold tracking-tight">
-                {t("dashboard.settings.apiKeyTitle")}
-              </CardTitle>
-            </div>
-            <CardDescription className="text-muted-foreground mt-2">
-              {t("dashboard.settings.apiKeyDesc")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5 pt-6">
-            <div className="space-y-2">
-              <Label htmlFor="openaiApiKey">
-                {t("dashboard.settings.openaiKeyLabel")}
-              </Label>
-              <Input
-                id="openaiApiKey"
-                type="password"
-                placeholder="sk-..."
-                value={openaiApiKey}
-                onChange={(e) =>
-                  updateSettings({ openaiApiKey: e.target.value })
-                }
-              />
-              <p className="text-xs text-muted-foreground mt-2">
-                {t("dashboard.settings.openaiKeyHint")}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Save button */}
         <div className="sticky bottom-4 pt-4">
           <Button
             onClick={handleSave}
+            disabled={isSaving}
             className="w-full h-12 text-lg font-semibold"
             size="lg"
           >
-            {isSaved ? (
+            {isSaving ? (
+              <>
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                {t("dashboard.settings.saveBtn")}
+              </>
+            ) : isSaved ? (
               <>
                 <Check className="h-6 w-6 mr-2" />
                 {t("dashboard.settings.savedBtn")}

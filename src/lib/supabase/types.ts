@@ -183,18 +183,36 @@ export interface Database {
           id: string;
           business_name: string;
           phone: string;
+          business_address: string;
+          quote_prefix: string;
+          invoice_prefix: string;
+          vat_rate_percent: number;
+          legal_mentions: string;
+          currency: string;
           created_at: string;
         };
         Insert: {
           id: string;
           business_name?: string;
           phone?: string;
+          business_address?: string;
+          quote_prefix?: string;
+          invoice_prefix?: string;
+          vat_rate_percent?: number;
+          legal_mentions?: string;
+          currency?: string;
           created_at?: string;
         };
         Update: {
           id?: string;
           business_name?: string;
           phone?: string;
+          business_address?: string;
+          quote_prefix?: string;
+          invoice_prefix?: string;
+          vat_rate_percent?: number;
+          legal_mentions?: string;
+          currency?: string;
           created_at?: string;
         };
         Relationships: [];

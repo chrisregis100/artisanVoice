@@ -250,19 +250,19 @@ export default function LoginPage() {
           className="pointer-events-none absolute inset-y-0 right-0 w-1/2 opacity-10"
           style={{
             backgroundImage:
-              "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)",
+              "radial-gradient(circle at 1px 1px, rgba(128,128,128,0.25) 1px, transparent 0)",
             backgroundSize: "40px 40px",
           }}
         />
 
         <div className="relative z-10 max-w-sm text-center">
           <div className="mb-8 flex justify-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white/10 backdrop-blur-sm ring-1 ring-white/20">
-              <Mic className="h-10 w-10 text-white" aria-hidden />
+            <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-brand-foreground/10 backdrop-blur-sm ring-1 ring-brand-foreground/20">
+              <Mic className="h-10 w-10 text-brand-foreground" aria-hidden />
             </div>
           </div>
 
-          <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-white">
+          <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-brand-foreground">
             {t("auth.login.panelTitle1")}{" "}
             <span className="text-primary">
               {t("auth.login.panelTitle2")}
@@ -282,11 +282,11 @@ export default function LoginPage() {
             ))}
           </ul>
 
-          <div className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-5 text-left backdrop-blur-sm">
+          <div className="mt-10 rounded-2xl border border-brand-foreground/10 bg-brand-foreground/5 p-5 text-left backdrop-blur-sm">
             <p className="text-sm italic leading-relaxed text-brand-foreground/70">
               &ldquo;{t("auth.login.panelQuote")}&rdquo;
             </p>
-            <div className="mt-3 flex items-center gap-2.5 border-t border-white/10 pt-3">
+            <div className="mt-3 flex items-center gap-2.5 border-t border-brand-foreground/10 pt-3">
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-foreground/10 text-xs font-bold text-brand-foreground">
                 IK
               </div>

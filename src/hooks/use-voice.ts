@@ -4,7 +4,6 @@ import { useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useInvoiceStore } from "@/stores/invoice-store";
-import { useSettingsStore } from "@/stores/settings-store";
 import { RealtimeClient } from "@/lib/openai/realtime-client";
 import { GeminiRealtimeClient } from "@/lib/gemini/realtime-client";
 
@@ -85,8 +84,6 @@ export function useVoice(): UseVoiceReturn {
   const isPlayingRef = useRef(false);
   const inputSampleRateRef = useRef<number>(24000);
   const processingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const { openaiApiKey } = useSettingsStore();
 
   const {
     setListening,
@@ -248,7 +245,6 @@ export function useVoice(): UseVoiceReturn {
 
   const initializeClient = useCallback(async (): Promise<VoiceClient> => {
     const body: Record<string, string> = {};
-    if (openaiApiKey) body.userApiKey = openaiApiKey;
 
     const response = await fetch("/api/realtime/session", {
       method: "POST",
@@ -315,7 +311,6 @@ export function useVoice(): UseVoiceReturn {
     clientRef.current = client;
     return client;
   }, [
-    openaiApiKey,
     appendAssistantDelta,
     handleFunctionCall,
     playAudioQueue,

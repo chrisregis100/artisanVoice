@@ -196,11 +196,11 @@ export function PricingSection() {
                     </li>
                   ))}
                   {plan.missing.map((f) => (
-                    <li key={f} className="flex items-start gap-3 opacity-60">
-                      <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                    <li key={f} className="flex items-start gap-3">
+                      <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30 text-red-500">
                         <X className="h-3.5 w-3.5" aria-hidden />
                       </div>
-                      <span className="text-sm leading-relaxed font-medium text-muted-foreground">{f}</span>
+                      <span className="text-sm leading-relaxed font-medium text-foreground/60 line-through decoration-red-400/50">{f}</span>
                     </li>
                   ))}
                 </ul>
