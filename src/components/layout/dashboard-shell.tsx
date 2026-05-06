@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Menu, X } from "lucide-react";
 import { BilloLogoMark } from "@/components/brand/billo-logo";
-import { useNavItems, SidebarNav } from "./sidebar-nav";
+import { SidebarNav } from "./sidebar-nav";
 import { DashboardHeader } from "./dashboard-header";
 import { useLanguage } from "@/i18n/context";
 
@@ -23,19 +22,14 @@ export function DashboardShell({
   userEmail,
 }: DashboardShellProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const { t } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDesktopExpanded, setIsDesktopExpanded] = useState(true);
 
-  const navLinks = useNavItems();
-
-  const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
-  };
+  // Close mobile drawer on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   return (
     <div className="flex h-screen flex-col md:flex-row bg-background overflow-hidden">
@@ -64,38 +58,34 @@ export function DashboardShell({
             </Link>
           </div>
         </div>
-
-        {isMobileMenuOpen && (
-          <nav
-            className="flex flex-col gap-1 border-t border-border/60 bg-background p-2"
-            aria-label={t("nav.mainNav")}
-          >
-            {navLinks.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setIsMobileMenuOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors",
-                  pathname === item.href
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                )}
-              >
-                <item.icon className="h-5 w-5 shrink-0" />
-                {t(item.labelKey)}
-              </Link>
-            ))}
-            <button
-              type="button"
-              onClick={handleSignOut}
-              className="mt-2 flex w-full items-center gap-3 rounded-lg border-t border-border/60 px-3 py-3 text-left text-sm font-medium text-destructive transition-colors hover:bg-muted"
-            >
-              {t("dashboard.main.signOut")}
-            </button>
-          </nav>
-        )}
       </header>
+
+      {/* Mobile backdrop — closes drawer when tapped outside */}
+      <div
+        className={cn(
+          "fixed inset-0 z-40 bg-black/50 md:hidden transition-opacity duration-300",
+          isMobileMenuOpen
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none",
+        )}
+        onClick={() => setIsMobileMenuOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* Mobile Sidebar Drawer — slides in from the left, overlays content */}
+      <aside
+        className={cn(
+          "fixed top-14 left-0 bottom-0 z-50 w-64 flex flex-col border-r border-border/60 bg-background p-3 transition-transform duration-300 ease-in-out md:hidden",
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full",
+        )}
+        aria-label={t("dashboard.nav.home")}
+      >
+        <SidebarNav
+          businessName={businessName}
+          isExpanded={true}
+          onToggle={() => setIsMobileMenuOpen(false)}
+        />
+      </aside>
 
       {/* Desktop Sidebar */}
       <aside
@@ -111,7 +101,7 @@ export function DashboardShell({
         />
       </aside>
 
-      {/* Main column: header + content */}
+      {/* Main column — always full width on mobile, flex-1 on desktop */}
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-surface">
         <DashboardHeader userEmail={userEmail} businessName={businessName} />
         <main className="min-h-0 flex-1 overflow-hidden">{children}</main>

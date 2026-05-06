@@ -64,9 +64,10 @@ export function BilloLogoMark({
           width="192"
           height="192"
           rx="44"
-          fill="rgba(255, 255, 255, 0.22)"
+          fill="currentColor"
+          fillOpacity="0.22"
         />
-        <BilloWaveMark stroke="#ffffff" />
+        <BilloWaveMark stroke="currentColor" />
       </svg>
     );
   }
