@@ -268,7 +268,7 @@ function CheckoutForm() {
                           aria-hidden
                         >
                           {isSelected ? (
-                            <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                            <span className="h-1.5 w-1.5 rounded-full bg-brand-foreground" />
                           ) : null}
                         </span>
                         <div

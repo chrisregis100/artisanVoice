@@ -349,19 +349,19 @@ export default function RegisterPage() {
           className="pointer-events-none absolute inset-y-0 right-0 w-1/2 opacity-10"
           style={{
             backgroundImage:
-              "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)",
+              "radial-gradient(circle at 1px 1px, rgba(128,128,128,0.25) 1px, transparent 0)",
             backgroundSize: "40px 40px",
           }}
         />
 
         <div className="relative z-10 max-w-sm">
           <div className="mb-8 flex justify-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white/10 backdrop-blur-sm ring-1 ring-white/20">
-              <Mic className="h-10 w-10 text-white" aria-hidden />
+            <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-brand-foreground/10 backdrop-blur-sm ring-1 ring-brand-foreground/20">
+              <Mic className="h-10 w-10 text-brand-foreground" aria-hidden />
             </div>
           </div>
 
-          <h2 className="text-center text-3xl font-extrabold leading-tight tracking-tight text-white">
+          <h2 className="text-center text-3xl font-extrabold leading-tight tracking-tight text-brand-foreground">
             {t("auth.register.panelTitle")}{" "}
             <span className="text-primary">
               {t("auth.register.panelTitleHighlight")}
@@ -376,13 +376,13 @@ export default function RegisterPage() {
             {perks.map(({ icon: Icon, title, desc }) => (
               <div
                 key={title}
-                className="flex items-start gap-4 rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm"
+                className="flex items-start gap-4 rounded-xl border border-brand-foreground/10 bg-brand-foreground/5 p-4 backdrop-blur-sm"
               >
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/20">
                   <Icon className="h-4.5 w-4.5 text-primary" aria-hidden />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-white">{title}</p>
+                  <p className="text-sm font-semibold text-brand-foreground">{title}</p>
                   <p className="text-xs text-brand-foreground/50">{desc}</p>
                 </div>
               </div>

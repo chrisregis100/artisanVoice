@@ -136,20 +136,24 @@ export default function SubscribePage() {
 
             <ul className="mb-8 flex flex-col gap-2.5">
               {FEATURES.map((f) => (
-                <li key={f.labelKey} className="flex items-center gap-2.5">
+                <li key={f.labelKey} className="flex items-start gap-2.5">
                   {f.free ? (
-                    <CheckCircle2
-                      className="h-4 w-4 shrink-0 text-primary"
-                      aria-hidden
-                    />
+                    <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                      <CheckCircle2
+                        className="h-3.5 w-3.5 shrink-0 text-primary"
+                        aria-hidden
+                      />
+                    </div>
                   ) : (
-                    <X
-                      className="h-4 w-4 shrink-0 text-muted-foreground/30"
-                      aria-hidden
-                    />
+                    <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30 text-red-500">
+                      <X
+                        className="h-3.5 w-3.5 shrink-0"
+                        aria-hidden
+                      />
+                    </div>
                   )}
                   <span
-                    className={`text-sm ${f.free ? "text-foreground/80" : "text-muted-foreground/50"}`}
+                    className={`text-sm leading-relaxed font-medium ${f.free ? "text-foreground/80" : "text-foreground/60 line-through decoration-red-400/50"}`}
                   >
                     {t(f.labelKey)}
                   </span>
@@ -203,17 +207,21 @@ export default function SubscribePage() {
 
             <ul className="mb-8 flex flex-col gap-2.5">
               {FEATURES.map((f) => (
-                <li key={f.labelKey} className="flex items-center gap-2.5">
+                <li key={f.labelKey} className="flex items-start gap-2.5">
                   {f.pro ? (
-                    <CheckCircle2
-                      className="h-4 w-4 shrink-0 text-primary"
-                      aria-hidden
-                    />
+                    <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20">
+                      <CheckCircle2
+                        className="h-3.5 w-3.5 shrink-0 text-primary"
+                        aria-hidden
+                      />
+                    </div>
                   ) : (
-                    <X className="h-4 w-4 shrink-0 text-white/30" aria-hidden />
+                    <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30 text-red-500">
+                      <X className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                    </div>
                   )}
                   <span
-                    className={`text-sm ${f.pro ? "text-white/90" : "text-white/40"}`}
+                    className={`text-sm leading-relaxed font-medium ${f.pro ? "text-brand-foreground/90" : "text-foreground/60 line-through decoration-red-400/50"}`}
                   >
                     {t(f.labelKey)}
                   </span>

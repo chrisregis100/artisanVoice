@@ -12,7 +12,7 @@ export function CtaBannerSection() {
     <section className="bg-brand py-20">
       <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
         <div className="mb-5 flex justify-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-foreground/10">
             <Mic className="h-7 w-7 text-brand-foreground" aria-hidden />
           </div>
         </div>
@@ -26,7 +26,7 @@ export function CtaBannerSection() {
           <Button
             asChild
             size="lg"
-            className="h-12 gap-2 rounded-xl bg-white px-8 text-base font-semibold text-brand shadow-lg hover:bg-white/90"
+            className="h-12 gap-2 rounded-xl bg-brand-foreground px-8 text-base font-semibold text-brand shadow-lg hover:bg-brand-foreground/90"
           >
             <Link href="/register">
               {t("landing.cta.createAccount")}
@@ -37,7 +37,7 @@ export function CtaBannerSection() {
             asChild
             variant="outline"
             size="lg"
-            className="h-12 rounded-xl border-white/20 bg-transparent px-8 text-base font-semibold text-brand-foreground hover:bg-white/10"
+            className="h-12 rounded-xl border-brand-foreground/20 bg-transparent px-8 text-base font-semibold text-brand-foreground hover:bg-brand-foreground/10"
           >
             <Link href="/login">{t("landing.cta.login")}</Link>
           </Button>
