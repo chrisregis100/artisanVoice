@@ -12,7 +12,6 @@ interface DbSettings {
   vat_rate_percent: number;
   legal_mentions: string;
   currency: string;
-  openai_api_key: string;
 }
 
 interface SettingsInitializerProps {
@@ -36,7 +35,6 @@ export function SettingsInitializer({ settings }: SettingsInitializerProps) {
       vatRatePercent: settings.vat_rate_percent,
       legalMentions: settings.legal_mentions,
       currency: settings.currency as "XOF" | "EUR" | "USD",
-      openaiApiKey: settings.openai_api_key,
     });
   }, [settings, updateSettings]);
 

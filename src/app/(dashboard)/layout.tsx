@@ -32,7 +32,7 @@ export default async function DashboardLayout({
   const { data: profile } = await supabase
     .from("users")
     .select(
-      "business_name, phone, business_address, quote_prefix, invoice_prefix, vat_rate_percent, legal_mentions, currency, openai_api_key"
+      "business_name, phone, business_address, quote_prefix, invoice_prefix, vat_rate_percent, legal_mentions, currency"
     )
     .eq("id", user.id)
     .single();
@@ -52,7 +52,6 @@ export default async function DashboardLayout({
     vat_rate_percent: profile?.vat_rate_percent ?? 20,
     legal_mentions: profile?.legal_mentions ?? "",
     currency: profile?.currency ?? "XOF",
-    openai_api_key: profile?.openai_api_key ?? "",
   };
 
   return (

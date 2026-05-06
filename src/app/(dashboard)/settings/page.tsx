@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import { useSettingsStore } from "@/stores/settings-store";
 import { useLanguage } from "@/i18n/context";
 import { updateUserSettings } from "./actions";
-import { Building2, Check, ChevronDown, FileText, Key, Loader2 } from "lucide-react";
+import { Building2, Check, ChevronDown, FileText, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 const currencies = [
@@ -37,7 +37,6 @@ export default function SettingsPage() {
     vatRatePercent,
     legalMentions,
     currency,
-    openaiApiKey,
     updateSettings,
   } = useSettingsStore();
 
@@ -53,7 +52,6 @@ export default function SettingsPage() {
         vat_rate_percent: vatRatePercent,
         legal_mentions: legalMentions,
         currency: currency,
-        openai_api_key: openaiApiKey,
       });
       setIsSaved(true);
       setTimeout(() => setIsSaved(false), 2000);
@@ -239,40 +237,6 @@ export default function SettingsPage() {
                 </Select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none text-muted-foreground" />
               </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Section 3: API Key */}
-        <Card className="rounded-xl border shadow-sm">
-          <CardHeader className="border-b pb-4">
-            <div className="flex items-center gap-3">
-              <Key className="h-6 w-6 text-foreground" />
-              <CardTitle className="text-xl font-semibold tracking-tight">
-                {t("dashboard.settings.apiKeyTitle")}
-              </CardTitle>
-            </div>
-            <CardDescription className="text-muted-foreground mt-2">
-              {t("dashboard.settings.apiKeyDesc")}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-5 pt-6">
-            <div className="space-y-2">
-              <Label htmlFor="openaiApiKey">
-                {t("dashboard.settings.openaiKeyLabel")}
-              </Label>
-              <Input
-                id="openaiApiKey"
-                type="password"
-                placeholder="sk-..."
-                value={openaiApiKey}
-                onChange={(e) =>
-                  updateSettings({ openaiApiKey: e.target.value })
-                }
-              />
-              <p className="text-xs text-muted-foreground mt-2">
-                {t("dashboard.settings.openaiKeyHint")}
-              </p>
             </div>
           </CardContent>
         </Card>

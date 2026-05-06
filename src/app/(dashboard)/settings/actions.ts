@@ -13,7 +13,6 @@ const SettingsSchema = z.object({
   vat_rate_percent: z.number().min(0).max(100).default(20),
   legal_mentions: z.string().max(2000).default(""),
   currency: z.enum(["XOF", "EUR", "USD"]).default("XOF"),
-  openai_api_key: z.string().max(200).default(""),
 });
 
 export type SettingsFormValues = z.infer<typeof SettingsSchema>;

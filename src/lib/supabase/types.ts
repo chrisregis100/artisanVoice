@@ -189,7 +189,6 @@ export interface Database {
           vat_rate_percent: number;
           legal_mentions: string;
           currency: string;
-          openai_api_key: string;
           created_at: string;
         };
         Insert: {
@@ -202,7 +201,6 @@ export interface Database {
           vat_rate_percent?: number;
           legal_mentions?: string;
           currency?: string;
-          openai_api_key?: string;
           created_at?: string;
         };
         Update: {
@@ -215,7 +213,6 @@ export interface Database {
           vat_rate_percent?: number;
           legal_mentions?: string;
           currency?: string;
-          openai_api_key?: string;
           created_at?: string;
         };
         Relationships: [];
