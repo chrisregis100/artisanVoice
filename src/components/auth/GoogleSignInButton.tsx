@@ -34,7 +34,11 @@ function GoogleIcon() {
   );
 }
 
-export function GoogleSignInButton() {
+interface GoogleSignInButtonProps {
+  label?: string;
+}
+
+export function GoogleSignInButton({ label = "Continuer avec Google" }: GoogleSignInButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignIn = async () => {
@@ -52,7 +56,6 @@ export function GoogleSignInButton() {
       setIsLoading(false);
       toast.error(error.message);
     }
-    // On success the browser is redirected to Google; keep loading state active.
   };
 
   return (
@@ -61,7 +64,7 @@ export function GoogleSignInButton() {
       variant="outline"
       onClick={handleSignIn}
       disabled={isLoading}
-      aria-label="Continuer avec Google"
+      aria-label={label}
       className="h-11 w-full gap-2 rounded-xl border-border bg-background text-foreground hover:bg-muted"
     >
       {isLoading ? (
@@ -69,7 +72,7 @@ export function GoogleSignInButton() {
       ) : (
         <GoogleIcon />
       )}
-      Continuer avec Google
+      {label}
     </Button>
   );
 }

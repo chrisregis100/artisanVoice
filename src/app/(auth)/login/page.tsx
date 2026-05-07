@@ -20,7 +20,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { GoogleSignInButton } from "./GoogleSignInButton";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
 type LoginFormValues = { email: string; password: string };
 
