@@ -55,7 +55,7 @@ export function HeroDashboardMockup() {
             <div className="h-3 w-3 rounded-full bg-emerald-500 shadow-sm" />
           </div>
           <div className="mx-auto flex h-6 w-full max-w-md items-center justify-center rounded-md bg-card/60 text-[10px] font-medium text-muted-foreground shadow-sm">
-            app.billo.app
+            app.billo.regiskiki.me
           </div>
         </div>
 

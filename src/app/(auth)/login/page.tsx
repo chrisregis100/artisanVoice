@@ -20,6 +20,7 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
 type LoginFormValues = { email: string; password: string };
 
@@ -122,7 +123,17 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} noValidate className="space-y-5">
+          <div className="space-y-4">
+            <GoogleSignInButton />
+
+            <div className="relative flex items-center gap-3">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs text-muted-foreground">ou</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} noValidate className="mt-4 space-y-5">
             <div className="space-y-1.5">
               <Label htmlFor="email" className="text-foreground/80">
                 {t("auth.login.emailLabel")}

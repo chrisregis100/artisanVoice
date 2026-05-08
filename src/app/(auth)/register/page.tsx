@@ -22,6 +22,7 @@ import {
   Users,
   FileText,
 } from "lucide-react";
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton";
 
 type RegisterFormValues = {
   business_name: string;
@@ -166,7 +167,17 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} noValidate className="space-y-4">
+          <div className="space-y-4">
+            <GoogleSignInButton label="S'inscrire avec Google" />
+
+            <div className="relative flex items-center gap-3">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs text-muted-foreground">ou</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} noValidate className="mt-4 space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="business_name" className="text-foreground/80">
                 {t("auth.register.businessNameLabel")}

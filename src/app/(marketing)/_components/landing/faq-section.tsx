@@ -1,6 +1,7 @@
 "use client";
 
 import { useLanguage } from "@/i18n/context";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { ChevronDown } from "lucide-react";
 
 export function FaqSection() {
@@ -15,8 +16,22 @@ export function FaqSection() {
     { question: t("landing.faq.q6"), answer: t("landing.faq.a6") },
   ];
 
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
+
   return (
     <section id="faq" className="bg-background py-24">
+      <JsonLd data={faqJsonLd} />
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <div className="mb-16 text-center">
           <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-muted px-4 py-1.5 text-sm font-semibold text-foreground">
