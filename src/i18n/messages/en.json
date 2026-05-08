@@ -30,7 +30,12 @@
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "homeAria": "Billo - Home",
-    "mainNav": "Main navigation"
+    "mainNav": "Main navigation",
+    "welcome": "Welcome {{name}}",
+    "dashboard": "Dashboard",
+    "logout": "Log out",
+    "signingOut": "Signing out…",
+    "signOutSuccess": "See you soon!"
   },
   "landing": {
     "hero": {
