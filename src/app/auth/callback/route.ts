@@ -4,10 +4,30 @@ import { createServerClient } from "@supabase/ssr";
 import { clientEnv } from "@/lib/env";
 import type { Database } from "@/lib/supabase/types";
 
+const ALLOWED_REDIRECTS = new Set([
+  "/dashboard",
+  "/subscribe",
+  "/invoices",
+  "/settings",
+  "/customers",
+  "/welcome",
+  "/reset-password",
+  "/",
+]);
+
+function sanitizeNext(next: string | null): string | null {
+  if (!next) return null;
+  if (!next.startsWith("/")) return null;
+  if (next.startsWith("//")) return null;
+  const path = next.split("?")[0] ?? next;
+  if (ALLOWED_REDIRECTS.has(path)) return next;
+  return null;
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+  const requestedNext = sanitizeNext(searchParams.get("next"));
 
   if (!code) {
     return NextResponse.redirect(new URL("/", origin));
@@ -35,14 +55,29 @@ export async function GET(request: Request) {
     },
   );
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { data: exchangeData, error } = await supabase.auth.exchangeCodeForSession(code);
 
-  if (error) {
-    console.error("auth callback exchangeCodeForSession:", error.message);
-    return NextResponse.redirect(
-      new URL("/login?error=recovery", origin),
+  if (error || !exchangeData.session) {
+    console.error(
+      "auth callback exchangeCodeForSession:",
+      error?.message ?? "no session returned",
     );
+    return NextResponse.redirect(new URL("/login?error=recovery", origin));
   }
 
-  return NextResponse.redirect(new URL(next, origin));
+  if (requestedNext) {
+    return NextResponse.redirect(new URL(requestedNext, origin));
+  }
+
+  const userId = exchangeData.session.user.id;
+  const { data: subscription } = await supabase
+    .from("subscriptions")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .limit(1)
+    .maybeSingle();
+
+  const target = subscription ? "/dashboard" : "/subscribe";
+  return NextResponse.redirect(new URL(target, origin));
 }
