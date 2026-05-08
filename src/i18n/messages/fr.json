@@ -30,7 +30,12 @@
     "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu",
     "homeAria": "Billo - Accueil",
-    "mainNav": "Navigation principale"
+    "mainNav": "Navigation principale",
+    "welcome": "Bienvenue {{name}}",
+    "dashboard": "Tableau de bord",
+    "logout": "Déconnexion",
+    "signingOut": "Déconnexion…",
+    "signOutSuccess": "À bientôt !"
   },
   "landing": {
     "hero": {
