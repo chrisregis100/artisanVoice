@@ -50,7 +50,7 @@ export default function AdminOverviewPage() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
-                <Users className="h-5 w-5 text-blue-500" aria-hidden />
+                    <Users className="h-5 w-5 text-blue-500 dark:text-blue-400" aria-hidden />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Utilisateurs</p>
@@ -64,7 +64,7 @@ export default function AdminOverviewPage() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10">
-                <FileText className="h-5 w-5 text-green-500" aria-hidden />
+                    <FileText className="h-5 w-5 text-green-500 dark:text-green-400" aria-hidden />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Factures créées</p>
@@ -78,7 +78,7 @@ export default function AdminOverviewPage() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10">
-                <Package className="h-5 w-5 text-purple-500" aria-hidden />
+                    <Package className="h-5 w-5 text-purple-500 dark:text-purple-400" aria-hidden />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Abonnements actifs</p>
@@ -97,7 +97,7 @@ export default function AdminOverviewPage() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-500/10">
-                <TrendingUp className="h-5 w-5 text-amber-500" aria-hidden />
+                    <TrendingUp className="h-5 w-5 text-amber-500 dark:text-amber-400" aria-hidden />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Revenus mensuels</p>

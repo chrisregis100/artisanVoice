@@ -596,6 +596,8 @@
       "goToSettings": "Go to Settings",
       "stopRecordingAria": "Stop recording",
       "startRecordingAria": "Start voice recording",
+      "interruptAria": "Interrupt the assistant",
+      "busyError": "The assistant is still replying. Wait a moment or tap the button to interrupt it.",
       "listening": "Listening — speak now.",
       "processing": "Processing your message…",
       "conversationAria": "Conversation with assistant",

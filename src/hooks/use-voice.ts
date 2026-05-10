@@ -57,6 +57,7 @@ const PROCESSING_FALLBACK_MS = 5000;
 interface VoiceClient {
   sendAudio(audioData: ArrayBuffer): void;
   commitAudio(): void;
+  cancelResponse(): void;
   disconnect(): void;
   readonly isConnected: boolean;
 }
@@ -64,6 +65,7 @@ interface VoiceClient {
 interface UseVoiceReturn {
   startListening: () => void;
   stopListening: () => void;
+  interruptAssistant: () => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -82,6 +84,8 @@ export function useVoice(): UseVoiceReturn {
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const audioQueueRef = useRef<ArrayBuffer[]>([]);
   const isPlayingRef = useRef(false);
+  const isInterruptedRef = useRef(false);
+  const currentSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const inputSampleRateRef = useRef<number>(24000);
   const processingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -107,8 +111,11 @@ export function useVoice(): UseVoiceReturn {
     if (isPlayingRef.current || audioQueueRef.current.length === 0) return;
 
     isPlayingRef.current = true;
+    isInterruptedRef.current = false;
 
     while (audioQueueRef.current.length > 0) {
+      if (isInterruptedRef.current) break;
+
       const audioData = audioQueueRef.current.shift();
       if (!audioData) continue;
 
@@ -120,7 +127,6 @@ export function useVoice(): UseVoiceReturn {
           playbackCtxRef.current = new AudioContext({ sampleRate: 24000 });
         }
 
-        // Resume context if suspended (browser autoplay policy)
         if (playbackCtxRef.current.state === "suspended") {
           await playbackCtxRef.current.resume();
         }
@@ -141,18 +147,47 @@ export function useVoice(): UseVoiceReturn {
         const source = playbackCtxRef.current.createBufferSource();
         source.buffer = audioBuffer;
         source.connect(playbackCtxRef.current.destination);
+        currentSourceRef.current = source;
         source.start();
 
         await new Promise<void>((resolve) => {
           source.onended = () => resolve();
         });
+
+        if (currentSourceRef.current === source) {
+          currentSourceRef.current = null;
+        }
       } catch (err) {
         console.error("Audio playback error:", err);
       }
     }
 
+    currentSourceRef.current = null;
     isPlayingRef.current = false;
   }, []);
+
+  const interruptAssistant = useCallback(() => {
+    isInterruptedRef.current = true;
+    audioQueueRef.current = [];
+
+    if (currentSourceRef.current) {
+      try {
+        currentSourceRef.current.stop();
+      } catch {
+        // already stopped
+      }
+      currentSourceRef.current = null;
+    }
+    isPlayingRef.current = false;
+
+    clientRef.current?.cancelResponse();
+
+    if (processingTimerRef.current) {
+      clearTimeout(processingTimerRef.current);
+      processingTimerRef.current = null;
+    }
+    setProcessing(false);
+  }, [setProcessing]);
 
   // -------------------------------------------------------------------------
   // Function-call handler (Zod-validated)
@@ -294,6 +329,13 @@ export function useVoice(): UseVoiceReturn {
         }
         setProcessing(false);
       },
+      onSpeechStarted: () => {
+        // Server-VAD detected the user speaking again — barge in by stopping
+        // the assistant's playback and discarding any queued audio.
+        if (isPlayingRef.current || audioQueueRef.current.length > 0) {
+          interruptAssistant();
+        }
+      },
     };
 
     let client: VoiceClient;
@@ -313,6 +355,7 @@ export function useVoice(): UseVoiceReturn {
   }, [
     appendAssistantDelta,
     handleFunctionCall,
+    interruptAssistant,
     playAudioQueue,
     pushUserMessage,
     setConnected,
@@ -328,6 +371,16 @@ export function useVoice(): UseVoiceReturn {
   const startListening = useCallback(async () => {
     try {
       setError(null);
+
+      // If the assistant is still talking (or queued to talk), barge in so the
+      // new user turn replaces the current one cleanly.
+      if (
+        isPlayingRef.current ||
+        audioQueueRef.current.length > 0 ||
+        useInvoiceStore.getState().isProcessing
+      ) {
+        interruptAssistant();
+      }
 
       // Connect to the AI provider first so we know the required sample rate
       if (!clientRef.current?.isConnected) {
@@ -389,7 +442,13 @@ export function useVoice(): UseVoiceReturn {
       toast.error("Erreur", { description: errorMessage });
       console.error("startListening error:", error);
     }
-  }, [initializeClient, setError, setListening, cleanupRecording]);
+  }, [
+    initializeClient,
+    interruptAssistant,
+    setError,
+    setListening,
+    cleanupRecording,
+  ]);
 
   const stopListening = useCallback(async () => {
     setListening(false);
@@ -435,5 +494,5 @@ export function useVoice(): UseVoiceReturn {
     };
   }, [cleanupRecording]);
 
-  return { startListening, stopListening };
+  return { startListening, stopListening, interruptAssistant };
 }

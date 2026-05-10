@@ -242,7 +242,7 @@ export function PricingContent() {
                 <span className="rounded-full bg-primary px-4 py-1 text-xs font-bold text-primary-foreground">
                   {t("common.recommended")}
                 </span>
-                <span className="rounded-full bg-amber-500 px-3 py-1 text-xs font-bold text-white">
+                <span className="rounded-full bg-amber-500 dark:bg-amber-500/90 px-3 py-1 text-xs font-bold text-white">
                   {t("pricingPage.earlyBirdBadge")}
                 </span>
               </div>

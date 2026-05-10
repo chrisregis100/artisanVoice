@@ -221,7 +221,7 @@
       "legalNotice": "Mentions légales",
       "privacy": "Politique de confidentialité",
       "rights": "Tous droits réservés",
-      "madeWith": "Conçu avec ♥ pour les artisans d'Afrique"
+      "madeWith": "Réalisé par Regis Kiki"
     }
   },
   "pricingPage": {
@@ -596,6 +596,8 @@
       "goToSettings": "Aller dans Paramètres",
       "stopRecordingAria": "Arrêter l'enregistrement",
       "startRecordingAria": "Commencer l'enregistrement vocal",
+      "interruptAria": "Interrompre l'assistant",
+      "busyError": "L'assistant est encore en train de répondre. Patientez un instant ou appuyez sur le bouton pour l'interrompre.",
       "listening": "Écoute en cours — parlez maintenant.",
       "processing": "Traitement de votre message en cours…",
       "conversationAria": "Conversation avec l'assistant",

@@ -1,7 +1,7 @@
 "use client";
 
-import { useLanguage } from "@/i18n/context";
 import { BilloLogoMark } from "@/components/brand/billo-logo";
+import { useLanguage } from "@/i18n/context";
 import Link from "next/link";
 
 export function FooterSection() {
@@ -35,9 +35,7 @@ export function FooterSection() {
               aria-label="Billo"
             >
               <BilloLogoMark className="h-9 w-9" size={36} />
-              <span className="text-lg font-bold text-brand">
-                Billo
-              </span>
+              <span className="text-lg font-bold text-brand">Billo</span>
             </Link>
             <p className="text-sm leading-relaxed text-muted-foreground">
               {t("landing.footer.tagline")}
@@ -66,10 +64,10 @@ export function FooterSection() {
         </div>
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
-          <p className="text-sm text-muted-foreground/60">
+          <p className="text-sm text-muted-foreground">
             &copy; {currentYear} Billo &middot; {t("landing.footer.rights")}
           </p>
-          <p className="text-xs text-muted-foreground/40">{t("landing.footer.madeWith")}</p>
+          <p className="text-xs text-white">{t("landing.footer.madeWith")}</p>
         </div>
       </div>
     </footer>

@@ -266,7 +266,7 @@ export function ShareDialog({
               onClick={() => handleShare("whatsapp")}
               disabled={isSharing}
               aria-busy={isSharing}
-              className="w-full justify-start h-12 bg-green-600 hover:bg-green-700"
+              className="w-full justify-start h-12 bg-green-600 hover:bg-green-700 text-white dark:bg-green-600/90 dark:hover:bg-green-700/90"
             >
               {isSharing ? (
                 <Loader2 className="h-5 w-5 mr-3 animate-spin" />
