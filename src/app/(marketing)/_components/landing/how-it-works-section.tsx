@@ -38,10 +38,10 @@ export function HowItWorksSection() {
           <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-muted px-4 py-1.5 text-sm font-semibold text-foreground">
             {t("landing.howItWorks.badge")}
           </span>
-          <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+          <h2 className="text-2xl font-extrabold tracking-tight text-foreground md:text-3xl lg:text-4xl">
             {t("landing.howItWorks.title")}
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+          <p className="mx-auto mt-4 max-w-2xl text-sm text-muted-foreground md:text-base lg:text-lg">
             {t("landing.howItWorks.subtitle")}
           </p>
         </div>
@@ -69,10 +69,10 @@ export function HowItWorksSection() {
                     </div>
                   )}
                 </div>
-                <h3 className="mb-2 text-base font-bold text-foreground">
+                <h3 className="mb-2 text-sm font-bold text-foreground md:text-base lg:text-lg">
                   {step.title}
                 </h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">
+                <p className="text-xs leading-relaxed text-muted-foreground md:text-sm lg:text-base">
                   {step.description}
                 </p>
               </div>

@@ -75,15 +75,15 @@ export function FeaturesSection() {
           <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-sm font-semibold text-primary shadow-sm backdrop-blur-sm">
             {t("landing.features.badge")}
           </span>
-          <h2 className="font-display mx-auto max-w-3xl text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
+          <h2 className="font-display mx-auto max-w-3xl text-3xl font-extrabold tracking-tight text-foreground md:text-4xl lg:text-5xl">
             {t("landing.features.title")}
           </h2>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+          <p className="mx-auto mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground md:text-base lg:text-lg">
             {t("landing.features.subtitle")}
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:auto-rows-[220px]">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-6">
           {features.map((feature, i) => (
             <FeatureCard key={feature.title} feature={feature} index={i} />
           ))}
@@ -127,16 +127,16 @@ function FeatureCard({ feature, index }: { feature: any; index: number }) {
       
       <div className={`absolute inset-0 bg-gradient-to-br opacity-50 transition-opacity group-hover:opacity-100 ${feature.gradient}`} />
 
-      <div className="relative z-10 flex flex-1 flex-col">
-        <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-card text-primary shadow-[0_0_15px_-3px_rgba(16,185,129,0.2)] ring-1 ring-border transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-[0_0_30px_-5px_rgba(16,185,129,0.4)]">
-          <feature.icon className="h-7 w-7" aria-hidden />
+      <div className="relative z-10 flex flex-col gap-3">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-card text-primary shadow-[0_0_15px_-3px_rgba(16,185,129,0.2)] ring-1 ring-border transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-[0_0_30px_-5px_rgba(16,185,129,0.4)] md:h-14 md:w-14">
+          <feature.icon className="h-6 w-6 md:h-7 md:w-7" aria-hidden />
         </div>
 
-        <h3 className="font-display mb-3 text-2xl font-bold text-foreground tracking-tight">
+        <h3 className="font-display text-lg font-bold text-foreground tracking-tight md:text-xl lg:text-2xl">
           {feature.title}
         </h3>
 
-        <p className="mt-auto leading-relaxed text-muted-foreground">
+        <p className="text-sm leading-relaxed text-muted-foreground md:text-base">
           {feature.description}
         </p>
       </div>

@@ -16,10 +16,10 @@ export function CtaBannerSection() {
             <Mic className="h-7 w-7 text-brand-foreground" aria-hidden />
           </div>
         </div>
-        <h2 className="text-3xl font-extrabold tracking-tight text-brand-foreground sm:text-4xl">
+        <h2 className="text-2xl font-extrabold tracking-tight text-brand-foreground md:text-3xl lg:text-4xl">
           {t("landing.cta.title")}
         </h2>
-        <p className="mx-auto mt-4 max-w-xl text-lg text-brand-foreground/60">
+        <p className="mx-auto mt-4 max-w-xl text-sm text-brand-foreground/60 md:text-base lg:text-lg">
           {t("landing.cta.subtitle")}
         </p>
         <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
