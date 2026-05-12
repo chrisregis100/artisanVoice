@@ -4,6 +4,7 @@ import { BilloLogoMark } from "@/components/brand/billo-logo";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/context";
 import { usePublicPlans } from "@/hooks/use-public-plans";
+import { useCurrency } from "@/hooks/use-currency";
 import {
   ArrowRight,
   CheckCircle2,
@@ -27,6 +28,7 @@ export default function SubscribePage() {
   const router = useRouter();
   const { t, locale } = useLanguage();
   const { proMonthlyAmount } = usePublicPlans();
+  const { currency } = useCurrency();
   const [loadingPlan, setLoadingPlan] = useState<"free" | "pro" | null>(null);
 
   const proPriceLabel = proMonthlyAmount.toLocaleString(
@@ -51,7 +53,7 @@ export default function SubscribePage() {
       const response = await fetch("/api/subscription/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planName: "free" }),
+        body: JSON.stringify({ planName: `free_${currency.toLowerCase()}` }),
       });
 
       const data = await response.json();
@@ -145,7 +147,7 @@ export default function SubscribePage() {
                       />
                     </div>
                   ) : (
-                    <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30 text-red-500">
+                          <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30 text-red-500 dark:text-red-400">
                       <X
                         className="h-3.5 w-3.5 shrink-0"
                         aria-hidden
@@ -153,7 +155,7 @@ export default function SubscribePage() {
                     </div>
                   )}
                   <span
-                    className={`text-sm leading-relaxed font-medium ${f.free ? "text-foreground/80" : "text-foreground/60 line-through decoration-red-400/50"}`}
+                      className={`text-sm leading-relaxed font-medium ${f.free ? "text-foreground/80" : "text-foreground/60 line-through decoration-red-400/50 dark:decoration-red-600/50"}`}
                   >
                     {t(f.labelKey)}
                   </span>
@@ -216,12 +218,12 @@ export default function SubscribePage() {
                       />
                     </div>
                   ) : (
-                    <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30 text-red-500">
+                          <div className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30 text-red-500 dark:text-red-400">
                       <X className="h-3.5 w-3.5 shrink-0" aria-hidden />
                     </div>
                   )}
                   <span
-                    className={`text-sm leading-relaxed font-medium ${f.pro ? "text-brand-foreground/90" : "text-foreground/60 line-through decoration-red-400/50"}`}
+                      className={`text-sm leading-relaxed font-medium ${f.pro ? "text-brand-foreground/90" : "text-foreground/60 line-through decoration-red-400/50 dark:decoration-red-600/50"}`}
                   >
                     {t(f.labelKey)}
                   </span>

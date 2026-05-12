@@ -8,6 +8,8 @@ export interface GeminiRealtimeConfig {
   onError: (error: string) => void;
   onConnectionChange: (connected: boolean) => void;
   onResponseDone?: () => void;
+  /** Server detected user started speaking — useful for barge-in. */
+  onSpeechStarted?: () => void;
 }
 
 interface GeminiMessage {
@@ -167,7 +169,11 @@ export class GeminiRealtimeClient {
     }
 
     if (message.server_content) {
-      const { model_turn, turn_complete } = message.server_content;
+      const { model_turn, turn_complete, interrupted } = message.server_content;
+
+      if (interrupted) {
+        this.config.onSpeechStarted?.();
+      }
 
       if (model_turn?.parts) {
         for (const part of model_turn.parts) {
@@ -225,6 +231,15 @@ export class GeminiRealtimeClient {
         audio_stream_end: true,
       },
     });
+  }
+
+  /**
+   * Gemini-side barge-in: there is no explicit cancel message in the v1
+   * Live API, so we rely on the client clearing its audio queue. This
+   * method exists for API parity with `RealtimeClient`.
+   */
+  cancelResponse(): void {
+    // Intentionally no-op — handled client-side by clearing the audio queue.
   }
 
   private sendToolResponse(callId: string, result: unknown): void {

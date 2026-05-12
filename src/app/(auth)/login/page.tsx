@@ -151,12 +151,12 @@ export default function LoginPage() {
                 aria-describedby={errors.email ? "email-error" : undefined}
                 className={
                   errors.email
-                    ? "border-red-400 focus-visible:ring-red-400"
+                    ? "border-red-400 focus-visible:ring-red-400 dark:border-red-500 dark:focus-visible:ring-red-500"
                     : ""
                 }
               />
               {errors.email && (
-                <p id="email-error" className="text-xs text-red-500">
+                <p id="email-error" className="text-xs text-red-500 dark:text-red-400">
                   {errors.email}
                 </p>
               )}
@@ -190,9 +190,9 @@ export default function LoginPage() {
                     errors.password ? "password-error" : undefined
                   }
                   className={
-                    errors.password
-                      ? "border-red-400 pr-10 focus-visible:ring-red-400"
-                      : "pr-10"
+                  errors.password
+                    ? "border-red-400 pr-10 focus-visible:ring-red-400 dark:border-red-500 dark:focus-visible:ring-red-500"
+                    : "pr-10"
                   }
                 />
                 <button
@@ -214,7 +214,7 @@ export default function LoginPage() {
                 </button>
               </div>
               {errors.password && (
-                <p id="password-error" className="text-xs text-red-500">
+                <p id="password-error" className="text-xs text-red-500 dark:text-red-400">
                   {errors.password}
                 </p>
               )}

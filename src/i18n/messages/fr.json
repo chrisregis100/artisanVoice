@@ -129,7 +129,7 @@
       "subtitle": "Commencez gratuitement. Passez au Pro quand vous êtes prêt.",
       "freeName": "Gratuit",
       "freePeriod": "/ mois",
-      "freeDesc": "Découvrir sans risque. 5 factures par mois, sans limite de temps.",
+      "freeDesc": "Découvrir sans risque. 3 factures par mois, sans limite de temps.",
       "freeCta": "Commencer gratuitement",
       "earlyBirdName": "Early Bird",
       "earlyBirdPrice": "4,50",
@@ -169,7 +169,7 @@
       "annual": "Annuel",
       "annualDiscount": "-20%",
       "footer": "Tous les prix s'adaptent à votre devise · Annulez à tout moment · Aucun frais caché",
-      "freeF1": "5 factures par mois",
+      "freeF1": "3 factures par mois",
       "freeF2": "Assistant vocal IA complet",
       "freeF3": "Transcription en temps réel",
       "freeF4": "1 template professionnel",
@@ -221,7 +221,7 @@
       "legalNotice": "Mentions légales",
       "privacy": "Politique de confidentialité",
       "rights": "Tous droits réservés",
-      "madeWith": "Conçu avec ♥ pour les artisans d'Afrique"
+      "madeWith": "Réalisé par Regis Kiki"
     }
   },
   "pricingPage": {
@@ -229,7 +229,7 @@
     "title": "Simple et transparent",
     "subtitle": "Commencez gratuitement, sans carte bancaire. Passez au Pro quand vous êtes prêt à développer votre activité.",
     "freeName": "Gratuit",
-    "freeDesc": "Découvrir sans risque. 5 factures par mois, sans limite de temps. Aucune carte requise.",
+    "freeDesc": "Découvrir sans risque. 3 factures par mois, sans limite de temps. Aucune carte requise.",
     "freeCta": "Commencer gratuitement",
     "earlyBirdName": "Early Bird",
     "earlyBirdPrice": "4,50",
@@ -271,7 +271,7 @@
     "notIncluded": "Non inclus",
     "included": "Inclus",
     "footerRights": "Tous droits réservés",
-    "freeF1": "5 factures par mois",
+    "freeF1": "3 factures par mois",
     "freeF2": "Assistant vocal IA complet",
     "freeF3": "Transcription en temps réel",
     "freeF4": "1 template professionnel",
@@ -596,6 +596,8 @@
       "goToSettings": "Aller dans Paramètres",
       "stopRecordingAria": "Arrêter l'enregistrement",
       "startRecordingAria": "Commencer l'enregistrement vocal",
+      "interruptAria": "Interrompre l'assistant",
+      "busyError": "L'assistant est encore en train de répondre. Patientez un instant ou appuyez sur le bouton pour l'interrompre.",
       "listening": "Écoute en cours — parlez maintenant.",
       "processing": "Traitement de votre message en cours…",
       "conversationAria": "Conversation avec l'assistant",
@@ -628,6 +630,15 @@
       "shareButton": "Partager",
       "shareAria": "Partager le {{documentType}}",
       "closeAria": "Fermer l'aperçu"
+    },
+    "quota": {
+      "title": "Limite gratuite atteinte",
+      "subtitle": "Vous avez utilisé vos 3 factures gratuites ce mois-ci. Choisissez un plan pour continuer sans interruption.",
+      "cta": "Choisir ce plan",
+      "allPlans": "Voir tous les plans",
+      "earlyBirdPeriod": "/ mois — à vie",
+      "proPeriod": "/ mois",
+      "businessPeriod": "/ mois"
     }
   },
   "legal": {

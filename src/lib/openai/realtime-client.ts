@@ -8,7 +8,18 @@ export interface RealtimeConfig {
   onError: (error: string) => void;
   onConnectionChange: (connected: boolean) => void;
   onResponseDone?: () => void;
+  /** Server-VAD detected user started speaking — useful for barge-in. */
+  onSpeechStarted?: () => void;
 }
+
+/**
+ * Server error codes we silently swallow because they reflect benign races
+ * (e.g. server-VAD auto-creating a response while the client also tried to)
+ * and only confuse end-users.
+ */
+const SUPPRESSED_ERROR_CODES = new Set([
+  "conversation_already_has_active_response",
+]);
 
 const MAX_RETRIES = 5;
 /** Cap individual backoff delay at 30 s */
@@ -18,6 +29,8 @@ export class RealtimeClient {
   private ws: WebSocket | null = null;
   private config: RealtimeConfig;
   private isSessionConfigured = false;
+  /** True between `response.created` and `response.done`/`response.cancelled`. */
+  private isResponseActive = false;
 
   private token = "";
   private wsUrl?: string;
@@ -189,14 +202,36 @@ export class RealtimeClient {
         break;
       }
 
-      case "response.done":
+      case "response.created":
+        this.isResponseActive = true;
+        break;
+
+      case "response.cancelled":
+        this.isResponseActive = false;
         this.config.onResponseDone?.();
         break;
 
+      case "response.done":
+        this.isResponseActive = false;
+        this.config.onResponseDone?.();
+        break;
+
+      case "input_audio_buffer.speech_started":
+        this.config.onSpeechStarted?.();
+        break;
+
       case "error": {
-        const errMsg =
-          (message.error as { message?: string } | undefined)?.message ??
-          "Une erreur est survenue";
+        const errorObj = message.error as
+          | { message?: string; code?: string }
+          | undefined;
+        const code = errorObj?.code;
+
+        if (code && SUPPRESSED_ERROR_CODES.has(code)) {
+          console.warn("RealtimeClient: suppressed server error", code, errorObj?.message);
+          break;
+        }
+
+        const errMsg = errorObj?.message ?? "Une erreur est survenue";
         this.config.onError(errMsg);
         break;
       }
@@ -217,7 +252,24 @@ export class RealtimeClient {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
 
     this.send({ type: "input_audio_buffer.commit" });
-    this.send({ type: "response.create" });
+    // Server-VAD may have already auto-created a response; only ask for one
+    // if none is currently in flight to avoid the
+    // "conversation_already_has_active_response" race.
+    if (!this.isResponseActive) {
+      this.send({ type: "response.create" });
+    }
+  }
+
+  /**
+   * Cancel the in-flight assistant response (barge-in). Leaves the input
+   * audio buffer intact so any user audio currently being captured is
+   * preserved for the next turn.
+   */
+  cancelResponse(): void {
+    if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+    if (this.isResponseActive) {
+      this.send({ type: "response.cancel" });
+    }
   }
 
   private sendFunctionResult(callId: string, result: unknown): void {
@@ -229,7 +281,9 @@ export class RealtimeClient {
         output: JSON.stringify(result),
       },
     });
-    this.send({ type: "response.create" });
+    if (!this.isResponseActive) {
+      this.send({ type: "response.create" });
+    }
   }
 
   private send(message: Record<string, unknown>): void {
@@ -264,6 +318,7 @@ export class RealtimeClient {
       this.ws = null;
     }
     this.isSessionConfigured = false;
+    this.isResponseActive = false;
   }
 
   get isConnected(): boolean {

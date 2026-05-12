@@ -20,7 +20,7 @@ const statusLabels = {
 
 const statusColors = {
   draft: "text-muted-foreground",
-  sent: "text-blue-600",
+  sent: "text-blue-600 dark:text-blue-400",
   paid: "text-green-600",
 };
 

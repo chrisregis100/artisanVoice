@@ -225,7 +225,7 @@ export function PricingSection() {
 
                 {plan.badge && !plan.featured && (
                   <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-amber-500/30">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500 dark:bg-amber-500/90 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-white shadow-lg shadow-amber-500/30">
                       {plan.badge}
                     </span>
                   </div>
@@ -233,7 +233,7 @@ export function PricingSection() {
 
                 {plan.featured && plan.badge && (
                   <div className="absolute -top-4 right-4">
-                    <span className="inline-flex items-center rounded-full bg-amber-500 px-3 py-1 text-xs font-bold text-white shadow-md shadow-amber-500/20">
+                    <span className="inline-flex items-center rounded-full bg-amber-500 dark:bg-amber-500/90 px-3 py-1 text-xs font-bold text-white shadow-md shadow-amber-500/20">
                       {plan.badge}
                     </span>
                   </div>
@@ -291,7 +291,7 @@ export function PricingSection() {
                       <div className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-950/30 text-red-500">
                         <X className="h-3 w-3" aria-hidden />
                       </div>
-                      <span className="text-xs leading-relaxed font-medium text-foreground/60 line-through decoration-red-400/50">
+                      <span className="text-xs leading-relaxed font-medium text-foreground/60 line-through decoration-red-400/50 dark:decoration-red-600/50">
                         {f}
                       </span>
                     </li>

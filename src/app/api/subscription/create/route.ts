@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  if (planName === "free") {
+  if (planName === "free" || planName.startsWith("free_")) {
     const { data: existingSubscription } = await supabase
       .from("subscriptions")
       .select("id")
