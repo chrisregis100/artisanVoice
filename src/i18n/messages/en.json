@@ -662,5 +662,19 @@
     "s3Body": "Account and document data are kept while your account is active; some records may be kept to comply with legal obligations.",
     "s4Title": "Your rights",
     "s4Body": "Under applicable law (e.g. GDPR), you may request access, rectification or erasure of your data, and object to certain processing, by contacting us."
+  },
+  "notFound": {
+    "code": "404",
+    "title": "This page lost its voice",
+    "description": "It looks like this address is no longer responding. It may have been moved, deleted, or never existed.",
+    "primaryCta": "Back to home",
+    "secondaryCta": "See our pricing",
+    "suggestionsTitle": "Or explore these pages",
+    "backToHome": "Back to home",
+    "suggestions": {
+      "pricing": "Pricing",
+      "faq": "FAQ",
+      "login": "Log in"
+    }
   }
 }
