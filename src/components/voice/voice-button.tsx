@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useEffect } from "react";
+import { useCallback, useMemo, useEffect, useState } from "react";
 import Link from "next/link";
 import { Mic, MicOff, Square, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -8,6 +8,11 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/i18n/context";
 import { useInvoiceStore } from "@/stores/invoice-store";
 import { useVoice } from "@/hooks/use-voice";
+import {
+  useSubscriptionStatus,
+  type SubscriptionStatusPayload,
+} from "@/hooks/use-subscription-status";
+import { QuotaExceededModal } from "@/components/pricing/quota-exceeded-modal";
 
 function isApiKeyError(error: string): boolean {
   const lower = error.toLowerCase();
@@ -42,6 +47,8 @@ export function VoiceButton() {
   const { t } = useLanguage();
   const { isListening, isProcessing, isConnected, error } = useInvoiceStore();
   const { startListening, stopListening, interruptAssistant } = useVoice();
+  const { data: subscriptionData } = useSubscriptionStatus();
+  const [isQuotaModalOpen, setIsQuotaModalOpen] = useState(false);
 
   const connectionLabel = useMemo(
     () =>
@@ -77,7 +84,7 @@ export function VoiceButton() {
     }
   }, [isConnected, error, t]);
 
-  const handleClick = useCallback(() => {
+  const handleClick = useCallback(async () => {
     if (isListening) {
       stopListening();
       return;
@@ -87,8 +94,42 @@ export function VoiceButton() {
       interruptAssistant();
       return;
     }
+
+    // Layer 1: Immediate check from cached subscription data.
+    // If limit is null the plan is unlimited — skip quota check entirely.
+    const cachedLimit = subscriptionData?.usage.limit ?? null;
+    const cachedCount = subscriptionData?.usage.count ?? 0;
+    if (cachedLimit !== null && cachedCount >= cachedLimit) {
+      setIsQuotaModalOpen(true);
+      return;
+    }
+
+    // Layer 2: Server re-check to bypass potentially stale cached data.
+    try {
+      const res = await fetch("/api/subscription/status");
+      if (res.ok) {
+        const fresh = (await res.json()) as SubscriptionStatusPayload;
+        if (
+          fresh.usage.limit !== null &&
+          fresh.usage.count >= fresh.usage.limit
+        ) {
+          setIsQuotaModalOpen(true);
+          return;
+        }
+      }
+    } catch {
+      // Network error — fail open and let the voice session handle server-side limits.
+    }
+
     startListening();
-  }, [isListening, isProcessing, interruptAssistant, startListening, stopListening]);
+  }, [
+    isListening,
+    isProcessing,
+    interruptAssistant,
+    startListening,
+    stopListening,
+    subscriptionData,
+  ]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -102,6 +143,10 @@ export function VoiceButton() {
 
   return (
     <div className="flex flex-col items-center pb-2">
+      <QuotaExceededModal
+        open={isQuotaModalOpen}
+        onClose={() => setIsQuotaModalOpen(false)}
+      />
       {errorText && (
         <div
           className="mb-6 w-full max-w-md px-1"

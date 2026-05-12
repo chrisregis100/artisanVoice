@@ -129,7 +129,7 @@
       "subtitle": "Start for free. Go Pro when you're ready.",
       "freeName": "Free",
       "freePeriod": "/ month",
-      "freeDesc": "Discover without risk. 5 invoices per month, no time limit.",
+      "freeDesc": "Discover without risk. 3 invoices per month, no time limit.",
       "freeCta": "Start for free",
       "earlyBirdName": "Early Bird",
       "earlyBirdPrice": "4.50",
@@ -169,7 +169,7 @@
       "annual": "Annual",
       "annualDiscount": "-20%",
       "footer": "All prices adapt to your currency · Cancel anytime · No hidden fees",
-      "freeF1": "5 invoices per month",
+      "freeF1": "3 invoices per month",
       "freeF2": "Full AI voice assistant",
       "freeF3": "Real-time transcription",
       "freeF4": "1 professional template",
@@ -229,7 +229,7 @@
     "title": "Simple and transparent",
     "subtitle": "Start for free, no credit card. Go Pro when you're ready to grow your business.",
     "freeName": "Free",
-    "freeDesc": "Discover without risk. 5 invoices per month, no time limit. No card required.",
+    "freeDesc": "Discover without risk. 3 invoices per month, no time limit. No card required.",
     "freeCta": "Start for free",
     "earlyBirdName": "Early Bird",
     "earlyBirdPrice": "4.50",
@@ -271,7 +271,7 @@
     "notIncluded": "Not included",
     "included": "Included",
     "footerRights": "All rights reserved",
-    "freeF1": "5 invoices per month",
+    "freeF1": "3 invoices per month",
     "freeF2": "Full AI voice assistant",
     "freeF3": "Real-time transcription",
     "freeF4": "1 professional template",
@@ -630,6 +630,15 @@
       "shareButton": "Share",
       "shareAria": "Share {{documentType}}",
       "closeAria": "Close preview"
+    },
+    "quota": {
+      "title": "Free limit reached",
+      "subtitle": "You have used your 3 free invoices this month. Choose a plan to continue without interruption.",
+      "cta": "Choose this plan",
+      "allPlans": "See all plans",
+      "earlyBirdPeriod": "/ month — lifetime",
+      "proPeriod": "/ month",
+      "businessPeriod": "/ month"
     }
   },
   "legal": {

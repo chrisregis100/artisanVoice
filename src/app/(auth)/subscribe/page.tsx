@@ -4,6 +4,7 @@ import { BilloLogoMark } from "@/components/brand/billo-logo";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/i18n/context";
 import { usePublicPlans } from "@/hooks/use-public-plans";
+import { useCurrency } from "@/hooks/use-currency";
 import {
   ArrowRight,
   CheckCircle2,
@@ -27,6 +28,7 @@ export default function SubscribePage() {
   const router = useRouter();
   const { t, locale } = useLanguage();
   const { proMonthlyAmount } = usePublicPlans();
+  const { currency } = useCurrency();
   const [loadingPlan, setLoadingPlan] = useState<"free" | "pro" | null>(null);
 
   const proPriceLabel = proMonthlyAmount.toLocaleString(
@@ -51,7 +53,7 @@ export default function SubscribePage() {
       const response = await fetch("/api/subscription/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planName: "free" }),
+        body: JSON.stringify({ planName: `free_${currency.toLowerCase()}` }),
       });
 
       const data = await response.json();

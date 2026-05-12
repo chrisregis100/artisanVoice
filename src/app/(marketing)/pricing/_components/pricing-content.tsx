@@ -42,7 +42,7 @@ export function PricingContent() {
   const planFeatures: PlanFeature[] = [
     {
       labelKey: "pricingPage.docsPerMonth",
-      free: "5",
+      free: "3",
       earlyBird: t("pricingPage.unlimited"),
       pro: t("pricingPage.unlimited"),
       business: t("pricingPage.unlimited"),

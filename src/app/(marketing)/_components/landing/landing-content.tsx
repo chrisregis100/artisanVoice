@@ -77,7 +77,7 @@ export function LandingContent() {
       <FeaturesSection />
       <HowItWorksSection />
       {/* <TestimonialsSection /> */}
-      {/* <PricingSection /> */}
+      <PricingSection />
       {/* <FaqSection /> */}
       <CtaBannerSection />
       <FooterSection />
