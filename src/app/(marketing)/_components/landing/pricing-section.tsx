@@ -135,10 +135,10 @@ export function PricingSection() {
           <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand-muted px-4 py-1.5 text-sm font-semibold text-brand shadow-sm">
             {t("landing.pricing.badge")}
           </span>
-          <h2 className="font-display text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+          <h2 className="font-display text-3xl font-extrabold tracking-tight text-foreground md:text-4xl lg:text-5xl">
             {t("landing.pricing.title")}
           </h2>
-          <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
+          <p className="mx-auto mt-6 max-w-xl text-sm text-muted-foreground md:text-base lg:text-lg">
             {t("landing.pricing.subtitle")}
           </p>
         </motion.div>
@@ -241,7 +241,7 @@ export function PricingSection() {
 
                 <div className="mb-5 mt-2">
                   <h3
-                    className={`font-display text-xl font-bold ${plan.featured ? "" : "text-foreground"}`}
+                    className={`font-display text-lg font-bold md:text-xl ${plan.featured ? "" : "text-foreground"}`}
                   >
                     {plan.name}
                   </h3>
@@ -250,12 +250,12 @@ export function PricingSection() {
                       key={plan.price}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className={`font-display text-4xl font-black tracking-tight ${plan.featured ? "" : "text-foreground"}`}
+                      className={`font-display text-3xl font-black tracking-tight md:text-4xl ${plan.featured ? "" : "text-foreground"}`}
                     >
                       {plan.id === "free" ? "0" : plan.price}
                     </motion.span>
                     <span
-                      className={`text-sm font-medium ${plan.featured ? "opacity-60" : "text-muted-foreground"}`}
+                      className={`text-xs font-medium md:text-sm ${plan.featured ? "opacity-60" : "text-muted-foreground"}`}
                     >
                       {plan.period}
                     </span>

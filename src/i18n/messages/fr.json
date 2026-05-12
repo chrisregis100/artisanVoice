@@ -662,5 +662,19 @@
     "s3Body": "Les données de compte et documents sont conservées tant que votre compte est actif ; certaines données peuvent être conservées pour respecter nos obligations légales.",
     "s4Title": "Vos droits",
     "s4Body": "Conformément au RGPD, vous pouvez demander l’accès, la rectification ou l’effacement de vos données, et vous opposer à certains traitements, en nous contactant."
+  },
+  "notFound": {
+    "code": "404",
+    "title": "Cette page a perdu sa voix",
+    "description": "Il semble que cette adresse ne réponde plus. Elle a peut-être été déplacée, supprimée ou n'a jamais existé.",
+    "primaryCta": "Retour à l'accueil",
+    "secondaryCta": "Voir nos tarifs",
+    "suggestionsTitle": "Ou explorez ces pages",
+    "backToHome": "Retour à l'accueil",
+    "suggestions": {
+      "pricing": "Tarifs",
+      "faq": "FAQ",
+      "login": "Connexion"
+    }
   }
 }
