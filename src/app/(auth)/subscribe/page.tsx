@@ -28,7 +28,7 @@ export default function SubscribePage() {
   const router = useRouter();
   const { t, locale } = useLanguage();
   const { proMonthlyAmount } = usePublicPlans();
-  const { currency } = useCurrency();
+  const { currency, config } = useCurrency();
   const [loadingPlan, setLoadingPlan] = useState<"free" | "pro" | null>(null);
 
   const proPriceLabel = proMonthlyAmount.toLocaleString(
@@ -128,7 +128,7 @@ export default function SubscribePage() {
               <div className="mt-3 flex items-baseline gap-1.5">
                 <span className="text-4xl font-black text-foreground">0</span>
                 <span className="text-sm font-medium text-muted-foreground">
-                  {t("common.fcfaMonth")}
+                  {config.symbol} / mois
                 </span>
               </div>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -199,7 +199,7 @@ export default function SubscribePage() {
                   {proPriceLabel}
                 </span>
                 <span className="text-sm font-medium text-brand-foreground/70">
-                  {t("common.fcfaMonth")}
+                  {config.symbol} / mois
                 </span>
               </div>
               <p className="mt-2 text-sm text-brand-foreground/70">

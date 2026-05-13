@@ -65,12 +65,26 @@ export const subscriptionCreateSchema = z.object({
     "business_annual_usd",
   ]),
   provider: z.enum(["fedapay", "lemonsqueezy"]).optional(),
+  currency: z.enum(["XOF", "EUR", "USD"]).optional(),
 });
 
 // webhooks/lemonsqueezy POST
 export const lemonsqueezyWebhookSchema = z.object({
   meta: z.object({
-    event_name: z.string(),
+    event_name: z.enum([
+      "order_created",
+      "order_refunded",
+      "subscription_created",
+      "subscription_updated",
+      "subscription_cancelled",
+      "subscription_expired",
+      "subscription_resumed",
+      "subscription_paused",
+      "subscription_unpaused",
+      "subscription_payment_success",
+      "subscription_payment_failed",
+      "subscription_payment_recovered",
+    ]),
     custom_data: z
       .object({
         user_id: z.string().optional(),
@@ -84,6 +98,9 @@ export const lemonsqueezyWebhookSchema = z.object({
       .object({
         status: z.string().optional(),
         order_id: z.union([z.string(), z.number()]).optional(),
+        renews_at: z.string().nullable().optional(),
+        ends_at: z.string().nullable().optional(),
+        created_at: z.string().optional(),
       })
       .optional(),
   }),

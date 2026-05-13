@@ -15,7 +15,7 @@ export async function downgradeExpiredProIfNeeded(
       `
       id,
       current_period_end,
-      plans ( name )
+      plans ( name, tier, interval, currency )
     `,
     )
     .eq("user_id", userId)
@@ -27,17 +27,19 @@ export async function downgradeExpiredProIfNeeded(
   if (error || !sub) return false;
 
   const plan = Array.isArray(sub.plans) ? sub.plans[0] : sub.plans;
-  const planName = plan?.name;
   const periodEnd = sub.current_period_end;
 
-  if (planName !== "pro" || !periodEnd) return false;
+  if (plan?.tier === "free") return false;
+  if (plan?.interval === "lifetime") return false;
+  if (!periodEnd) return false;
 
   if (new Date(periodEnd).getTime() >= Date.now()) return false;
 
+  const currency = plan?.currency ?? "xof";
   const { data: freePlan, error: freeErr } = await supabase
     .from("plans")
     .select("id")
-    .eq("name", "free")
+    .eq("name", `free_${currency.toLowerCase()}`)
     .eq("is_active", true)
     .single();
 
@@ -67,7 +69,7 @@ export async function downgradeProToFree(
     .select(
       `
       id,
-      plans ( name )
+      plans ( name, tier, interval, currency )
     `,
     )
     .eq("user_id", userId)
@@ -81,14 +83,15 @@ export async function downgradeProToFree(
   }
 
   const plan = Array.isArray(sub.plans) ? sub.plans[0] : sub.plans;
-  if (plan?.name !== "pro") {
+  if (plan?.tier === "free" || plan?.interval === "lifetime") {
     return { ok: false, error: "not_pro" };
   }
 
+  const currency = plan?.currency ?? "xof";
   const { data: freePlan, error: freeErr } = await supabase
     .from("plans")
     .select("id")
-    .eq("name", "free")
+    .eq("name", `free_${currency.toLowerCase()}`)
     .eq("is_active", true)
     .single();
 

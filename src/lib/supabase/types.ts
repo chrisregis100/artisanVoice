@@ -20,6 +20,8 @@ export interface Database {
           features: Json;
           is_active: boolean;
           created_at: string;
+          interval: string | null;
+          tier: string | null;
         };
         Insert: {
           id?: string;
@@ -31,6 +33,8 @@ export interface Database {
           features?: Json;
           is_active?: boolean;
           created_at?: string;
+          interval?: string | null;
+          tier?: string | null;
         };
         Update: {
           id?: string;
@@ -42,6 +46,8 @@ export interface Database {
           features?: Json;
           is_active?: boolean;
           created_at?: string;
+          interval?: string | null;
+          tier?: string | null;
         };
         Relationships: [];
       };

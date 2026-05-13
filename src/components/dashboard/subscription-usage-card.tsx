@@ -145,7 +145,7 @@ export function SubscriptionUsageCard({
       )
     : null;
 
-  const isPro = data.plan?.name === "pro";
+  const isPro = data.plan?.name ? !data.plan.name.startsWith("free") : false;
 
   const handleConfirmCancelPro = async () => {
     setIsCancelling(true);

@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { planName, provider } = bodyResult.data;
+  const { planName, provider, currency } = bodyResult.data;
 
   const { data: plan, error: planError } = await supabase
     .from("plans")
@@ -111,21 +111,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, redirect: "/dashboard" });
   }
 
-  const planCurrency = plan.currency?.toUpperCase() ?? "XOF";
-  const isLemonSqueezyPlan = planCurrency === "EUR" || planCurrency === "USD";
+  // Block re-subscription to the exact same active plan; allow plan changes
+  const { data: existingSub } = await supabase
+    .from("subscriptions")
+    .select("id, plan_id")
+    .eq("user_id", user.id)
+    .eq("status", "active")
+    .maybeSingle();
 
-  if (isLemonSqueezyPlan) {
-    return handleLemonSqueezyCheckout(request, user, plan, planName);
-  }
-
-  // XOF plans — FedaPay
-  if (!provider || provider !== "fedapay") {
+  if (existingSub?.plan_id === plan.id) {
     return NextResponse.json(
-      { error: "Fournisseur de paiement requis pour ce plan" },
-      { status: 400 },
+      { error: "Vous avez déjà cet abonnement actif" },
+      { status: 409 },
     );
   }
 
+  // Determine effective provider: explicit from request, or inferred from plan currency (backward compat)
+  const planCurrency = plan.currency?.toUpperCase() ?? "XOF";
+  const effectiveProvider =
+    provider ??
+    (planCurrency === "EUR" || planCurrency === "USD" ? "lemonsqueezy" : "fedapay");
+
+  if (effectiveProvider === "lemonsqueezy") {
+    return handleLemonSqueezyCheckout(request, user, plan, planName, currency);
+  }
+
+  // FedaPay — XOF plans
   const email = user.email ?? "";
   const name =
     user.user_metadata?.business_name ||
@@ -133,7 +144,7 @@ export async function POST(request: NextRequest) {
     email;
 
   const baseUrl = clientEnv.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
-  const redirectUrl = `${baseUrl}/subscribe/checkout/callback?provider=${provider}&userId=${user.id}&planId=${plan.id}`;
+  const redirectUrl = `${baseUrl}/subscribe/checkout/callback?provider=fedapay&planId=${plan.id}`;
 
   try {
     const result = await initiateFedaPayPayment({
@@ -174,6 +185,7 @@ async function handleLemonSqueezyCheckout(
   user: { id: string; email?: string; user_metadata?: Record<string, unknown> },
   plan: { id: string; name: string; price_amount: number; currency: string },
   planName: string,
+  currency?: string,
 ): Promise<NextResponse> {
   const apiKey = env.LEMONSQUEEZY_API_KEY;
   const storeId = env.LEMONSQUEEZY_STORE_ID;
@@ -186,13 +198,20 @@ async function handleLemonSqueezyCheckout(
     );
   }
 
-  const variantEnvKey = LEMONSQUEEZY_VARIANT_MAP[planName.toLowerCase()];
+  // Build variant lookup key: strip any existing currency suffix, then append the request currency
+  let variantKey = planName.toLowerCase();
+  if (currency) {
+    variantKey =
+      variantKey.replace(/_(?:eur|usd|xof)$/, "") + `_${currency.toLowerCase()}`;
+  }
+
+  const variantEnvKey = LEMONSQUEEZY_VARIANT_MAP[variantKey];
   const variantId = variantEnvKey
     ? (env[variantEnvKey as keyof typeof env] as string | undefined)
     : undefined;
 
   if (!variantId) {
-    console.error(`No Lemon Squeezy variant configured for plan: ${planName}`);
+    console.error(`No Lemon Squeezy variant configured for plan: ${variantKey}`);
     return NextResponse.json(
       { error: "Variante du plan introuvable." },
       { status: 404 },
@@ -200,7 +219,7 @@ async function handleLemonSqueezyCheckout(
   }
 
   const baseUrl = clientEnv.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
-  const redirectUrl = `${baseUrl}/subscribe/checkout?provider=lemonsqueezy&status=successful`;
+  const redirectUrl = `${baseUrl}/subscribe/checkout/callback?provider=lemonsqueezy&planId=${plan.id}`;
 
   const email = user.email ?? "";
 

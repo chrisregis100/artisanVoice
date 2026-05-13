@@ -36,108 +36,238 @@ export async function POST(request: NextRequest) {
 
   const payloadResult = lemonsqueezyWebhookSchema.safeParse(parsedJson);
   if (!payloadResult.success) {
-    console.error("Invalid Lemon Squeezy webhook payload:", payloadResult.error.flatten());
+    console.error("[LS Webhook] Invalid payload:", payloadResult.error.flatten());
     return NextResponse.json({ error: "Payload invalide." }, { status: 400 });
   }
 
   const { meta, data } = payloadResult.data;
   const eventName = meta.event_name;
+  const attributes = data.attributes;
+  const dataId = String(data.id);
 
   const userId = meta.custom_data?.user_id;
   const planName = meta.custom_data?.plan_name;
 
   if (!userId || !planName) {
-    console.error("Missing custom_data in Lemon Squeezy webhook:", eventName);
+    console.error("[LS Webhook] Missing custom_data", { eventName, dataId });
     return NextResponse.json({ received: true });
   }
 
   const admin = createAdminClient();
 
-  if (eventName === "order_created" || eventName === "subscription_created") {
-    const { data: planRow, error: planError } = await admin
-      .from("plans")
-      .select("id")
-      .eq("name", planName)
-      .eq("is_active", true)
-      .maybeSingle();
+  switch (eventName) {
+    case "order_created": {
+      // Lifetime / one-shot purchase (early_bird plans) — current_period_end stays null
+      const { data: planRow, error: planError } = await admin
+        .from("plans")
+        .select("id")
+        .eq("name", planName)
+        .eq("is_active", true)
+        .maybeSingle();
 
-    if (planError || !planRow) {
-      console.error("Lemon Squeezy webhook: plan not found", planName, planError);
-      return NextResponse.json({ received: true });
-    }
-
-    const subscriptionId = String(data.id);
-    const periodStart = new Date();
-    const periodEnd = new Date(periodStart);
-
-    // Annual plans have 12-month periods, monthly plans have 1-month periods
-    const isAnnual = planName.includes("annual");
-    if (isAnnual) {
-      periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-    } else {
-      periodEnd.setMonth(periodEnd.getMonth() + 1);
-    }
-
-    const { data: existingSubscription } = await admin
-      .from("subscriptions")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("status", "active")
-      .maybeSingle();
-
-    if (existingSubscription) {
-      const { error: updateError } = await admin
-        .from("subscriptions")
-        .update({
-          plan_id: planRow.id,
-          payment_provider: "lemonsqueezy",
-          payment_reference: subscriptionId,
-          current_period_start: periodStart.toISOString(),
-          current_period_end: periodEnd.toISOString(),
-          status: "active",
-        })
-        .eq("id", existingSubscription.id);
-
-      if (updateError) {
-        console.error("Failed to update subscription for LS event:", updateError);
+      if (planError || !planRow) {
+        console.error("[LS Webhook] Plan not found", { planName, error: planError?.message });
+        return NextResponse.json({ received: true });
       }
-    } else {
+
+      // Idempotency: skip if this order was already processed
+      const { data: existing } = await admin
+        .from("subscriptions")
+        .select("id")
+        .eq("payment_reference", dataId)
+        .eq("payment_provider", "lemonsqueezy")
+        .maybeSingle();
+
+      if (existing) break;
+
+      // Deactivate any existing active subscriptions
+      await admin
+        .from("subscriptions")
+        .update({ status: "cancelled" })
+        .eq("user_id", userId)
+        .eq("status", "active");
+
       const { error: insertError } = await admin.from("subscriptions").insert({
         user_id: userId,
         plan_id: planRow.id,
         status: "active",
         payment_provider: "lemonsqueezy",
-        payment_reference: subscriptionId,
-        current_period_start: periodStart.toISOString(),
-        current_period_end: periodEnd.toISOString(),
+        payment_reference: dataId,
+        current_period_start: new Date().toISOString(),
+        current_period_end: null,
       });
 
       if (insertError) {
-        console.error("Failed to insert subscription for LS event:", insertError);
+        console.error("[LS Webhook] DB error", { eventName, userId, error: insertError.message });
+        return NextResponse.json({ error: "Database error" }, { status: 500 });
       }
+      break;
     }
 
-    return NextResponse.json({ received: true });
-  }
+    case "subscription_created": {
+      const { data: planRow, error: planError } = await admin
+        .from("plans")
+        .select("id")
+        .eq("name", planName)
+        .eq("is_active", true)
+        .maybeSingle();
 
-  if (eventName === "subscription_updated") {
-    const status = data.attributes?.status;
-    const isCancelled = status === "expired" || status === "cancelled";
+      if (planError || !planRow) {
+        console.error("[LS Webhook] Plan not found", { planName, error: planError?.message });
+        return NextResponse.json({ received: true });
+      }
 
-    if (isCancelled) {
-      const { error: cancelError } = await admin
+      // Idempotency: skip if this subscription was already processed
+      const { data: existing } = await admin
+        .from("subscriptions")
+        .select("id")
+        .eq("payment_reference", dataId)
+        .eq("payment_provider", "lemonsqueezy")
+        .maybeSingle();
+
+      if (existing) break;
+
+      // Use renews_at from LS; fall back to calculated date
+      let currentPeriodEnd: string;
+      if (attributes?.renews_at) {
+        currentPeriodEnd = attributes.renews_at;
+      } else {
+        const periodEnd = new Date();
+        if (planName.includes("annual")) {
+          periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+        } else {
+          periodEnd.setMonth(periodEnd.getMonth() + 1);
+        }
+        currentPeriodEnd = periodEnd.toISOString();
+      }
+
+      // Deactivate any existing active subscriptions
+      await admin
         .from("subscriptions")
         .update({ status: "cancelled" })
         .eq("user_id", userId)
-        .eq("payment_provider", "lemonsqueezy")
         .eq("status", "active");
 
-      if (cancelError) {
-        console.error("Failed to cancel LS subscription:", cancelError);
+      const { error: insertError } = await admin.from("subscriptions").insert({
+        user_id: userId,
+        plan_id: planRow.id,
+        status: "active",
+        payment_provider: "lemonsqueezy",
+        payment_reference: dataId,
+        current_period_start: attributes?.created_at ?? new Date().toISOString(),
+        current_period_end: currentPeriodEnd,
+      });
+
+      if (insertError) {
+        console.error("[LS Webhook] DB error", { eventName, userId, error: insertError.message });
+        return NextResponse.json({ error: "Database error" }, { status: 500 });
       }
+      break;
     }
 
-    return NextResponse.json({ received: true });
+    case "subscription_payment_success": {
+      // Renewal: extend the period using the new renews_at date from LS
+      const renewsAt = attributes?.renews_at ?? null;
+
+      const { error: updateError } = await admin
+        .from("subscriptions")
+        .update({
+          status: "active",
+          ...(renewsAt !== null ? { current_period_end: renewsAt } : {}),
+        })
+        .eq("payment_reference", dataId)
+        .eq("payment_provider", "lemonsqueezy");
+
+      if (updateError) {
+        console.error("[LS Webhook] DB error", { eventName, userId, error: updateError.message });
+        return NextResponse.json({ error: "Database error" }, { status: 500 });
+      }
+      break;
+    }
+
+    case "subscription_updated": {
+      const lsStatusMap: Record<string, string> = {
+        active: "active",
+        paused: "paused",
+        past_due: "past_due",
+        unpaid: "past_due",
+        cancelled: "cancelled",
+        expired: "expired",
+      };
+
+      const lsStatus = attributes?.status;
+      const mappedStatus = lsStatus ? (lsStatusMap[lsStatus] ?? lsStatus) : undefined;
+      const renewsAt = attributes?.renews_at;
+
+      if (!mappedStatus && renewsAt === undefined) break;
+
+      const { error: updateError } = await admin
+        .from("subscriptions")
+        .update({
+          ...(mappedStatus !== undefined ? { status: mappedStatus } : {}),
+          ...(renewsAt !== undefined ? { current_period_end: renewsAt } : {}),
+        })
+        .eq("payment_reference", dataId)
+        .eq("payment_provider", "lemonsqueezy");
+
+      if (updateError) {
+        console.error("[LS Webhook] DB error", { eventName, userId, error: updateError.message });
+        return NextResponse.json({ error: "Database error" }, { status: 500 });
+      }
+      break;
+    }
+
+    case "subscription_cancelled": {
+      // User retains access until current_period_end — do not clear it
+      const { error: updateError } = await admin
+        .from("subscriptions")
+        .update({ status: "cancelled" })
+        .eq("payment_reference", dataId)
+        .eq("payment_provider", "lemonsqueezy");
+
+      if (updateError) {
+        console.error("[LS Webhook] DB error", { eventName, userId, error: updateError.message });
+        return NextResponse.json({ error: "Database error" }, { status: 500 });
+      }
+      break;
+    }
+
+    case "subscription_expired": {
+      const { error: updateError } = await admin
+        .from("subscriptions")
+        .update({ status: "expired" })
+        .eq("payment_reference", dataId)
+        .eq("payment_provider", "lemonsqueezy");
+
+      if (updateError) {
+        console.error("[LS Webhook] DB error", { eventName, userId, error: updateError.message });
+        return NextResponse.json({ error: "Database error" }, { status: 500 });
+      }
+      break;
+    }
+
+    case "subscription_resumed": {
+      const renewsAt = attributes?.renews_at ?? null;
+
+      const { error: updateError } = await admin
+        .from("subscriptions")
+        .update({
+          status: "active",
+          ...(renewsAt !== null ? { current_period_end: renewsAt } : {}),
+        })
+        .eq("payment_reference", dataId)
+        .eq("payment_provider", "lemonsqueezy");
+
+      if (updateError) {
+        console.error("[LS Webhook] DB error", { eventName, userId, error: updateError.message });
+        return NextResponse.json({ error: "Database error" }, { status: 500 });
+      }
+      break;
+    }
+
+    default:
+      // Unknown or unhandled event — acknowledge without processing
+      break;
   }
 
   return NextResponse.json({ received: true });

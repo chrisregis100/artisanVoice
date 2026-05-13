@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyFedaPayPayment, verifyFedaPayWebhookSignature } from "@/lib/payment/fedapay";
 import { fedapayWebhookSchema } from "@/lib/api/schemas";
@@ -53,14 +52,15 @@ export async function POST(request: NextRequest) {
   }
 
   const admin = createAdminClient();
-  const { data: planRow } = await admin
+
+  const { data: planRow, error: planError } = await admin
     .from("plans")
-    .select("price_amount")
+    .select("id, interval, price_amount, tier, currency")
     .eq("id", planId)
     .maybeSingle();
 
-  if (planRow?.price_amount == null) {
-    console.error("FedaPay webhook: plan not found", planId);
+  if (planError || planRow?.price_amount == null) {
+    console.error("FedaPay webhook: plan not found", planId, planError);
     return NextResponse.json({ received: true });
   }
 
@@ -73,41 +73,63 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
-  const supabase = createClient();
+  const transactionId = String(transaction.id);
 
-  const periodStart = new Date();
-  const periodEnd = new Date(periodStart);
-  periodEnd.setMonth(periodEnd.getMonth() + 1);
-
-  const { data: existingSubscription } = await supabase
+  // Idempotency: skip if this transaction was already processed
+  const { data: existingByRef, error: idempotencyError } = await admin
     .from("subscriptions")
     .select("id")
-    .eq("user_id", userId)
-    .eq("status", "active")
-    .single();
+    .eq("payment_reference", transactionId)
+    .eq("payment_provider", "fedapay")
+    .maybeSingle();
 
-  if (existingSubscription) {
-    await supabase
-      .from("subscriptions")
-      .update({
-        plan_id: planId,
-        payment_provider: "fedapay",
-        payment_reference: transaction.reference,
-        current_period_start: periodStart.toISOString(),
-        current_period_end: periodEnd.toISOString(),
-        status: "active",
-      })
-      .eq("id", existingSubscription.id);
+  if (idempotencyError) {
+    console.error("FedaPay webhook: idempotency check failed", { userId, transactionId, error: idempotencyError });
+    return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
+  }
+
+  if (existingByRef) {
+    return NextResponse.json({ received: true });
+  }
+
+  // Calculate period end based on plan interval
+  const periodStart = new Date();
+  let periodEnd: Date | null = new Date(periodStart);
+
+  if (planRow.interval === "annual") {
+    periodEnd.setFullYear(periodEnd.getFullYear() + 1);
+  } else if (planRow.interval === "lifetime") {
+    periodEnd = null;
   } else {
-    await supabase.from("subscriptions").insert({
-      user_id: userId,
-      plan_id: planId,
-      status: "active",
-      payment_provider: "fedapay",
-      payment_reference: transaction.reference,
-      current_period_start: periodStart.toISOString(),
-      current_period_end: periodEnd.toISOString(),
-    });
+    // monthly (default)
+    periodEnd.setMonth(periodEnd.getMonth() + 1);
+  }
+
+  // Cancel any other active subscriptions for this user before inserting the new one
+  const { error: cancelError } = await admin
+    .from("subscriptions")
+    .update({ status: "cancelled" })
+    .eq("user_id", userId)
+    .eq("status", "active");
+
+  if (cancelError) {
+    console.error("FedaPay webhook: failed to cancel previous subscriptions", { userId, transactionId, error: cancelError });
+    return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
+  }
+
+  const { error: insertError } = await admin.from("subscriptions").insert({
+    user_id: userId,
+    plan_id: planId,
+    status: "active",
+    payment_provider: "fedapay",
+    payment_reference: transactionId,
+    current_period_start: periodStart.toISOString(),
+    current_period_end: periodEnd ? periodEnd.toISOString() : null,
+  });
+
+  if (insertError) {
+    console.error("FedaPay webhook: failed to insert subscription", { userId, planId, transactionId, error: insertError });
+    return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
   }
 
   return NextResponse.json({ received: true });
