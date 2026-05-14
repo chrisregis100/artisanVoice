@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { verifyFedaPayPayment, verifyFedaPayWebhookSignature } from "@/lib/payment/fedapay";
+import { verifyFedaPayWebhookSignature } from "@/lib/payment/fedapay";
 import { fedapayWebhookSchema } from "@/lib/api/schemas";
+import { getPack } from "@/lib/credits/packs";
+import { grantCredits } from "@/lib/credits/grant";
 
 export async function POST(request: NextRequest) {
   const rawBody = await request.text();
@@ -9,8 +10,8 @@ export async function POST(request: NextRequest) {
 
   if (!verifyFedaPayWebhookSignature(rawBody, signature)) {
     return NextResponse.json(
-      { error: "Requête invalide" },
-      { status: 400 },
+      { error: "Signature invalide" },
+      { status: 401 },
     );
   }
 
@@ -31,6 +32,7 @@ export async function POST(request: NextRequest) {
 
   const isApprovalEvent =
     name === "transaction.approved" ||
+    name === "transaction.transferred" ||
     name === "transaction.payment.created";
 
   if (!isApprovalEvent) {
@@ -39,97 +41,60 @@ export async function POST(request: NextRequest) {
 
   const transaction = data.object;
 
-  if (!transaction || transaction.status !== "approved") {
+  const isApprovedStatus =
+    transaction?.status === "approved" ||
+    transaction?.status === "transferred";
+
+  if (!transaction || !isApprovedStatus) {
     return NextResponse.json({ received: true });
   }
 
-  const userId = transaction.metadata?.user_id;
-  const planId = transaction.metadata?.plan_id;
+  const { user_id: userId, pack_id: packId, pack_slug: packSlug, kind } =
+    transaction.metadata ?? {};
 
-  if (!userId || !planId) {
-    console.error("Missing metadata in FedaPay webhook:", transaction.reference);
+  // Legacy subscription webhooks (no kind field) or unknown kinds — ignore gracefully
+  if (kind !== "credit_purchase") {
+    console.warn(
+      `FedaPay webhook: unexpected kind="${kind ?? "undefined"}" for ref ${transaction.reference} — skipping`,
+    );
     return NextResponse.json({ received: true });
   }
 
-  const admin = createAdminClient();
-
-  const { data: planRow, error: planError } = await admin
-    .from("plans")
-    .select("id, interval, price_amount, tier, currency")
-    .eq("id", planId)
-    .maybeSingle();
-
-  if (planError || planRow?.price_amount == null) {
-    console.error("FedaPay webhook: plan not found", planId, planError);
+  if (!userId || !packSlug || !packId) {
+    console.error(
+      "FedaPay webhook: missing metadata fields for credit_purchase",
+      { ref: transaction.reference, userId, packSlug, packId },
+    );
     return NextResponse.json({ received: true });
   }
 
-  const verification = await verifyFedaPayPayment(String(transaction.id), {
-    minimumAmount: planRow.price_amount,
-  });
-
-  if (!verification.success) {
-    console.error("FedaPay payment verification failed for ref:", transaction.reference);
+  const pack = await getPack(packSlug);
+  if (!pack) {
+    console.error("FedaPay webhook: pack not found", { packSlug });
     return NextResponse.json({ received: true });
   }
 
   const transactionId = String(transaction.id);
+  const creditsToGrant = pack.creditsAmount + pack.bonusCredits;
 
-  // Idempotency: skip if this transaction was already processed
-  const { data: existingByRef, error: idempotencyError } = await admin
-    .from("subscriptions")
-    .select("id")
-    .eq("payment_reference", transactionId)
-    .eq("payment_provider", "fedapay")
-    .maybeSingle();
-
-  if (idempotencyError) {
-    console.error("FedaPay webhook: idempotency check failed", { userId, transactionId, error: idempotencyError });
-    return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
-  }
-
-  if (existingByRef) {
+  try {
+    await grantCredits({
+      userId,
+      amount: creditsToGrant,
+      kind: "purchase",
+      packId,
+      paymentProvider: "fedapay",
+      paymentReference: transactionId,
+      metadata: { pack_slug: packSlug },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    // UNIQUE constraint violation means the webhook was already processed — idempotent
+    if (message.includes("unique") || message.includes("duplicate") || message.includes("already")) {
+      return NextResponse.json({ received: true });
+    }
+    console.error("FedaPay webhook: grantCredits failed", { userId, transactionId, error: message });
     return NextResponse.json({ received: true });
-  }
-
-  // Calculate period end based on plan interval
-  const periodStart = new Date();
-  let periodEnd: Date | null = new Date(periodStart);
-
-  if (planRow.interval === "annual") {
-    periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-  } else if (planRow.interval === "lifetime") {
-    periodEnd = null;
-  } else {
-    // monthly (default)
-    periodEnd.setMonth(periodEnd.getMonth() + 1);
-  }
-
-  // Cancel any other active subscriptions for this user before inserting the new one
-  const { error: cancelError } = await admin
-    .from("subscriptions")
-    .update({ status: "cancelled" })
-    .eq("user_id", userId)
-    .eq("status", "active");
-
-  if (cancelError) {
-    console.error("FedaPay webhook: failed to cancel previous subscriptions", { userId, transactionId, error: cancelError });
-    return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
-  }
-
-  const { error: insertError } = await admin.from("subscriptions").insert({
-    user_id: userId,
-    plan_id: planId,
-    status: "active",
-    payment_provider: "fedapay",
-    payment_reference: transactionId,
-    current_period_start: periodStart.toISOString(),
-    current_period_end: periodEnd ? periodEnd.toISOString() : null,
-  });
-
-  if (insertError) {
-    console.error("FedaPay webhook: failed to insert subscription", { userId, planId, transactionId, error: insertError });
-    return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
   }
 
   return NextResponse.json({ received: true });

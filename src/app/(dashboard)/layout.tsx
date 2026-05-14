@@ -23,18 +23,6 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  const { data: subscription } = await supabase
-    .from("subscriptions")
-    .select("id, status")
-    .eq("user_id", user.id)
-    .eq("status", "active")
-    .limit(1)
-    .single();
-
-  if (!subscription) {
-    redirect("/subscribe");
-  }
-
   const { data: profile } = await supabase
     .from("users")
     .select(

@@ -89,6 +89,7 @@ export const lemonsqueezyWebhookSchema = z.object({
       .object({
         user_id: z.string().optional(),
         plan_name: z.string().optional(),
+        pack_slug: z.string().optional(),
       })
       .optional(),
   }),
@@ -101,6 +102,12 @@ export const lemonsqueezyWebhookSchema = z.object({
         renews_at: z.string().nullable().optional(),
         ends_at: z.string().nullable().optional(),
         created_at: z.string().optional(),
+        first_order_item: z
+          .object({
+            variant_id: z.number().optional(),
+            product_id: z.number().optional(),
+          })
+          .optional(),
       })
       .optional(),
   }),
@@ -108,6 +115,12 @@ export const lemonsqueezyWebhookSchema = z.object({
 
 // subscription/document-export POST
 export const documentExportSchema = z.object({
+  documentId: z.string().min(1),
+  phase: z.enum(["precheck", "commit"]),
+});
+
+// credits/charge POST
+export const creditChargeSchema = z.object({
   documentId: z.string().min(1),
   phase: z.enum(["precheck", "commit"]),
 });
@@ -159,6 +172,9 @@ export const fedapayWebhookSchema = z.object({
         .object({
           user_id: z.string().optional(),
           plan_id: z.string().optional(),
+          pack_id: z.string().optional(),
+          pack_slug: z.string().optional(),
+          kind: z.string().optional(),
         })
         .nullable(),
       customer: z
@@ -178,6 +194,7 @@ export type AdminSettingKeyValue = z.infer<typeof adminSettingKeyValueSchema>;
 export type AdminApiKeyUpdate = z.infer<typeof adminApiKeyUpdateSchema>;
 export type SubscriptionCreateBody = z.infer<typeof subscriptionCreateSchema>;
 export type DocumentExportBody = z.infer<typeof documentExportSchema>;
+export type CreditChargeBody = z.infer<typeof creditChargeSchema>;
 export type FlutterwaveWebhookPayload = z.infer<typeof flutterwaveWebhookSchema>;
 export type FedapayWebhookPayload = z.infer<typeof fedapayWebhookSchema>;
 export type LemonsqueezyWebhookPayload = z.infer<typeof lemonsqueezyWebhookSchema>;

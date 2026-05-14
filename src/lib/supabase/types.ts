@@ -341,12 +341,150 @@ export interface Database {
           },
         ];
       };
+      credit_wallets: {
+        Row: {
+          user_id: string;
+          balance: number;
+          signup_bonus_granted: boolean;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          balance?: number;
+          signup_bonus_granted?: boolean;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          balance?: number;
+          signup_bonus_granted?: boolean;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      credit_transactions: {
+        Row: {
+          id: string;
+          user_id: string;
+          kind: string;
+          delta: number;
+          balance_after: number;
+          pack_id: string | null;
+          payment_provider: string | null;
+          payment_reference: string | null;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          kind: string;
+          delta: number;
+          balance_after: number;
+          pack_id?: string | null;
+          payment_provider?: string | null;
+          payment_reference?: string | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          kind?: string;
+          delta?: number;
+          balance_after?: number;
+          pack_id?: string | null;
+          payment_provider?: string | null;
+          payment_reference?: string | null;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      credit_packs: {
+        Row: {
+          id: string;
+          slug: string;
+          display_name: string;
+          credits_amount: number;
+          bonus_credits: number;
+          price_usd_cents: number;
+          price_xof: number;
+          is_active: boolean;
+          sort_order: number;
+        };
+        Insert: {
+          id?: string;
+          slug: string;
+          display_name: string;
+          credits_amount: number;
+          bonus_credits?: number;
+          price_usd_cents: number;
+          price_xof: number;
+          is_active?: boolean;
+          sort_order?: number;
+        };
+        Update: {
+          id?: string;
+          slug?: string;
+          display_name?: string;
+          credits_amount?: number;
+          bonus_credits?: number;
+          price_usd_cents?: number;
+          price_xof?: number;
+          is_active?: boolean;
+          sort_order?: number;
+        };
+        Relationships: [];
+      };
+      invoice_charges: {
+        Row: {
+          id: string;
+          user_id: string;
+          document_id: string;
+          transaction_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          document_id: string;
+          transaction_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          document_id?: string;
+          transaction_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      debit_credit: {
+        Args: {
+          p_user_id: string;
+          p_document_id: string;
+        };
+        Returns: string;
+      };
+      grant_credits: {
+        Args: {
+          p_user_id: string;
+          p_amount: number;
+          p_kind: string;
+          p_pack_id: string | null;
+          p_payment_provider: string | null;
+          p_payment_reference: string | null;
+          p_metadata: Json | null;
+        };
+        Returns: number;
+      };
     };
     Enums: {
       [_ in never]: never;
