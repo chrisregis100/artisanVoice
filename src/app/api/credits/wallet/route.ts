@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
   const wallet = await getWallet(user.id);
   if (!wallet) {
-    return NextResponse.json({ balance: 0, signupBonusGranted: false });
+    return NextResponse.json({ balance: 0, signupBonusGranted: false, hasPurchased: false });
   }
   return NextResponse.json(wallet);
 }

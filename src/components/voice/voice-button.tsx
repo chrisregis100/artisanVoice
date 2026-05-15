@@ -49,7 +49,7 @@ export function VoiceButton() {
   const { isListening, isProcessing, isConnected, error } = useInvoiceStore();
   const { startListening, stopListening, interruptAssistant } = useVoice();
   const { data: subscriptionData } = useSubscriptionStatus();
-  const { balance } = useWallet();
+  const { balance, hasPurchased } = useWallet();
   const [isQuotaModalOpen, setIsQuotaModalOpen] = useState(false);
 
   const connectionLabel = useMemo(
@@ -149,6 +149,7 @@ export function VoiceButton() {
         open={isQuotaModalOpen}
         onOpenChange={(open) => setIsQuotaModalOpen(open)}
         currentBalance={balance}
+        hasPurchased={hasPurchased}
       />
       {errorText && (
         <div

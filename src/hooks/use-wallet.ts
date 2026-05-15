@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 export interface WalletPayload {
   balance: number;
   signupBonusGranted: boolean;
+  hasPurchased: boolean;
 }
 
 export function useWallet() {
@@ -47,5 +48,6 @@ export function useWallet() {
     error,
     refetch,
     balance: data?.balance ?? 0,
+    hasPurchased: data?.hasPurchased ?? false,
   };
 }

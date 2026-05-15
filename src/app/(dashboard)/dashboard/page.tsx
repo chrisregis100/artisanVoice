@@ -32,7 +32,7 @@ import { useCallback, useEffect, useState } from "react";
 
 export default function DashboardPage() {
   const { t } = useLanguage();
-  const { balance: walletBalance, refetch: refetchWallet } = useWallet();
+  const { balance: walletBalance, hasPurchased: walletHasPurchased, refetch: refetchWallet } = useWallet();
   const [authUserId, setAuthUserId] = useState<string | null>(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -462,6 +462,7 @@ export default function DashboardPage() {
         open={isInsufficientCreditsOpen}
         onOpenChange={setIsInsufficientCreditsOpen}
         currentBalance={walletBalance}
+        hasPurchased={walletHasPurchased}
       />
 
       <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>

@@ -693,6 +693,17 @@
       "login": "Connexion"
     }
   },
+  "paywall": {
+    "badge": "Essai terminé",
+    "title": "Votre essai gratuit est terminé",
+    "subtitle": "Vous avez utilisé vos 3 crédits offerts. Choisissez un pack pour continuer à créer vos documents professionnels.",
+    "popular": "Populaire",
+    "cta": "Choisir ce pack",
+    "singlePayment": "Paiement unique · Pas d'abonnement · Crédits sans expiration",
+    "featureVoice": "Assistant vocal pour vos factures",
+    "featureExport": "Export PDF professionnel",
+    "featureNoExpiry": "Crédits sans expiration"
+  },
   "pricing": {
     "badge": "Tarifs",
     "hero": {

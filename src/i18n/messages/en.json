@@ -693,6 +693,17 @@
       "login": "Log in"
     }
   },
+  "paywall": {
+    "badge": "Trial ended",
+    "title": "Your free trial has ended",
+    "subtitle": "You've used your 3 free credits. Choose a pack to continue creating your professional documents.",
+    "popular": "Popular",
+    "cta": "Choose this pack",
+    "singlePayment": "One-time payment · No subscription · Credits never expire",
+    "featureVoice": "Voice assistant for your invoices",
+    "featureExport": "Professional PDF export",
+    "featureNoExpiry": "Credits never expire"
+  },
   "pricing": {
     "badge": "Pricing",
     "hero": {

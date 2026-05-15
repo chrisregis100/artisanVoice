@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { SettingsInitializer } from "@/components/settings-initializer";
 import { createClient } from "@/lib/supabase/server";
+import { getPaywallStatus } from "@/lib/credits/wallet";
 
 export const metadata: Metadata = {
   title: { default: "Dashboard", template: "%s | Billo" },
@@ -21,6 +22,12 @@ export default async function DashboardLayout({
 
   if (!user) {
     redirect("/login");
+  }
+
+  // Check paywall status - redirect to paywall if trial expired and no purchase
+  const paywallStatus = await getPaywallStatus(user.id);
+  if (paywallStatus.shouldBlock) {
+    redirect("/paywall");
   }
 
   const { data: profile } = await supabase

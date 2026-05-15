@@ -346,18 +346,21 @@ export interface Database {
           user_id: string;
           balance: number;
           signup_bonus_granted: boolean;
+          has_purchased: boolean;
           updated_at: string;
         };
         Insert: {
           user_id: string;
           balance?: number;
           signup_bonus_granted?: boolean;
+          has_purchased?: boolean;
           updated_at?: string;
         };
         Update: {
           user_id?: string;
           balance?: number;
           signup_bonus_granted?: boolean;
+          has_purchased?: boolean;
           updated_at?: string;
         };
         Relationships: [];

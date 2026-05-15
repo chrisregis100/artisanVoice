@@ -17,6 +17,7 @@ interface InsufficientCreditsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   currentBalance: number;
+  hasPurchased?: boolean;
 }
 
 interface PackHighlight {
@@ -36,6 +37,7 @@ export function InsufficientCreditsModal({
   open,
   onOpenChange,
   currentBalance,
+  hasPurchased = false,
 }: InsufficientCreditsModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -61,8 +63,9 @@ export function InsufficientCreditsModal({
         </DialogHeader>
 
         <p className="text-sm text-muted-foreground">
-          Vous n&apos;avez plus de crédits disponibles. Achetez un pack pour
-          continuer à créer vos factures et devis.
+          {hasPurchased
+            ? "Votre solde est insuffisant pour cette action. Rechargez vos crédits pour continuer."
+            : "Vous avez utilisé vos 3 crédits gratuits. Achetez un pack pour continuer à créer vos factures et devis."}
         </p>
 
         <div className="grid grid-cols-3 gap-2">
@@ -100,9 +103,9 @@ export function InsufficientCreditsModal({
             Annuler
           </Button>
           <Button asChild className="gap-2">
-            <Link href="/pricing">
+            <Link href={hasPurchased ? "/pricing" : "/paywall"}>
               <ShoppingCart className="h-4 w-4" aria-hidden="true" />
-              Voir les packs
+              {hasPurchased ? "Recharger mes crédits" : "Choisir un pack"}
             </Link>
           </Button>
         </DialogFooter>
