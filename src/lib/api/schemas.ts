@@ -35,6 +35,11 @@ export const adminApiKeyUpdateSchema = z
     }
   });
 
+/**
+ * @deprecated L'endpoint /api/subscription/create renvoie désormais 410 (Gone).
+ * Le système de paiement est basé sur les packs de crédits (`/api/credits/packs`).
+ * Ce schéma est conservé pour éviter de casser d'éventuels imports existants.
+ */
 // subscription/create POST
 export const subscriptionCreateSchema = z.object({
   planName: z.enum([

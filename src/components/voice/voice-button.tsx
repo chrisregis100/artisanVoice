@@ -12,7 +12,8 @@ import {
   useSubscriptionStatus,
   type SubscriptionStatusPayload,
 } from "@/hooks/use-subscription-status";
-import { QuotaExceededModal } from "@/components/pricing/quota-exceeded-modal";
+import { useWallet } from "@/hooks/use-wallet";
+import { InsufficientCreditsModal } from "@/components/credits/insufficient-credits-modal";
 
 function isApiKeyError(error: string): boolean {
   const lower = error.toLowerCase();
@@ -48,6 +49,7 @@ export function VoiceButton() {
   const { isListening, isProcessing, isConnected, error } = useInvoiceStore();
   const { startListening, stopListening, interruptAssistant } = useVoice();
   const { data: subscriptionData } = useSubscriptionStatus();
+  const { balance } = useWallet();
   const [isQuotaModalOpen, setIsQuotaModalOpen] = useState(false);
 
   const connectionLabel = useMemo(
@@ -143,9 +145,10 @@ export function VoiceButton() {
 
   return (
     <div className="flex flex-col items-center pb-2">
-      <QuotaExceededModal
+      <InsufficientCreditsModal
         open={isQuotaModalOpen}
-        onClose={() => setIsQuotaModalOpen(false)}
+        onOpenChange={(open) => setIsQuotaModalOpen(open)}
+        currentBalance={balance}
       />
       {errorText && (
         <div

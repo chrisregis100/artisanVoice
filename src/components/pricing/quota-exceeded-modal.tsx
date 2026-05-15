@@ -1,10 +1,14 @@
+/**
+ * @deprecated Ce composant est remplacé par `src/components/credits/insufficient-credits-modal.tsx`.
+ * Conserver uniquement pour éviter de casser d'éventuelles références non détectées.
+ * Ne plus utiliser dans de nouveaux composants.
+ */
 "use client";
 
 import Link from "next/link";
 import { CheckCircle2, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/i18n/context";
-import { useCurrency } from "@/hooks/use-currency";
 import {
   Dialog,
   DialogContent,
@@ -70,7 +74,6 @@ interface QuotaExceededModalProps {
 
 export function QuotaExceededModal({ open, onClose }: QuotaExceededModalProps) {
   const { t } = useLanguage();
-  const { formatWithSymbol } = useCurrency();
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -108,14 +111,6 @@ export function QuotaExceededModal({ open, onClose }: QuotaExceededModalProps) {
                 <h3 className="text-sm font-bold text-foreground">
                   {t(card.nameKey)}
                 </h3>
-                <div className="mt-1 flex items-baseline gap-1">
-                  <span className="text-xl font-black tabular-nums text-foreground">
-                    {formatWithSymbol(card.planKey)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {t(card.periodKey)}
-                  </span>
-                </div>
               </div>
 
               <ul className="mb-4 flex flex-col gap-1.5">

@@ -1,376 +1,399 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, ArrowRight, Mic, FileText, Loader2, Zap, Star } from "lucide-react";
+import { Shield, Zap, Globe, CreditCard, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/i18n/context";
 import { BilloLogoMark } from "@/components/brand/billo-logo";
 import { useCurrency } from "@/hooks/use-currency";
 import { cn } from "@/lib/utils";
 
-interface CreditPack {
+interface PackDef {
   id: string;
   slug: string;
-  displayName: string;
-  creditsAmount: number;
+  priceUsd: string;
+  priceXof: string;
+  totalCredits: number;
   bonusCredits: number;
-  priceUsdCents: number;
-  priceXof: number;
-  isActive: boolean;
-  sortOrder: number;
+  perInvoiceUsd: string;
+  perInvoiceXof: string;
+  href: string;
+  isPopular: boolean;
+  isFree: boolean;
 }
 
-function formatXof(amount: number): string {
-  return `${amount.toLocaleString("fr-FR")} FCFA`;
-}
+const PACKS: PackDef[] = [
+  {
+    id: "free",
+    slug: "free",
+    priceUsd: "$0",
+    priceXof: "0 FCFA",
+    totalCredits: 3,
+    bonusCredits: 0,
+    perInvoiceUsd: "—",
+    perInvoiceXof: "—",
+    href: "/register",
+    isPopular: false,
+    isFree: true,
+  },
+  {
+    id: "starter",
+    slug: "starter",
+    priceUsd: "$4",
+    priceXof: "2 400 FCFA",
+    totalCredits: 10,
+    bonusCredits: 0,
+    perInvoiceUsd: "$0.40",
+    perInvoiceXof: "240 FCFA",
+    href: "/credits/buy/starter",
+    isPopular: false,
+    isFree: false,
+  },
+  {
+    id: "populaire",
+    slug: "populaire",
+    priceUsd: "$9",
+    priceXof: "5 400 FCFA",
+    totalCredits: 30,
+    bonusCredits: 0,
+    perInvoiceUsd: "$0.30",
+    perInvoiceXof: "180 FCFA",
+    href: "/credits/buy/populaire",
+    isPopular: true,
+    isFree: false,
+  },
+  {
+    id: "pro",
+    slug: "pro",
+    priceUsd: "$24",
+    priceXof: "14 400 FCFA",
+    totalCredits: 110,
+    bonusCredits: 10,
+    perInvoiceUsd: "$0.22",
+    perInvoiceXof: "131 FCFA",
+    href: "/credits/buy/pro",
+    isPopular: false,
+    isFree: false,
+  },
+];
 
-function formatUsd(cents: number): string {
-  const dollars = cents / 100;
-  return dollars % 1 === 0
-    ? `$${dollars.toLocaleString("en-US")}`
-    : `$${dollars.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
-function PackCardSkeleton() {
-  return (
-    <div className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-sm animate-pulse">
-      <div className="mb-5">
-        <div className="h-5 w-24 rounded bg-muted" />
-        <div className="mt-3 h-10 w-32 rounded bg-muted" />
-        <div className="mt-2 h-3 w-40 rounded bg-muted" />
-      </div>
-      <div className="mb-6 h-10 w-full rounded-xl bg-muted" />
-      <div className="flex flex-col gap-2.5">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-4 w-full rounded bg-muted" />
-        ))}
-      </div>
-    </div>
-  );
-}
+const TABLE_ROWS = [
+  { slug: "free",      credits: "3",   priceUsd: "$0",  priceXof: "—",          perInvoice: "—",     fcfa: "—",      isPopular: false },
+  { slug: "starter",   credits: "10",  priceUsd: "$4",  priceXof: "2 400 FCFA", perInvoice: "$0.40", fcfa: "2 400",  isPopular: false },
+  { slug: "populaire", credits: "30",  priceUsd: "$9",  priceXof: "5 400 FCFA", perInvoice: "$0.30", fcfa: "5 400",  isPopular: true  },
+  { slug: "pro",       credits: "110", priceUsd: "$24", priceXof: "14 400 FCFA",perInvoice: "$0.22", fcfa: "14 400", isPopular: false },
+];
 
 export function PricingContent() {
   const { t } = useLanguage();
   const { currency } = useCurrency();
-  const [packs, setPacks] = useState<CreditPack[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchPacks = async () => {
-      try {
-        const res = await fetch("/api/credits/packs");
-        if (!res.ok) throw new Error("Impossible de charger les packs");
-        const data: { packs: CreditPack[] } = await res.json();
-        setPacks(data.packs);
-      } catch {
-        // Silently fail — packs stay empty, skeleton disappears
-      } finally {
-        setIsLoading(false);
-      }
+  const isXof = currency === "XOF";
+
+  const getPackBadge = (slug: string): string => {
+    const map: Record<string, string> = {
+      free: t("pricing.free.subtitle") || "Pour découvrir",
+      starter: t("pricing.starter.subtitle") || "Petits volumes",
+      populaire: t("pricing.populaire.badge") || "LE PLUS POPULAIRE",
+      pro: t("pricing.pro.subtitle") || "Volumes élevés",
     };
-    void fetchPacks();
-  }, []);
-
-  const formatPackPrice = (pack: CreditPack): string => {
-    if (currency === "XOF") return formatXof(pack.priceXof);
-    return formatUsd(pack.priceUsdCents);
+    return map[slug] ?? "";
   };
 
-  const formatPricePerCredit = (pack: CreditPack): string => {
-    const totalCredits = pack.creditsAmount + pack.bonusCredits;
-    if (currency === "XOF") {
-      const perCredit = Math.round(pack.priceXof / totalCredits);
-      return `${perCredit.toLocaleString("fr-FR")} FCFA / crédit`;
-    }
-    const perCreditCents = Math.round(pack.priceUsdCents / totalCredits);
-    const perCreditDollars = perCreditCents / 100;
-    return `$${perCreditDollars.toFixed(2)} / crédit`;
+  const getPackName = (slug: string): string => {
+    const map: Record<string, string> = {
+      free: "Gratuit",
+      starter: "Starter",
+      populaire: "Populaire",
+      pro: "Pro",
+    };
+    return map[slug] ?? slug;
   };
 
-  const isPopular = (pack: CreditPack) => pack.slug === "populaire";
-  const isPro = (pack: CreditPack) => pack.slug === "pro";
+  const getPackDesc = (slug: string): string => {
+    const map: Record<string, string> = {
+      free: t("pricing.free.descShort") || "Dès que tu crées ton compte Billo, tu reçois 3 crédits. Pas de carte bancaire requise.",
+      starter: t("pricing.starter.descShort") || "Tu factures occasionnellement — deux ou trois clients par mois, pas plus.",
+      populaire: t("pricing.populaire.descShort") || "Le pack que choisissent la majorité des freelances qui facturent régulièrement.",
+      pro: t("pricing.pro.descShort") || "Pour les consultants, agences et indépendants qui gèrent plusieurs clients simultanément.",
+    };
+    return map[slug] ?? "";
+  };
+
+  const universalItems = [
+    {
+      icon: Shield,
+      title: t("pricing.universal.noExpiry.title") || "Les crédits n'expirent jamais.",
+      desc: t("pricing.universal.noExpiry.desc") || "Un crédit acheté aujourd'hui est toujours valide dans 6 mois ou dans 2 ans.",
+    },
+    {
+      icon: Zap,
+      title: t("pricing.universal.stackable.title") || "Les crédits se cumulent.",
+      desc: t("pricing.universal.stackable.desc") || "Tes crédits restants s'ajoutent à chaque nouvel achat. Simple.",
+    },
+    {
+      icon: Globe,
+      title: t("pricing.universal.regional.title") || "Le prix s'adapte à ta région.",
+      desc: t("pricing.universal.regional.desc") || "Les packs sont affichés en devise locale avec un tarif ajusté à la parité de pouvoir d'achat.",
+    },
+    {
+      icon: CreditCard,
+      title: t("pricing.universal.noSubscription.title") || "Pas d'abonnement caché.",
+      desc: t("pricing.universal.noSubscription.desc") || "Tu achètes un pack, tu utilises tes crédits, tu rachètes quand tu veux.",
+    },
+  ];
 
   return (
     <div className="flex flex-col">
-      {/* Hero */}
+      {/* ── Hero ───────────────────────────────────────────────────── */}
       <section className="bg-brand pt-32 pb-20">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <span className="mb-4 inline-block rounded-full bg-brand-foreground/10 px-4 py-1.5 text-sm font-semibold text-brand-foreground/70">
-            {t("pricingPage.badge")}
+            {t("pricing.badge") || "Tarifs"}
           </span>
-          <h1 className="text-4xl font-extrabold tracking-tight text-brand-foreground sm:text-5xl">
-            Payez ce que vous utilisez
+          <h1 className="text-3xl font-extrabold tracking-tight text-brand-foreground sm:text-4xl leading-tight">
+            Tu paies uniquement quand tu factures.
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg text-brand-foreground/60">
-            Achetez un pack de crédits, utilisez-les quand vous voulez. Aucun abonnement, aucun renouvellement automatique.
+          <p className="mx-auto mt-6 max-w-xl text-lg text-brand-foreground/70">
+            Pas d&apos;abonnement. Pas de renouvellement automatique. Jamais de crédits qui expirent.
           </p>
         </div>
       </section>
 
-      {/* Packs */}
+      {/* ── Pack cards ──────────────────────────────────────────────── */}
       <section className="bg-muted py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Free / Gratuit card */}
-            <div className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-sm">
-              <div className="mb-5">
-                <h2 className="text-lg font-bold text-foreground">Gratuit</h2>
-                <div className="mt-3 flex items-baseline gap-1.5 flex-wrap">
-                  <span className="text-4xl font-black text-foreground">0</span>
-                  <span className="text-sm font-medium text-muted-foreground">FCFA</span>
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  3 crédits offerts à l&apos;inscription
-                </p>
-              </div>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:items-start">
+            {PACKS.map((pack) => {
+              const price = isXof ? pack.priceXof : pack.priceUsd;
+              const perInvoice = isXof ? pack.perInvoiceXof : pack.perInvoiceUsd;
+              const creditsLine =
+                pack.isFree
+                  ? t("pricing.free.credits") || "3 crédits offerts à l'inscription — une seule fois"
+                  : `${pack.totalCredits} crédits — ${perInvoice}/facture`;
 
-              <Button
-                asChild
-                size="sm"
-                variant="outline"
-                className="mb-6 h-10 w-full rounded-xl border-brand text-brand font-semibold hover:bg-brand/5"
-              >
-                <Link href="/register">Commencer gratuitement</Link>
-              </Button>
+              return (
+                <div
+                  key={pack.id}
+                  className={cn(
+                    "relative flex flex-col rounded-2xl p-7 transition-transform duration-200",
+                    pack.isPopular
+                      ? "border-2 border-brand bg-card shadow-2xl shadow-brand/20 lg:scale-[1.06] z-10"
+                      : "border border-border bg-card shadow-sm hover:shadow-md",
+                  )}
+                >
+                  {/* Popular badge */}
+                  {pack.isPopular && (
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                      <span className="rounded-full bg-brand px-4 py-1 text-xs font-bold text-brand-foreground">
+                        {getPackBadge(pack.slug)}
+                      </span>
+                    </div>
+                  )}
 
-              <ul className="flex flex-col gap-2.5">
-                {[
-                  "Assistant vocal",
-                  "Édition de factures",
-                  "PDF professionnel",
-                  "3 crédits inclus",
-                ].map((f) => (
-                  <li key={f} className="flex items-center gap-2.5">
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-primary" aria-hidden />
-                    <span className="text-xs text-foreground/80">{f}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+                  {/* Category badge */}
+                  {!pack.isPopular && (
+                    <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {getPackBadge(pack.slug)}
+                    </div>
+                  )}
+                  {pack.isPopular && (
+                    <div className="mb-1 mt-2 text-xs font-semibold uppercase tracking-wider text-brand">
+                      Pour les freelances actifs
+                    </div>
+                  )}
 
-            {/* Dynamic pack cards */}
-            {isLoading
-              ? [1, 2, 3].map((i) => <PackCardSkeleton key={i} />)
-              : packs.map((pack) => {
-                  const totalCredits = pack.creditsAmount + pack.bonusCredits;
-                  const popular = isPopular(pack);
-                  const pro = isPro(pack);
+                  {/* Name + bonus chip */}
+                  <div className="mt-1 flex items-center gap-2">
+                    <h2 className="text-xl font-extrabold text-foreground">
+                      {getPackName(pack.slug)}
+                    </h2>
+                    {pack.bonusCredits > 0 && (
+                      <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 ring-1 ring-amber-300/40 dark:ring-amber-600/40">
+                        <Zap className="h-3 w-3" aria-hidden />
+                        +{pack.bonusCredits} bonus
+                      </span>
+                    )}
+                  </div>
 
-                  return (
-                    <div
-                      key={pack.id}
-                      className={cn(
-                        "relative flex flex-col rounded-2xl p-6 shadow-sm",
-                        popular
-                          ? "bg-foreground shadow-2xl shadow-brand/20 ring-2 ring-brand/40 scale-[1.02]"
-                          : "border border-border bg-card",
-                      )}
-                    >
-                      {popular && (
-                        <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                          <span className="rounded-full bg-primary px-4 py-1 text-xs font-bold text-primary-foreground">
-                            Le plus populaire
-                          </span>
-                        </div>
-                      )}
+                  {/* Price */}
+                  <div className="mt-3 flex items-baseline gap-1.5">
+                    <span className="text-4xl font-black text-foreground">{price}</span>
+                  </div>
 
-                      <div className="mb-5 mt-1">
-                        <div className="flex items-center gap-2">
-                          <h2
-                            className={cn(
-                              "text-lg font-bold",
-                              popular ? "text-background" : "text-foreground",
-                            )}
-                          >
-                            {pack.displayName}
-                          </h2>
-                          {pro && pack.bonusCredits > 0 && (
-                            <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
-                              <Zap className="h-3 w-3" aria-hidden />
-                              +{pack.bonusCredits} bonus
-                            </span>
-                          )}
-                        </div>
+                  {/* Credits line */}
+                  <p className="mt-1 text-sm font-semibold text-muted-foreground">{creditsLine}</p>
 
-                        <div className="mt-3 flex items-baseline gap-1.5 flex-wrap">
-                          <span
-                            className={cn(
-                              "text-4xl font-black",
-                              popular ? "text-background" : "text-foreground",
-                            )}
-                          >
-                            {formatPackPrice(pack)}
-                          </span>
-                        </div>
+                  <div className="my-5 h-px w-full bg-border" />
 
-                        <div className="mt-2 flex items-center gap-1.5">
-                          <Star
-                            className={cn(
-                              "h-3.5 w-3.5",
-                              popular ? "text-background/60" : "text-muted-foreground",
-                            )}
-                            aria-hidden
-                          />
-                          <span
-                            className={cn(
-                              "text-xs font-medium",
-                              popular ? "text-background/60" : "text-muted-foreground",
-                            )}
-                          >
-                            {totalCredits} crédit{totalCredits > 1 ? "s" : ""} · {formatPricePerCredit(pack)}
-                          </span>
-                        </div>
-                      </div>
+                  {/* Description */}
+                  <p className="mb-5 text-sm leading-relaxed text-foreground/80 flex-1">
+                    {getPackDesc(pack.slug)}
+                  </p>
 
+                  {/* CTA */}
+                  {pack.isFree ? (
+                    <>
                       <Button
                         asChild
                         size="sm"
-                        className={cn(
-                          "mb-6 h-10 w-full rounded-xl font-semibold shadow-sm",
-                          popular
-                            ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/30"
-                            : "bg-foreground text-background hover:bg-foreground/90",
-                        )}
+                        variant="outline"
+                        className="h-11 w-full rounded-xl border-brand text-brand font-semibold hover:bg-brand/5 mb-4"
                       >
-                        <Link href={`/credits/buy/${pack.slug}`}>
-                          Acheter
-                          <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                        <Link href={pack.href}>
+                          {t("pricing.free.cta") || "Commencer gratuitement"}
                         </Link>
                       </Button>
-
-                      <ul className="flex flex-col gap-2.5">
-                        {[
-                          `${pack.creditsAmount} crédits${pack.bonusCredits > 0 ? ` + ${pack.bonusCredits} offerts` : ""}`,
-                          "Assistant vocal",
-                          "Édition de factures",
-                          "PDF professionnel",
-                        ].map((f) => (
-                          <li key={f} className="flex items-center gap-2.5">
-                            <CheckCircle2
-                              className={cn(
-                                "h-4 w-4 shrink-0",
-                                popular ? "text-primary" : "text-primary",
-                              )}
-                              aria-hidden
-                            />
-                            <span
-                              className={cn(
-                                "text-xs",
-                                popular ? "text-background/80" : "text-foreground/80",
-                              )}
-                            >
-                              {f}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  );
-                })}
+                      <p className="text-center text-xs italic text-muted-foreground">
+                        {t("pricing.free.footer") || "Aucune carte bancaire. Aucune date d'expiration."}
+                      </p>
+                    </>
+                  ) : (
+                    <Button
+                      asChild
+                      size="sm"
+                      className={cn(
+                        "mt-auto h-11 w-full rounded-xl font-semibold shadow-sm",
+                        pack.isPopular
+                          ? "bg-brand text-brand-foreground hover:bg-brand/90 shadow-brand/30"
+                          : "bg-foreground text-background hover:bg-foreground/90",
+                      )}
+                    >
+                      <Link href={pack.href}>
+                        {t("pricing.cta.buy") || "Acheter"}
+                        <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
           </div>
+        </div>
+      </section>
 
-          {/* Marketing reassurances */}
-          <div className="mt-12 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-8">
-            {[
-              { icon: CheckCircle2, text: "Les crédits n'expirent jamais" },
-              { icon: Mic, text: "Les crédits se cumulent entre les packs" },
-              { icon: FileText, text: "Pas d'abonnement, pas de renouvellement automatique" },
-            ].map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Icon className="h-4 w-4 shrink-0 text-primary" aria-hidden />
-                <span>{text}</span>
+      {/* ── Universal guarantees ────────────────────────────────────── */}
+      <section className="bg-background py-20">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+          <h2 className="mb-12 text-center text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+            {t("pricing.universal.title") || "Ce qui s'applique à tous les packs"}
+          </h2>
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+            {universalItems.map(({ icon: Icon, title, desc }) => (
+              <div key={title} className="flex gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                  <Icon className="h-5 w-5 text-primary" aria-hidden />
+                </div>
+                <div>
+                  <h3 className="font-bold text-foreground">{title}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{desc}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FAQ teaser */}
+      {/* ── Summary table ───────────────────────────────────────────── */}
+      <section className="bg-muted py-16">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6">
+          <h2 className="mb-8 text-center text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+            {t("pricing.table.title") || "Récapitulatif"}
+          </h2>
+          <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="px-4 py-3 text-left font-semibold text-foreground">
+                    {t("pricing.table.pack") || "Pack"}
+                  </th>
+                  <th className="px-4 py-3 text-center font-semibold text-foreground">
+                    {t("pricing.table.credits") || "Crédits"}
+                  </th>
+                  <th className="px-4 py-3 text-center font-semibold text-foreground">
+                    {t("pricing.table.price") || "Prix"}
+                  </th>
+                  <th className="px-4 py-3 text-center font-semibold text-foreground">
+                    {t("pricing.table.perInvoice") || "Prix / facture"}
+                  </th>
+                  <th className="hidden px-4 py-3 text-center font-semibold text-foreground sm:table-cell">
+                    {t("pricing.table.fcfa") || "FCFA approx."}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {TABLE_ROWS.map((row) => (
+                  <tr
+                    key={row.slug}
+                    className={cn(
+                      "border-b border-border last:border-0",
+                      row.isPopular && "bg-primary/5",
+                    )}
+                  >
+                    <td className="px-4 py-3 font-semibold text-foreground capitalize">
+                      {getPackName(row.slug)}
+                      {row.isPopular && (
+                        <span className="ml-2 rounded-full bg-primary/15 px-2 py-0.5 text-xs font-bold text-primary">
+                          ★
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-center text-foreground/80">{row.credits}</td>
+                    <td className="px-4 py-3 text-center font-semibold text-foreground">
+                      {isXof && row.slug !== "free" ? row.priceXof : row.priceUsd}
+                    </td>
+                    <td className="px-4 py-3 text-center text-foreground/80">{row.perInvoice}</td>
+                    <td className="hidden px-4 py-3 text-center text-muted-foreground sm:table-cell">
+                      {row.fcfa !== "—" ? `${row.fcfa} FCFA` : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ teaser ──────────────────────────────────────────────── */}
       <section className="border-t border-border bg-muted py-16">
         <div className="mx-auto max-w-xl px-4 text-center sm:px-6">
           <h2 className="text-2xl font-bold text-foreground">
-            {t("pricingPage.questionsTitle")}
+            {t("pricingPage.questionsTitle") || "Des questions sur nos tarifs ?"}
           </h2>
           <p className="mt-3 text-muted-foreground">
-            {t("pricingPage.questionsSubtitle")}
+            {t("pricingPage.questionsSubtitle") || "Consultez notre FAQ ou contactez-nous directement."}
           </p>
           <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Button
               asChild
               className="rounded-xl bg-brand px-6 font-semibold text-brand-foreground hover:bg-brand/90"
             >
-              <Link href="/#faq">{t("pricingPage.faqBtn")}</Link>
+              <Link href="/#faq">{t("pricingPage.faqBtn") || "Voir la FAQ"}</Link>
             </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="rounded-xl px-6 font-semibold"
-            >
+            <Button asChild variant="outline" className="rounded-xl px-6 font-semibold">
               <Link href="mailto:contact@billo.regiskiki.me">
-                {t("pricingPage.contactBtn")}
+                {t("pricingPage.contactBtn") || "Nous contacter"}
               </Link>
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
+      {/* ── Footer ──────────────────────────────────────────────────── */}
       <footer className="border-t border-border bg-background py-8">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <Link
-              href="/"
-              className="flex items-center gap-2"
-              aria-label="Billo - Accueil"
-            >
+            <Link href="/" className="flex items-center gap-2" aria-label="Billo - Accueil">
               <BilloLogoMark className="h-8 w-8" size={32} />
               <span className="font-bold text-brand">Billo</span>
             </Link>
             <p className="text-sm text-muted-foreground/60">
               &copy; {new Date().getFullYear()} Billo &middot;{" "}
-              {t("pricingPage.footerRights")}
+              {t("pricingPage.footerRights") || "Tous droits réservés"}
             </p>
           </div>
         </div>
       </footer>
     </div>
-  );
-}
-
-// Keep ComparisonCell for potential reuse elsewhere
-export function ComparisonCell({
-  value,
-  isHighlighted = false,
-  notIncluded,
-  included,
-}: {
-  value: boolean | string;
-  isHighlighted?: boolean;
-  notIncluded: string;
-  included: string;
-}) {
-  if (value === false)
-    return (
-      <span className="text-muted-foreground/30" aria-label={notIncluded}>
-        &mdash;
-      </span>
-    );
-  if (value === true)
-    return (
-      <CheckCircle2
-        className="mx-auto h-5 w-5 text-primary"
-        aria-label={included}
-      />
-    );
-  return (
-    <span
-      className={cn(
-        "font-semibold",
-        isHighlighted ? "text-foreground" : "text-foreground/80",
-      )}
-    >
-      {value}
-    </span>
   );
 }

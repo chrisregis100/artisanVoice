@@ -184,7 +184,23 @@
       "perMonth": "/ mois",
       "perYear": "/ an",
       "lifetime": "à vie",
-      "annualSaving": "2 mois offerts"
+      "annualSaving": "2 mois offerts",
+      "title": "Tarification simple",
+      "subtitle": "Payez uniquement quand vous facturez",
+      "free": "Gratuit",
+      "freeDesc": "3 crédits offerts à l'inscription",
+      "freeFeature1": "Assistant vocal IA",
+      "freeFeature2": "Factures PDF professionnelles",
+      "freeFeature3": "Sans carte bancaire",
+      "freeCta": "Commencer gratuitement",
+      "credits": "crédits",
+      "bonus": "bonus",
+      "perInvoice": "par facture",
+      "buy": "Acheter",
+      "popular": "Le plus populaire",
+      "noExpiry": "Les crédits n'expirent jamais",
+      "stackable": "Se cumulent entre les packs",
+      "noSubscription": "Pas d'abonnement, pas de renouvellement auto"
     },
     "faq": {
       "badge": "FAQ",
@@ -675,6 +691,85 @@
       "pricing": "Tarifs",
       "faq": "FAQ",
       "login": "Connexion"
+    }
+  },
+  "pricing": {
+    "badge": "Tarifs",
+    "hero": {
+      "title": "Tu paies uniquement quand tu factures. Pas d'abonnement. Pas de renouvellement automatique. Jamais de crédits qui expirent.",
+      "subtitle": "Achète un pack de crédits, utilise-les quand tu veux. Tes crédits ne disparaissent jamais."
+    },
+    "free": {
+      "name": "GRATUIT",
+      "subtitle": "Pour découvrir sans risque",
+      "credits": "3 crédits offerts à l'inscription — une seule fois",
+      "descShort": "Dès que tu crées ton compte Billo, tu reçois 3 crédits. Sans carte bancaire.",
+      "desc": "Dès que tu crées ton compte Billo, tu reçois 3 crédits. Pas d'essai limité dans le temps, pas de carte bancaire requise. Tu utilises tes crédits quand tu veux, à ton rythme.",
+      "detail": "3 crédits te permettent de générer 3 factures complètes — suffisant pour tester l'assistant vocal sur de vrais projets, voir comment Billo comprend ta voix, et obtenir un PDF professionnel prêt à envoyer.",
+      "note": "Ces crédits ne sont offerts qu'une seule fois. Une fois épuisés, tu choisis le pack qui correspond à ton volume.",
+      "footer": "Aucune carte bancaire. Aucune date d'expiration. Aucune surprise.",
+      "cta": "Commencer gratuitement"
+    },
+    "starter": {
+      "name": "PACK STARTER",
+      "subtitle": "Pour les petits volumes",
+      "priceLabel": "$4 — 10 crédits, sans expiration",
+      "descShort": "Tu factures occasionnellement — deux ou trois clients par mois, pas plus.",
+      "desc": "Tu factures occasionnellement — deux ou trois clients par mois, pas plus. Le pack Starter est fait pour toi. 10 crédits à $4, soit $0.40 par facture générée.",
+      "detail": "Tu achètes quand tu en as besoin. Tes crédits ne disparaissent jamais — ils t'attendent jusqu'à ce que tu en aies l'usage. Pas de renouvellement automatique, pas d'abonnement qui tourne dans le vide les mois où tu es moins actif.",
+      "fcfa": "Équivalent en FCFA : environ 2 400 FCFA."
+    },
+    "populaire": {
+      "name": "PACK POPULAIRE",
+      "subtitle": "Pour les freelances actifs",
+      "badge": "LE PLUS POPULAIRE",
+      "priceLabel": "$9 — 30 crédits, sans expiration",
+      "descShort": "C'est le pack que choisissent la majorité des freelances qui facturent régulièrement.",
+      "desc": "C'est le pack que choisissent la majorité des freelances qui facturent régulièrement. 30 crédits pour $9, soit $0.30 par facture — le meilleur rapport pour un usage mensuel standard.",
+      "detail": "Si tu fais en moyenne 8 à 12 factures par mois, ce pack couvre un mois complet et même un peu plus. Et si tu as un mois creux, tes crédits restants sont toujours là le mois suivant.",
+      "comparison": "À titre de comparaison : générer ces 30 factures manuellement sur Excel ou Canva te prendrait entre 4 et 8 heures. Avec Billo, c'est 30 minutes au total.",
+      "fcfa": "Équivalent en FCFA : environ 5 400 FCFA."
+    },
+    "pro": {
+      "name": "PACK PRO",
+      "subtitle": "Pour les volumes élevés",
+      "priceLabel": "$24 — 110 crédits, sans expiration",
+      "descShort": "Pour les consultants, agences et indépendants qui gèrent plusieurs clients et facturent en volume.",
+      "desc": "Pour les consultants, agences et indépendants qui gèrent plusieurs clients simultanément et génèrent un volume important de factures chaque mois. 100 crédits achetés, 110 reçus — 10 crédits offerts en bonus pour récompenser l'engagement.",
+      "detail": "À $0.22 par facture, c'est le coût le plus bas par crédit disponible sur Billo. Pour quelqu'un qui génère 30 à 40 factures par mois, ce pack couvre plusieurs mois d'utilisation intensive en un seul achat.",
+      "fcfa": "Équivalent en FCFA : environ 14 400 FCFA."
+    },
+    "universal": {
+      "title": "Ce qui s'applique à tous les packs",
+      "noExpiry": {
+        "title": "Les crédits n'expirent jamais.",
+        "desc": "Un crédit acheté aujourd'hui est toujours valide dans 6 mois ou dans 2 ans. Pas de pression pour consommer, pas de crédits perdus en fin de période."
+      },
+      "stackable": {
+        "title": "Les crédits se cumulent.",
+        "desc": "Tu achètes un pack Starter avec 2 crédits restants de ton pack précédent — tu te retrouves avec 12 crédits. Simple."
+      },
+      "regional": {
+        "title": "Le prix s'adapte à ta région.",
+        "desc": "Pour les utilisateurs en Afrique subsaharienne, en Asie du Sud et dans d'autres marchés émergents, les packs sont affichés directement en devise locale avec un tarif ajusté à la parité de pouvoir d'achat."
+      },
+      "noSubscription": {
+        "title": "Pas d'abonnement caché.",
+        "desc": "Tu achètes un pack, tu utilises tes crédits, tu rachètes quand tu veux. Aucun prélèvement automatique, aucune surprise sur ton relevé bancaire."
+      }
+    },
+    "table": {
+      "title": "Récapitulatif",
+      "pack": "Pack",
+      "credits": "Crédits",
+      "price": "Prix",
+      "perInvoice": "Prix / facture",
+      "fcfa": "FCFA approx."
+    },
+    "cta": {
+      "buy": "Acheter ce pack",
+      "free": "Commencer gratuitement",
+      "viewDetails": "Voir tous les détails →"
     }
   }
 }
