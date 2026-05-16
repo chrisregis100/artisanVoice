@@ -163,14 +163,17 @@ export const flutterwaveWebhookSchema = z.object({
 });
 
 // webhooks/fedapay POST
+// klass and reference are present in most FedaPay payloads but may be omitted in
+// some environments / API versions — keep them optional so schema validation never
+// silently rejects a valid webhook.
 export const fedapayWebhookSchema = z.object({
   name: z.string(),
-  object: z.string(),
+  object: z.string().optional(),
   data: z.object({
     object: z.object({
       id: z.number(),
-      klass: z.string(),
-      reference: z.string(),
+      klass: z.string().optional(),
+      reference: z.string().optional(),
       amount: z.number(),
       status: z.string(),
       metadata: z
@@ -181,7 +184,8 @@ export const fedapayWebhookSchema = z.object({
           pack_slug: z.string().optional(),
           kind: z.string().optional(),
         })
-        .nullable(),
+        .nullable()
+        .optional(),
       customer: z
         .object({
           id: z.number(),

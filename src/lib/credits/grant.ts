@@ -19,7 +19,7 @@ export async function grantCredits(params: {
     p_pack_id: params.packId ?? null,
     p_payment_provider: params.paymentProvider ?? null,
     p_payment_reference: params.paymentReference ?? null,
-    p_metadata: (params.metadata ?? null) as Json | null,
+    p_metadata: (params.metadata ?? {}) as Json,
   });
 
   if (error) throw new Error(`Failed to grant credits: ${error.message}`);

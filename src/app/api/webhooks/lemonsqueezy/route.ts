@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { env } from "@/lib/env";
 import { lemonsqueezyWebhookSchema } from "@/lib/api/schemas";
-import { getPack } from "@/lib/credits/packs";
+import { getPackAdmin } from "@/lib/credits/packs";
 import { grantCredits } from "@/lib/credits/grant";
 
 function verifyLemonSqueezySignature(rawBody: string, signature: string): boolean {
@@ -40,6 +40,11 @@ export async function POST(request: NextRequest) {
   const signature = request.headers.get("x-signature") ?? "";
 
   if (!verifyLemonSqueezySignature(rawBody, signature)) {
+    if (!process.env.LEMONSQUEEZY_WEBHOOK_SECRET) {
+      console.error(
+        "[LS Webhook] LEMONSQUEEZY_WEBHOOK_SECRET is not configured — all webhooks will be rejected.",
+      );
+    }
     return NextResponse.json({ error: "Requête invalide" }, { status: 400 });
   }
 
@@ -72,7 +77,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
-  // order_created — credit pack purchase
+  // order_created — credit pack purchase.
+  // Verify the order status is "paid" before granting credits.
+  // LemonSqueezy fires order_created for all orders including pending ones.
+  const orderStatus = data.attributes?.status;
+  if (orderStatus !== "paid") {
+    console.warn(`[LS Webhook] order_created with status="${orderStatus ?? "unknown"}" — skipping (id=${dataId})`);
+    return NextResponse.json({ received: true });
+  }
+
   const userId = meta.custom_data?.user_id;
   if (!userId) {
     console.error("[LS Webhook] Missing user_id in custom_data", { eventName, dataId });
@@ -95,10 +108,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
-  const pack = await getPack(packSlug);
+  const pack = await getPackAdmin(packSlug);
   if (!pack) {
     console.error("[LS Webhook] Pack not found", { packSlug, dataId });
-    return NextResponse.json({ received: true });
+    // Return 500 so LemonSqueezy retries — pack not found is unexpected.
+    return NextResponse.json(
+      { error: "Pack introuvable — réessai attendu" },
+      { status: 500 },
+    );
   }
 
   const creditsToGrant = pack.creditsAmount + pack.bonusCredits;
@@ -115,12 +132,26 @@ export async function POST(request: NextRequest) {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    // UNIQUE constraint violation → already processed, idempotent
-    if (message.includes("unique") || message.includes("duplicate") || message.includes("already")) {
+    // UNIQUE constraint violation → already processed, idempotent, acknowledge
+    if (
+      message.includes("unique") ||
+      message.includes("duplicate") ||
+      message.includes("already") ||
+      message.includes("23505")
+    ) {
       return NextResponse.json({ received: true });
     }
-    console.error("[LS Webhook] grantCredits failed", { userId, dataId, packSlug, error: message });
-    return NextResponse.json({ received: true });
+    // Real error: return 500 so LemonSqueezy retries the webhook delivery
+    console.error("[LS Webhook] grantCredits failed — will retry", {
+      userId,
+      dataId,
+      packSlug,
+      error: message,
+    });
+    return NextResponse.json(
+      { error: "Erreur interne — réessai attendu" },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({ received: true });

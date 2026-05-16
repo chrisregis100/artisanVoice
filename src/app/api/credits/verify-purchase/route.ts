@@ -53,10 +53,10 @@ export async function POST(request: NextRequest) {
   }
 
   const packSlug = tx.metadata?.pack_slug;
-  const packId = tx.metadata?.pack_id;
   const kind = tx.metadata?.kind;
 
-  if (kind !== "credit_purchase" || !packSlug || !packId) {
+  // packId is intentionally NOT required: it is derived from the DB pack lookup below.
+  if (kind !== "credit_purchase" || !packSlug) {
     return NextResponse.json({ success: false, status: "not_a_credit_purchase" });
   }
 
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       userId: user.id,
       amount: creditsToGrant,
       kind: "purchase",
-      packId,
+      packId: pack.id, // use DB value — resilient to missing pack_id in metadata
       paymentProvider: "fedapay",
       paymentReference: String(tx.id),
       metadata: { pack_slug: packSlug },

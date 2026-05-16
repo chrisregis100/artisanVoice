@@ -1063,6 +1063,118 @@ LEMONSQUEEZY_VARIANT_PRO_USD=        # Product Variant ID depuis le dashboard Le
 
 ---
 
+## Configuration webhook FedaPay sandbox (étapes manuelles)
+
+### Prérequis : variables d'environnement
+
+Assurez-vous que votre `.env.local` contient :
+
+```env
+FEDAPAY_SECRET_KEY=sk_sandbox_XXXX        # Clé sandbox FedaPay (dashboard → API Keys)
+FEDAPAY_WEBHOOK_SECRET=whsec_XXXX         # Secret du webhook (généré lors de la création du webhook)
+```
+
+> ⚠️ Si `FEDAPAY_WEBHOOK_SECRET` n'est pas défini, `verifyFedaPayWebhookSignature` retourne `false` et tous les webhooks sont rejetés avec 401.
+
+### Étape 1 : Exposer le serveur local via un tunnel
+
+FedaPay sandbox ne peut pas appeler `localhost`. Utilisez **ngrok** ou **localtunnel** :
+
+```bash
+# Option A — ngrok (recommandé)
+ngrok http 3000
+# → copier l'URL HTTPS, ex: https://abc123.ngrok.io
+
+# Option B — localtunnel
+npx localtunnel --port 3000
+```
+
+### Étape 2 : Configurer le webhook dans le dashboard FedaPay sandbox
+
+1. Connectez-vous sur [https://sandbox.fedapay.com](https://sandbox.fedapay.com)
+2. Menu **Développeurs → Webhooks → Créer un webhook**
+3. **URL** : `https://<votre-tunnel>/api/webhooks/fedapay`
+4. **Événements à écouter** :
+   - `transaction.approved`
+   - `transaction.transferred`
+5. **Secret de signature** : copiez la valeur générée dans `FEDAPAY_WEBHOOK_SECRET`
+6. Sauvegardez et testez avec le bouton **Envoyer un événement test**
+
+### Étape 3 : Vérifier le flux end-to-end
+
+```
+Client → /credits/buy/[packSlug] → checkout-client.tsx
+  → POST /api/credits/packs/initiate (ou action équivalente)
+  → FedaPay API sandbox → URL de paiement
+  → Utilisateur paie en sandbox (carte test : 4111 1111 1111 1111)
+  → FedaPay sandbox → POST /api/webhooks/fedapay
+  → verifyFedaPayWebhookSignature ✓
+  → grantCredits({ kind: 'purchase', paymentReference: transactionId })
+  → RPC grant_credits → UPDATE credit_wallets.balance++
+  → Trigger on_purchase_transaction → credit_wallets.has_purchased = true
+```
+
+### Étape 4 : Vérifier via le dashboard admin
+
+1. Aller sur `/admin/users`
+2. Cliquer sur l'icône œil d'un utilisateur ayant effectué un achat
+3. La section **Crédits** doit afficher :
+   - Solde actuel mis à jour
+   - "A acheté" → Oui
+   - Total acheté à vie
+   - La transaction dans le tableau
+
+### Points de vigilance
+
+| Problème | Cause probable | Solution |
+|---|---|---|
+| Webhook 401 | `FEDAPAY_WEBHOOK_SECRET` absent ou incorrect | Vérifier `.env.local` |
+| `grantCredits` échoue avec "Wallet not found" | Migration 016 non appliquée | Appliquer via Supabase dashboard → SQL Editor |
+| `has_purchased` reste `false` | Trigger `on_purchase_transaction` non créé | Appliquer migration 016 |
+| Solde n'augmente pas | `payment_reference` déjà utilisé (idempotence) | Normal si webhook déjà traité — check `credit_transactions` |
+
+### Appliquer la migration 016 manuellement (si pas de CLI local)
+
+Si vous n'avez pas le CLI Supabase configuré localement, collez ce SQL dans **Supabase Dashboard → SQL Editor** :
+
+```sql
+-- Copier le contenu de supabase/migrations/016_has_purchased.sql
+ALTER TABLE credit_wallets
+  ADD COLUMN IF NOT EXISTS has_purchased BOOLEAN NOT NULL DEFAULT FALSE;
+
+UPDATE credit_wallets cw
+SET has_purchased = TRUE
+WHERE EXISTS (
+  SELECT 1 FROM credit_transactions ct
+  WHERE ct.user_id = cw.user_id
+    AND ct.kind = 'purchase'
+);
+
+CREATE OR REPLACE FUNCTION set_has_purchased()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.kind = 'purchase' THEN
+    UPDATE credit_wallets
+    SET has_purchased = TRUE
+    WHERE user_id = NEW.user_id
+      AND has_purchased = FALSE;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+DROP TRIGGER IF EXISTS on_purchase_transaction ON credit_transactions;
+CREATE TRIGGER on_purchase_transaction
+  AFTER INSERT ON credit_transactions
+  FOR EACH ROW
+  EXECUTE FUNCTION set_has_purchased();
+
+CREATE INDEX IF NOT EXISTS idx_credit_wallets_paywall
+  ON credit_wallets (user_id, has_purchased, balance);
+```
+
+---
+
 ## Résumé des fichiers touchés
 
 | Action | Fichier |
@@ -1087,3 +1199,9 @@ LEMONSQUEEZY_VARIANT_PRO_USD=        # Product Variant ID depuis le dashboard Le
 - `src/lib/credits/grant.ts` — inchangé
 - `src/app/(auth)/login/page.tsx` — appelle déjà `getPostAuthPath()`
 - `src/app/(auth)/register/page.tsx` — idem
+
+**Fichiers ajoutés par le fix dashboard admin :**
+| Action | Fichier |
+|---|---|
+| **CRÉER** | `src/app/api/admin/users/wallet/route.ts` — endpoint GET admin, retourne balance/transactions |
+| **MODIFIER** | `src/app/(admin)/admin/users/_components/user-details-dialog.tsx` — section Crédits |

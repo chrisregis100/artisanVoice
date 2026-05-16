@@ -48,7 +48,9 @@ export async function getLemonSqueezyUrl(
   }
 
   const appUrl = env.NEXT_PUBLIC_APP_URL;
-  const successUrl = `${appUrl}/credits/buy/${packSlug}/success?provider=lemonsqueezy`;
+  // {order_id} is a LemonSqueezy URL template variable replaced with the actual
+  // order ID on redirect — needed for the server-side fallback on the success page.
+  const successUrl = `${appUrl}/credits/buy/${packSlug}/success?provider=lemonsqueezy&order_id={order_id}`;
 
   const params = new URLSearchParams({
     "checkout[custom][user_id]": userId,

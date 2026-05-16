@@ -335,17 +335,23 @@ export const verifyFedaPayWebhookSignature = (
   const webhookSecret = env.FEDAPAY_WEBHOOK_SECRET?.trim();
   if (!webhookSecret) return false;
 
-  const expectedSignature = crypto
+  const expectedDigest = crypto
     .createHmac("sha256", webhookSecret)
     .update(payload)
     .digest("hex");
 
+  // Normalise: FedaPay may send a plain hex digest or a "sha256=<hex>" prefixed value.
+  const receivedDigest = signature.startsWith("sha256=")
+    ? signature.slice(7)
+    : signature;
+
   try {
     return crypto.timingSafeEqual(
-      Buffer.from(expectedSignature, "hex"),
-      Buffer.from(signature, "hex"),
+      Buffer.from(expectedDigest, "hex"),
+      Buffer.from(receivedDigest, "hex"),
     );
   } catch {
+    // Buffer.from throws on non-hex input — treat as invalid signature.
     return false;
   }
 };

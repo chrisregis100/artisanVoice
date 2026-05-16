@@ -99,8 +99,8 @@ export function VoiceButton() {
 
     // Layer 1: Immediate check from cached subscription data.
     // If limit is null the plan is unlimited — skip quota check entirely.
-    const cachedLimit = subscriptionData?.usage.limit ?? null;
-    const cachedCount = subscriptionData?.usage.count ?? 0;
+    const cachedLimit = subscriptionData?.usage?.limit ?? null;
+    const cachedCount = subscriptionData?.usage?.count ?? 0;
     if (cachedLimit !== null && cachedCount >= cachedLimit) {
       setIsQuotaModalOpen(true);
       return;
@@ -111,10 +111,9 @@ export function VoiceButton() {
       const res = await fetch("/api/subscription/status");
       if (res.ok) {
         const fresh = (await res.json()) as SubscriptionStatusPayload;
-        if (
-          fresh.usage.limit !== null &&
-          fresh.usage.count >= fresh.usage.limit
-        ) {
+        const freshLimit = fresh.usage?.limit ?? null;
+        const freshCount = fresh.usage?.count ?? 0;
+        if (freshLimit !== null && freshCount >= freshLimit) {
           setIsQuotaModalOpen(true);
           return;
         }

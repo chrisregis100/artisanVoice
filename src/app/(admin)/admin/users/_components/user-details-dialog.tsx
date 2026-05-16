@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import type { User } from '@supabase/supabase-js';
 import {
   Dialog,
@@ -8,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { formatDate } from '../_lib/format-date';
+import type { AdminUserWalletResponse, AdminUserTransaction } from '@/app/api/admin/users/wallet/route';
 
 interface UserDetailsDialogProps {
   user: User | null;
@@ -37,6 +39,164 @@ function JsonBlock({ data }: { data: Record<string, unknown> }) {
           </span>
         </div>
       ))}
+    </div>
+  );
+}
+
+const TX_KIND_LABELS: Record<string, string> = {
+  purchase: 'Achat',
+  signup_bonus: 'Bonus inscription',
+  debit: 'Utilisation',
+  refund: 'Remboursement',
+  admin_adjust: 'Ajustement admin',
+  migration: 'Migration',
+};
+
+const TX_KIND_CLASSES: Record<string, string> = {
+  purchase: 'bg-primary/10 text-primary border-primary/20',
+  signup_bonus: 'bg-muted text-muted-foreground border-border',
+  debit: 'bg-destructive/10 text-destructive border-destructive/20',
+  refund: 'bg-muted text-muted-foreground border-border',
+  admin_adjust: 'border-border text-foreground',
+};
+
+function TxKindBadge({ kind }: { kind: string }) {
+  const label = TX_KIND_LABELS[kind] ?? kind;
+  const cls = TX_KIND_CLASSES[kind] ?? 'border-border text-foreground';
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${cls}`}>
+      {label}
+    </span>
+  );
+}
+
+function CreditSection({ userId }: { userId: string }) {
+  const [data, setData] = useState<AdminUserWalletResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+
+    fetch(`/api/admin/users/wallet?userId=${encodeURIComponent(userId)}`)
+      .then(async (res) => {
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error((body as { error?: string }).error ?? `Erreur ${res.status}`);
+        }
+        return res.json() as Promise<AdminUserWalletResponse>;
+      })
+      .then(setData)
+      .catch((err: unknown) => {
+        setError(err instanceof Error ? err.message : 'Erreur inconnue');
+      })
+      .finally(() => setLoading(false));
+  }, [userId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-6">
+        <span className="text-xs text-muted-foreground">Chargement des crédits…</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3">
+        <p className="text-xs text-destructive">{error}</p>
+      </div>
+    );
+  }
+
+  if (!data) return null;
+
+  return (
+    <div className="space-y-4">
+      <div className="rounded-md border">
+        <MetaRow
+          label="Solde actuel"
+          value={
+            <span className="font-semibold">
+              {data.balance} crédit{data.balance !== 1 ? 's' : ''}
+            </span>
+          }
+        />
+        <MetaRow
+          label="A acheté"
+          value={
+            data.hasPurchased ? (
+              <span className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                Oui
+              </span>
+            ) : (
+              <span className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                Non
+              </span>
+            )
+          }
+        />
+        <MetaRow
+          label="Total acheté (vie)"
+          value={
+            data.lifetimePurchased > 0
+              ? `${data.lifetimePurchased} crédit${data.lifetimePurchased !== 1 ? 's' : ''}`
+              : '—'
+          }
+        />
+        <MetaRow
+          label="Dernier achat"
+          value={data.lastPurchaseAt ? formatDate(data.lastPurchaseAt) : '—'}
+        />
+      </div>
+
+      {data.transactions.length > 0 ? (
+        <div>
+          <p className="mb-2 text-xs font-medium text-muted-foreground">
+            Dernières transactions ({data.transactions.length})
+          </p>
+          <div className="overflow-hidden rounded-md border">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b bg-muted/40">
+                  <th className="px-3 py-2 text-left font-medium text-muted-foreground">Type</th>
+                  <th className="px-3 py-2 text-right font-medium text-muted-foreground">Δ</th>
+                  <th className="px-3 py-2 text-right font-medium text-muted-foreground">Solde après</th>
+                  <th className="px-3 py-2 text-left font-medium text-muted-foreground">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.transactions.map((tx: AdminUserTransaction, idx: number) => (
+                  <tr
+                    key={tx.id}
+                    className={idx !== data.transactions.length - 1 ? 'border-b' : ''}
+                  >
+                    <td className="px-3 py-2">
+                      <TxKindBadge kind={tx.kind} />
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums">
+                      <span className={tx.delta > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                        {tx.delta > 0 ? '+' : ''}{tx.delta}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
+                      {tx.balanceAfter}
+                    </td>
+                    <td className="px-3 py-2 text-muted-foreground">
+                      {formatDate(tx.createdAt)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ) : (
+        <p className="py-4 text-center text-xs text-muted-foreground">
+          Aucune transaction enregistrée.
+        </p>
+      )}
     </div>
   );
 }
@@ -99,6 +259,15 @@ export function UserDetailsDialog({
               />
             </div>
           </section>
+
+          {open ? (
+            <section>
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Crédits
+              </h3>
+              <CreditSection userId={user.id} />
+            </section>
+          ) : null}
 
           <section>
             <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">

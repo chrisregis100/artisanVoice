@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyFedaPayWebhookSignature } from "@/lib/payment/fedapay";
 import { fedapayWebhookSchema } from "@/lib/api/schemas";
-import { getPack } from "@/lib/credits/packs";
+import { getPackAdmin } from "@/lib/credits/packs";
 import { grantCredits } from "@/lib/credits/grant";
 
 export async function POST(request: NextRequest) {
@@ -9,6 +9,11 @@ export async function POST(request: NextRequest) {
   const signature = request.headers.get("x-fedapay-signature") ?? "";
 
   if (!verifyFedaPayWebhookSignature(rawBody, signature)) {
+    if (!process.env.FEDAPAY_WEBHOOK_SECRET) {
+      console.error(
+        "[FedaPay Webhook] FEDAPAY_WEBHOOK_SECRET is not configured — all webhooks will be rejected.",
+      );
+    }
     return NextResponse.json(
       { error: "Signature invalide" },
       { status: 401 },
@@ -49,8 +54,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
-  const { user_id: userId, pack_id: packId, pack_slug: packSlug, kind } =
-    transaction.metadata ?? {};
+  const txMeta = transaction.metadata ?? {};
+  const userId = txMeta.user_id;
+  const packSlug = txMeta.pack_slug;
+  const kind = txMeta.kind;
 
   // Legacy subscription webhooks (no kind field) or unknown kinds — ignore gracefully
   if (kind !== "credit_purchase") {
@@ -60,18 +67,26 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
-  if (!userId || !packSlug || !packId) {
+  // packId is intentionally NOT required here: it can be derived from the DB pack lookup.
+  // Requiring it caused silent 200-acks (no retry) when metadata was partially missing.
+  if (!userId || !packSlug) {
     console.error(
-      "FedaPay webhook: missing metadata fields for credit_purchase",
-      { ref: transaction.reference, userId, packSlug, packId },
+      "FedaPay webhook: missing required metadata fields for credit_purchase",
+      { ref: transaction.reference, userId, packSlug },
     );
+    // Return 200: without userId/packSlug we cannot recover regardless of retries.
     return NextResponse.json({ received: true });
   }
 
-  const pack = await getPack(packSlug);
+  const pack = await getPackAdmin(packSlug);
   if (!pack) {
-    console.error("FedaPay webhook: pack not found", { packSlug });
-    return NextResponse.json({ received: true });
+    console.error("[FedaPay Webhook] Pack not found", { packSlug, transactionRef: transaction.reference });
+    // Return 500 so FedaPay retries — a missing pack slug is unexpected and
+    // could be a transient DB issue rather than a permanent misconfiguration.
+    return NextResponse.json(
+      { error: "Pack introuvable — réessai attendu" },
+      { status: 500 },
+    );
   }
 
   const transactionId = String(transaction.id);
@@ -82,19 +97,33 @@ export async function POST(request: NextRequest) {
       userId,
       amount: creditsToGrant,
       kind: "purchase",
-      packId,
+      packId: pack.id, // use DB value — resilient to missing pack_id in metadata
       paymentProvider: "fedapay",
       paymentReference: transactionId,
       metadata: { pack_slug: packSlug },
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    // UNIQUE constraint violation means the webhook was already processed — idempotent
-    if (message.includes("unique") || message.includes("duplicate") || message.includes("already")) {
+    // UNIQUE constraint violation means the webhook was already processed — idempotent, acknowledge
+    if (
+      message.includes("unique") ||
+      message.includes("duplicate") ||
+      message.includes("already") ||
+      message.includes("23505")
+    ) {
       return NextResponse.json({ received: true });
     }
-    console.error("FedaPay webhook: grantCredits failed", { userId, transactionId, error: message });
-    return NextResponse.json({ received: true });
+    // Real error: return 500 so FedaPay retries the webhook delivery
+    console.error("[FedaPay Webhook] grantCredits failed — will retry", {
+      userId,
+      transactionId,
+      packSlug,
+      error: message,
+    });
+    return NextResponse.json(
+      { error: "Erreur interne — réessai attendu" },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({ received: true });
