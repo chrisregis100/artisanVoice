@@ -4,9 +4,10 @@ import {
   geminiVoiceFunctions,
   systemPrompt as geminiSystemPrompt,
 } from "@/lib/gemini/functions";
+import { AFRI_BASE_URL, AFRI_ENDPOINTS, AFRI_MODELS } from "@/lib/ai/afri/config";
 
 export interface AIRealtimeProvider {
-  name: "openai" | "gemini";
+  name: "openai" | "gemini" | "afri";
   createSession(apiKey: string): Promise<{ url: string; token: string; model: string }>;
   getSystemPrompt(): string;
   getTools(): unknown[];
@@ -87,8 +88,62 @@ class GeminiProvider implements AIRealtimeProvider {
   }
 }
 
+class AfriProvider implements AIRealtimeProvider {
+  readonly name = "afri" as const;
+
+  async createSession(
+    apiKey: string
+  ): Promise<{ url: string; token: string; model: string }> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30_000);
+
+    let response: Response;
+    try {
+      response = await fetch(`${AFRI_BASE_URL}${AFRI_ENDPOINTS.realtimeConfig}`, {
+        signal: controller.signal,
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+        },
+      });
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new Error("Timeout connecting to Afri API (30s)");
+      }
+      throw error;
+    }
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const status = response.status;
+      if (status === 401) throw new Error("INVALID_API_KEY");
+      if (status === 429) throw new Error("QUOTA_EXCEEDED");
+      throw new Error("SESSION_ERROR");
+    }
+
+    const data = await response.json();
+    const url =
+      typeof data.url === "string" && data.url
+        ? data.url
+        : `wss://build.lewisnote.com/v1/realtime?model=${AFRI_MODELS.realtime}`;
+    const token = typeof data.token === "string" ? data.token : (data.client_secret?.value ?? "");
+
+    return { url, token, model: AFRI_MODELS.realtime };
+  }
+
+  getSystemPrompt(): string {
+    return openaiSystemPrompt;
+  }
+
+  getTools(): unknown[] {
+    return voiceFunctions;
+  }
+}
+
 export function getAIProvider(providerName?: string): AIRealtimeProvider {
   if (providerName === "gemini") return new GeminiProvider();
+  if (providerName === "afri") return new AfriProvider();
   return new OpenAIProvider();
 }
 
