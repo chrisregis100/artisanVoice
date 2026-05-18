@@ -4,6 +4,7 @@ import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { SettingsInitializer } from "@/components/settings-initializer";
 import { createClient } from "@/lib/supabase/server";
 import { getPaywallStatus } from "@/lib/credits/wallet";
+import { env } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: { default: "Dashboard", template: "%s | Billo" },
@@ -55,10 +56,13 @@ export default async function DashboardLayout({
     currency: profile?.currency ?? "XOF",
   };
 
+  const isAdmin = user?.email === env.ADMIN_EMAIL;
+
   return (
     <DashboardShell
       businessName={businessName}
       userEmail={user?.email ?? null}
+      isAdmin={isAdmin}
     >
       <SettingsInitializer settings={dbSettings} />
       {children}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect } from "react";
+import { create } from "zustand";
 
 export interface WalletPayload {
   balance: number;
@@ -8,46 +9,57 @@ export interface WalletPayload {
   hasPurchased: boolean;
 }
 
-export function useWallet() {
-  const [data, setData] = useState<WalletPayload | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+interface WalletState {
+  data: WalletPayload | null;
+  isLoading: boolean;
+  error: string | null;
+  hasFetched: boolean;
+  isFetching: boolean;
+  refetch: () => Promise<void>;
+}
 
-  const refetch = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
+const useWalletStore = create<WalletState>((set, get) => ({
+  data: null,
+  isLoading: true,
+  error: null,
+  hasFetched: false,
+  isFetching: false,
+  refetch: async () => {
+    if (get().isFetching) return;
+    set({ isFetching: true, error: null });
     try {
       const res = await fetch("/api/credits/wallet");
       if (res.status === 401) {
-        setData(null);
-        setError("session");
+        set({ data: null, error: "session", isLoading: false, isFetching: false, hasFetched: true });
         return;
       }
       if (!res.ok) {
-        setError("fetch");
-        setData(null);
+        set({ data: null, error: "fetch", isLoading: false, isFetching: false, hasFetched: true });
         return;
       }
       const json = (await res.json()) as WalletPayload;
-      setData(json);
+      set({ data: json, isLoading: false, error: null, hasFetched: true, isFetching: false });
     } catch {
-      setError("fetch");
-      setData(null);
-    } finally {
-      setIsLoading(false);
+      set({ data: null, error: "fetch", isLoading: false, isFetching: false, hasFetched: true });
     }
-  }, []);
+  },
+}));
+
+export function useWallet() {
+  const state = useWalletStore();
 
   useEffect(() => {
-    void refetch();
-  }, [refetch]);
+    if (!state.hasFetched && !state.isFetching) {
+      void state.refetch();
+    }
+  }, [state.hasFetched, state.isFetching, state.refetch]);
 
   return {
-    data,
-    isLoading,
-    error,
-    refetch,
-    balance: data?.balance ?? 0,
-    hasPurchased: data?.hasPurchased ?? false,
+    data: state.data,
+    isLoading: state.isLoading,
+    error: state.error,
+    refetch: state.refetch,
+    balance: state.data?.balance ?? 0,
+    hasPurchased: state.data?.hasPurchased ?? false,
   };
 }
