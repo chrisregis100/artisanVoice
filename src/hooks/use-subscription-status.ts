@@ -19,7 +19,7 @@ export interface SubscriptionStatusPayload {
     currentPeriodStart: string | null;
     currentPeriodEnd: string | null;
   } | null;
-  usage: {
+  usage?: {
     count: number;
     limit: number | null;
   };

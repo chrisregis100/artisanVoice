@@ -6,7 +6,6 @@ import type { Database } from "@/lib/supabase/types";
 
 const ALLOWED_REDIRECTS = new Set([
   "/dashboard",
-  "/subscribe",
   "/invoices",
   "/settings",
   "/customers",
@@ -69,15 +68,5 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL(requestedNext, origin));
   }
 
-  const userId = exchangeData.session.user.id;
-  const { data: subscription } = await supabase
-    .from("subscriptions")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("status", "active")
-    .limit(1)
-    .maybeSingle();
-
-  const target = subscription ? "/dashboard" : "/subscribe";
-  return NextResponse.redirect(new URL(target, origin));
+  return NextResponse.redirect(new URL("/dashboard", origin));
 }

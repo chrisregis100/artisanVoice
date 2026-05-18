@@ -1,7 +1,8 @@
 "use client";
 
 import { BilloLogoMark } from "@/components/brand/billo-logo";
-import { SubscriptionUsageCard } from "@/components/dashboard/subscription-usage-card";
+import { CreditBalanceCard } from "@/components/credits/credit-balance-card";
+import { InsufficientCreditsModal } from "@/components/credits/insufficient-credits-modal";
 import { InvoicePreview } from "@/components/invoice/invoice-preview";
 import { PreviewModal } from "@/components/invoice/preview-modal";
 import { ShareDialog } from "@/components/invoice/share-dialog";
@@ -20,21 +21,24 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { VoiceButton } from "@/components/voice/voice-button";
 import { VoiceConversation } from "@/components/voice/voice-conversation";
 import { useOffline } from "@/hooks/use-offline";
-import { useSubscriptionStatus } from "@/hooks/use-subscription-status";
+import { useWallet } from "@/hooks/use-wallet";
 import { useLanguage } from "@/i18n/context";
 import { createClient } from "@/lib/supabase/client";
 import { useInvoiceStore } from "@/stores/invoice-store";
 import { useSettingsStore } from "@/stores/settings-store";
 import type { InvoiceItem } from "@/types";
 import { Eye, WifiOff } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function DashboardPage() {
   const { t } = useLanguage();
-  const subscriptionStatus = useSubscriptionStatus();
+  const { balance: walletBalance, hasPurchased: walletHasPurchased, refetch: refetchWallet } = useWallet();
   const [authUserId, setAuthUserId] = useState<string | null>(null);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isInsufficientCreditsOpen, setIsInsufficientCreditsOpen] =
+    useState(false);
+  const [isSending, setIsSending] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [mobileTab, setMobileTab] = useState("assistant");
@@ -126,18 +130,60 @@ export default function DashboardPage() {
     };
   }, []);
 
+  const handleSend = useCallback(async () => {
+    if (!authUserId) return;
+
+    setIsSending(true);
+    try {
+      const preRes = await fetch("/api/credits/charge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ documentId, phase: "precheck" }),
+      });
+      const preData = (await preRes.json()) as {
+        canCharge?: boolean;
+        duplicate?: boolean;
+        balance?: number;
+      };
+
+      if (!preRes.ok || !preData.canCharge) {
+        setIsInsufficientCreditsOpen(true);
+        return;
+      }
+
+      if (preData.duplicate) {
+        setIsShareOpen(true);
+        return;
+      }
+
+      const commitRes = await fetch("/api/credits/charge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ documentId, phase: "commit" }),
+      });
+
+      if (!commitRes.ok) {
+        setIsInsufficientCreditsOpen(true);
+        return;
+      }
+
+      await refetchWallet();
+      setIsShareOpen(true);
+    } catch {
+      setIsInsufficientCreditsOpen(true);
+    } finally {
+      setIsSending(false);
+    }
+  }, [authUserId, documentId, refetchWallet]);
+
   useEffect(() => {
     if (!finalizeSignal) return;
-    setIsShareOpen(true);
-  }, [finalizeSignal]);
+    void handleSend();
+  }, [finalizeSignal, handleSend]);
 
   const handleResetConfirm = () => {
     reset();
     setResetDialogOpen(false);
-  };
-
-  const handleSend = () => {
-    setIsShareOpen(true);
   };
 
   const handlePreview = () => {
@@ -272,7 +318,7 @@ export default function DashboardPage() {
         <div className="flex min-h-0 w-1/3 min-w-0 flex-col bg-background">
           <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-4 md:p-6 lg:p-8">
             <div className="mb-4 shrink-0 hidden md:block">
-              <SubscriptionUsageCard {...subscriptionStatus} />
+              <CreditBalanceCard />
             </div>
             {assistantInner}
           </div>
@@ -308,8 +354,14 @@ export default function DashboardPage() {
                 </Button>
                 <Button
                   className="rounded-lg bg-brand text-brand-foreground hover:bg-brand/90 shadow-sm"
-                  onClick={handleSend}
-                  disabled={isListening || isProcessing || items.length === 0}
+                  onClick={() => void handleSend()}
+                  disabled={
+                    isListening ||
+                    isProcessing ||
+                    isSending ||
+                    items.length === 0
+                  }
+                  aria-busy={isSending}
                 >
                   {t("dashboard.main.share")}
                 </Button>
@@ -325,7 +377,7 @@ export default function DashboardPage() {
 
       <div className="md:hidden flex flex-col flex-1 min-h-0 bg-background">
         <div className="shrink-0 px-3 pt-3 pb-1">
-          <SubscriptionUsageCard {...subscriptionStatus} />
+          <CreditBalanceCard />
         </div>
         <Tabs
           value={mobileTab}
@@ -382,7 +434,7 @@ export default function DashboardPage() {
       <PreviewModal
         open={isPreviewOpen}
         onOpenChange={setIsPreviewOpen}
-        onShare={handleSend}
+        onShare={() => void handleSend()}
         {...sharedDocumentProps}
       />
 
@@ -404,6 +456,13 @@ export default function DashboardPage() {
         invoicePrefix={invoicePrefix || "FAC-"}
         vatRatePercent={vatRatePercent ?? 20}
         userId={authUserId}
+      />
+
+      <InsufficientCreditsModal
+        open={isInsufficientCreditsOpen}
+        onOpenChange={setIsInsufficientCreditsOpen}
+        currentBalance={walletBalance}
+        hasPurchased={walletHasPurchased}
       />
 
       <AlertDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>

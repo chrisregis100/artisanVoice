@@ -2,489 +2,349 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import {
-  CheckCircle2,
-  ArrowRight,
-  Mic,
-  FileText,
-  Share2,
-  WifiOff,
-  Users,
-  Clock,
-  Shield,
-  Headphones,
-  Palette,
-  Globe,
-  Download,
-} from "lucide-react";
+import { Shield, Zap, Globe, CreditCard, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/i18n/context";
 import { BilloLogoMark } from "@/components/brand/billo-logo";
-import { usePublicPlans } from "@/hooks/use-public-plans";
 import { useCurrency } from "@/hooks/use-currency";
-import { useState } from "react";
+import { cn } from "@/lib/utils";
 
-interface PlanFeature {
-  labelKey: string;
-  free: boolean | string;
-  earlyBird: boolean | string;
-  pro: boolean | string;
-  business: boolean | string;
-  icon: React.ComponentType<{ className?: string }>;
+interface PackDef {
+  id: string;
+  slug: string;
+  priceUsd: string;
+  priceXof: string;
+  totalCredits: number;
+  bonusCredits: number;
+  perInvoiceUsd: string;
+  perInvoiceXof: string;
+  href: string;
+  isPopular: boolean;
+  isFree: boolean;
 }
+
+const PACKS: PackDef[] = [
+  {
+    id: "free",
+    slug: "free",
+    priceUsd: "$0",
+    priceXof: "0 FCFA",
+    totalCredits: 3,
+    bonusCredits: 0,
+    perInvoiceUsd: "—",
+    perInvoiceXof: "—",
+    href: "/register",
+    isPopular: false,
+    isFree: true,
+  },
+  {
+    id: "starter",
+    slug: "starter",
+    priceUsd: "$4",
+    priceXof: "2 400 FCFA",
+    totalCredits: 10,
+    bonusCredits: 0,
+    perInvoiceUsd: "$0.40",
+    perInvoiceXof: "240 FCFA",
+    href: "/credits/buy/starter",
+    isPopular: false,
+    isFree: false,
+  },
+  {
+    id: "populaire",
+    slug: "populaire",
+    priceUsd: "$9",
+    priceXof: "5 400 FCFA",
+    totalCredits: 30,
+    bonusCredits: 0,
+    perInvoiceUsd: "$0.30",
+    perInvoiceXof: "180 FCFA",
+    href: "/credits/buy/populaire",
+    isPopular: true,
+    isFree: false,
+  },
+  {
+    id: "pro",
+    slug: "pro",
+    priceUsd: "$24",
+    priceXof: "14 400 FCFA",
+    totalCredits: 110,
+    bonusCredits: 10,
+    perInvoiceUsd: "$0.22",
+    perInvoiceXof: "131 FCFA",
+    href: "/credits/buy/pro",
+    isPopular: false,
+    isFree: false,
+  },
+];
+
+const TABLE_ROWS = [
+  { slug: "free",      credits: "3",   priceUsd: "$0",  priceXof: "—",          perInvoice: "—",     fcfa: "—",      isPopular: false },
+  { slug: "starter",   credits: "10",  priceUsd: "$4",  priceXof: "2 400 FCFA", perInvoice: "$0.40", fcfa: "2 400",  isPopular: false },
+  { slug: "populaire", credits: "30",  priceUsd: "$9",  priceXof: "5 400 FCFA", perInvoice: "$0.30", fcfa: "5 400",  isPopular: true  },
+  { slug: "pro",       credits: "110", priceUsd: "$24", priceXof: "14 400 FCFA",perInvoice: "$0.22", fcfa: "14 400", isPopular: false },
+];
 
 export function PricingContent() {
   const { t } = useLanguage();
-  // Keep usePublicPlans for backward compat
-  const { proMonthlyAmount: _proMonthlyAmount } = usePublicPlans();
-  const { formatWithSymbol } = useCurrency();
-  const [isAnnual, setIsAnnual] = useState(false);
+  const { currency } = useCurrency();
 
-  const planFeatures: PlanFeature[] = [
+  const isXof = currency === "XOF";
+
+  const getPackBadge = (slug: string): string => {
+    const map: Record<string, string> = {
+      free: t("pricing.free.subtitle") || "Pour découvrir",
+      starter: t("pricing.starter.subtitle") || "Petits volumes",
+      populaire: t("pricing.populaire.badge") || "LE PLUS POPULAIRE",
+      pro: t("pricing.pro.subtitle") || "Volumes élevés",
+    };
+    return map[slug] ?? "";
+  };
+
+  const getPackName = (slug: string): string => {
+    const map: Record<string, string> = {
+      free: "Gratuit",
+      starter: "Starter",
+      populaire: "Populaire",
+      pro: "Pro",
+    };
+    return map[slug] ?? slug;
+  };
+
+  const getPackDesc = (slug: string): string => {
+    const map: Record<string, string> = {
+      free: t("pricing.free.descShort") || "Dès que tu crées ton compte Billo, tu reçois 3 crédits. Pas de carte bancaire requise.",
+      starter: t("pricing.starter.descShort") || "Tu factures occasionnellement — deux ou trois clients par mois, pas plus.",
+      populaire: t("pricing.populaire.descShort") || "Le pack que choisissent la majorité des freelances qui facturent régulièrement.",
+      pro: t("pricing.pro.descShort") || "Pour les consultants, agences et indépendants qui gèrent plusieurs clients simultanément.",
+    };
+    return map[slug] ?? "";
+  };
+
+  const universalItems = [
     {
-      labelKey: "pricingPage.docsPerMonth",
-      free: "3",
-      earlyBird: t("pricingPage.unlimited"),
-      pro: t("pricingPage.unlimited"),
-      business: t("pricingPage.unlimited"),
-      icon: FileText,
-    },
-    {
-      labelKey: "pricingPage.voiceBilling",
-      free: true,
-      earlyBird: true,
-      pro: true,
-      business: true,
-      icon: Mic,
-    },
-    {
-      labelKey: "pricingPage.pdfExport",
-      free: true,
-      earlyBird: true,
-      pro: true,
-      business: true,
-      icon: FileText,
-    },
-    {
-      labelKey: "pricingPage.whatsapp",
-      free: true,
-      earlyBird: true,
-      pro: true,
-      business: true,
-      icon: Share2,
-    },
-    {
-      labelKey: "pricingPage.offline",
-      free: true,
-      earlyBird: true,
-      pro: true,
-      business: true,
-      icon: WifiOff,
-    },
-    {
-      labelKey: "pricingPage.clientManagement",
-      free: t("pricingPage.oneClient"),
-      earlyBird: t("pricingPage.unlimited"),
-      pro: t("pricingPage.unlimited"),
-      business: t("pricingPage.unlimited"),
-      icon: Users,
-    },
-    {
-      labelKey: "pricingPage.history",
-      free: t("pricingPage.sevenDays"),
-      earlyBird: t("pricingPage.unlimited"),
-      pro: t("pricingPage.unlimited"),
-      business: t("pricingPage.unlimited"),
-      icon: Clock,
-    },
-    {
-      labelKey: "pricingPage.businessProfiles",
-      free: "1",
-      earlyBird: "3",
-      pro: "3",
-      business: t("pricingPage.unlimited"),
       icon: Shield,
+      title: t("pricing.universal.noExpiry.title") || "Les crédits n'expirent jamais.",
+      desc: t("pricing.universal.noExpiry.desc") || "Un crédit acheté aujourd'hui est toujours valide dans 6 mois ou dans 2 ans.",
     },
     {
-      labelKey: "pricingPage.prioritySupport",
-      free: false,
-      earlyBird: false,
-      pro: true,
-      business: true,
-      icon: Headphones,
+      icon: Zap,
+      title: t("pricing.universal.stackable.title") || "Les crédits se cumulent.",
+      desc: t("pricing.universal.stackable.desc") || "Tes crédits restants s'ajoutent à chaque nouvel achat. Simple.",
     },
     {
-      labelKey: "pricingPage.customBranding",
-      free: false,
-      earlyBird: false,
-      pro: false,
-      business: true,
-      icon: Palette,
-    },
-    {
-      labelKey: "pricingPage.multiCurrency",
-      free: false,
-      earlyBird: false,
-      pro: false,
-      business: true,
       icon: Globe,
+      title: t("pricing.universal.regional.title") || "Le prix s'adapte à ta région.",
+      desc: t("pricing.universal.regional.desc") || "Les packs sont affichés en devise locale avec un tarif ajusté à la parité de pouvoir d'achat.",
     },
     {
-      labelKey: "pricingPage.csvExport",
-      free: false,
-      earlyBird: false,
-      pro: false,
-      business: true,
-      icon: Download,
+      icon: CreditCard,
+      title: t("pricing.universal.noSubscription.title") || "Pas d'abonnement caché.",
+      desc: t("pricing.universal.noSubscription.desc") || "Tu achètes un pack, tu utilises tes crédits, tu rachètes quand tu veux.",
     },
   ];
 
   return (
     <div className="flex flex-col">
-      {/* Hero */}
+      {/* ── Hero ───────────────────────────────────────────────────── */}
       <section className="bg-brand pt-32 pb-20">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
           <span className="mb-4 inline-block rounded-full bg-brand-foreground/10 px-4 py-1.5 text-sm font-semibold text-brand-foreground/70">
-            {t("pricingPage.badge")}
+            {t("pricing.badge") || "Tarifs"}
           </span>
-          <h1 className="text-4xl font-extrabold tracking-tight text-brand-foreground sm:text-5xl">
-            {t("pricingPage.title")}
+          <h1 className="text-3xl font-extrabold tracking-tight text-brand-foreground sm:text-4xl leading-tight">
+            Tu paies uniquement quand tu factures.
           </h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg text-brand-foreground/60">
-            {t("pricingPage.subtitle")}
+          <p className="mx-auto mt-6 max-w-xl text-lg text-brand-foreground/70">
+            Pas d&apos;abonnement. Pas de renouvellement automatique. Jamais de crédits qui expirent.
           </p>
         </div>
       </section>
 
-      {/* Plans */}
+      {/* ── Pack cards ──────────────────────────────────────────────── */}
       <section className="bg-muted py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          {/* Monthly / Annual toggle */}
-          <div className="mb-10 flex justify-center">
-            <div className="relative flex items-center rounded-full bg-background p-1.5 shadow-inner border border-border">
-              <button
-                onClick={() => setIsAnnual(false)}
-                className={`relative z-10 w-32 rounded-full py-2 text-sm font-bold transition-all duration-300 ${
-                  !isAnnual
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground/70"
-                }`}
-              >
-                Mensuel
-              </button>
-              <button
-                onClick={() => setIsAnnual(true)}
-                className={`relative z-10 w-32 rounded-full py-2 text-sm font-bold transition-all duration-300 ${
-                  isAnnual
-                    ? "text-foreground"
-                    : "text-muted-foreground hover:text-foreground/70"
-                }`}
-              >
-                Annuel
-              </button>
-              <div
-                className={`absolute left-1.5 h-[calc(100%-12px)] w-32 rounded-full bg-muted shadow-md transition-transform duration-300 ${
-                  isAnnual ? "translate-x-32" : "translate-x-0"
-                }`}
-              />
-            </div>
+        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 lg:items-start">
+            {PACKS.map((pack) => {
+              const price = isXof ? pack.priceXof : pack.priceUsd;
+              const perInvoice = isXof ? pack.perInvoiceXof : pack.perInvoiceUsd;
+              const creditsLine =
+                pack.isFree
+                  ? t("pricing.free.credits") || "3 crédits offerts à l'inscription — une seule fois"
+                  : `${pack.totalCredits} crédits — ${perInvoice}/facture`;
+
+              return (
+                <div
+                  key={pack.id}
+                  className={cn(
+                    "relative flex flex-col rounded-2xl p-7 transition-transform duration-200",
+                    pack.isPopular
+                      ? "border-2 border-brand bg-card shadow-2xl shadow-brand/20 lg:scale-[1.06] z-10"
+                      : "border border-border bg-card shadow-sm hover:shadow-md",
+                  )}
+                >
+                  {/* Popular badge */}
+                  {pack.isPopular && (
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 whitespace-nowrap">
+                      <span className="rounded-full bg-brand px-4 py-1 text-xs font-bold text-brand-foreground">
+                        {getPackBadge(pack.slug)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Category badge */}
+                  {!pack.isPopular && (
+                    <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {getPackBadge(pack.slug)}
+                    </div>
+                  )}
+                  {pack.isPopular && (
+                    <div className="mb-1 mt-2 text-xs font-semibold uppercase tracking-wider text-brand">
+                      Pour les freelances actifs
+                    </div>
+                  )}
+
+                  {/* Name + bonus chip */}
+                  <div className="mt-1 flex items-center gap-2">
+                    <h2 className="text-xl font-extrabold text-foreground">
+                      {getPackName(pack.slug)}
+                    </h2>
+                    {pack.bonusCredits > 0 && (
+                      <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-bold text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 ring-1 ring-amber-300/40 dark:ring-amber-600/40">
+                        <Zap className="h-3 w-3" aria-hidden />
+                        +{pack.bonusCredits} bonus
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Price */}
+                  <div className="mt-3 flex items-baseline gap-1.5">
+                    <span className="text-4xl font-black text-foreground">{price}</span>
+                  </div>
+
+                  {/* Credits line */}
+                  <p className="mt-1 text-sm font-semibold text-muted-foreground">{creditsLine}</p>
+
+                  <div className="my-5 h-px w-full bg-border" />
+
+                  {/* Description */}
+                  <p className="mb-5 text-sm leading-relaxed text-foreground/80 flex-1">
+                    {getPackDesc(pack.slug)}
+                  </p>
+
+                  {/* CTA */}
+                  {pack.isFree ? (
+                    <>
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="outline"
+                        className="h-11 w-full rounded-xl border-brand text-brand font-semibold hover:bg-brand/5 mb-4"
+                      >
+                        <Link href={pack.href}>
+                          {t("pricing.free.cta") || "Commencer gratuitement"}
+                        </Link>
+                      </Button>
+                      <p className="text-center text-xs italic text-muted-foreground">
+                        {t("pricing.free.footer") || "Aucune carte bancaire. Aucune date d'expiration."}
+                      </p>
+                    </>
+                  ) : (
+                    <Button
+                      asChild
+                      size="sm"
+                      className={cn(
+                        "mt-auto h-11 w-full rounded-xl font-semibold shadow-sm",
+                        pack.isPopular
+                          ? "bg-brand text-brand-foreground hover:bg-brand/90 shadow-brand/30"
+                          : "bg-foreground text-background hover:bg-foreground/90",
+                      )}
+                    >
+                      <Link href={pack.href}>
+                        {t("pricing.cta.buy") || "Acheter"}
+                        <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
           </div>
-
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Free plan */}
-            <div className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-sm">
-              <div className="mb-5">
-                <h2 className="text-lg font-bold text-foreground">
-                  {t("pricingPage.freeName")}
-                </h2>
-                <div className="mt-3 flex items-baseline gap-1.5 flex-wrap">
-                  <span className="text-4xl font-black text-foreground">0</span>
-                  <span className="text-sm font-medium text-muted-foreground">
-                    / mois
-                  </span>
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {t("pricingPage.freeDesc")}
-                </p>
-              </div>
-
-              <Button
-                asChild
-                size="sm"
-                variant="outline"
-                className="mb-6 h-10 w-full rounded-xl border-brand text-brand font-semibold hover:bg-brand/5"
-              >
-                <Link href="/register">{t("pricingPage.freeCta")}</Link>
-              </Button>
-
-              <ul className="flex flex-col gap-2.5">
-                {[
-                  t("pricingPage.freeF1"),
-                  t("pricingPage.freeF2"),
-                  t("pricingPage.freeF3"),
-                  t("pricingPage.freeF4"),
-                  t("pricingPage.freeF5"),
-                  t("pricingPage.freeF6"),
-                ].map((f) => (
-                  <li key={f} className="flex items-center gap-2.5">
-                    <CheckCircle2
-                      className="h-4 w-4 shrink-0 text-primary"
-                      aria-hidden
-                    />
-                    <span className="text-xs text-foreground/80">{f}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Early Bird plan */}
-            <div className="relative flex flex-col rounded-2xl bg-foreground p-6 shadow-2xl shadow-brand/20 ring-2 ring-brand/40">
-              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 flex items-center gap-2">
-                <span className="rounded-full bg-primary px-4 py-1 text-xs font-bold text-primary-foreground">
-                  {t("common.recommended")}
-                </span>
-                <span className="rounded-full bg-amber-500 dark:bg-amber-500/90 px-3 py-1 text-xs font-bold text-white">
-                  {t("pricingPage.earlyBirdBadge")}
-                </span>
-              </div>
-
-              <div className="mb-5 mt-2">
-                <h2 className="text-lg font-bold text-background">
-                  {t("pricingPage.earlyBirdName")}
-                </h2>
-                <div className="mt-3 flex items-baseline gap-1.5 flex-wrap">
-                  <span className="text-4xl font-black text-background">
-                    {formatWithSymbol("early_bird")}
-                  </span>
-                  <span className="text-xs font-medium text-background/60">
-                    {t("pricingPage.earlyBirdPeriod")}
-                  </span>
-                </div>
-                <p className="mt-2 text-xs text-background/60">
-                  {t("pricingPage.earlyBirdDesc")}
-                </p>
-              </div>
-
-              <Button
-                asChild
-                size="sm"
-                className="mb-6 h-10 w-full rounded-xl bg-primary font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 shadow-primary/30"
-              >
-                <Link href="/register?plan=early_bird">
-                  {t("pricingPage.earlyBirdCta")}
-                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
-                </Link>
-              </Button>
-
-              <ul className="flex flex-col gap-2.5">
-                {[
-                  t("pricingPage.earlyBirdF1"),
-                  t("pricingPage.earlyBirdF2"),
-                  t("pricingPage.earlyBirdF3"),
-                  t("pricingPage.earlyBirdF4"),
-                  t("pricingPage.earlyBirdF5"),
-                  t("pricingPage.earlyBirdF6"),
-                ].map((f) => (
-                  <li key={f} className="flex items-center gap-2.5">
-                    <CheckCircle2
-                      className="h-4 w-4 shrink-0 text-primary"
-                      aria-hidden
-                    />
-                    <span className="text-xs text-background/80">{f}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Pro plan */}
-            <div className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-sm">
-              <div className="mb-5">
-                <h2 className="text-lg font-bold text-foreground">
-                  {t("pricingPage.proName")}
-                </h2>
-                <div className="mt-3 flex items-baseline gap-1.5 flex-wrap">
-                  <span className="text-4xl font-black text-foreground">
-                    {isAnnual
-                      ? formatWithSymbol("pro_annual")
-                      : formatWithSymbol("pro_monthly")}
-                  </span>
-                  <span className="text-sm font-medium text-muted-foreground">
-                    {isAnnual
-                      ? t("pricingPage.proPeriod").replace("mois", "an")
-                      : t("pricingPage.proPeriod")}
-                  </span>
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {t("pricingPage.proDesc")}
-                </p>
-              </div>
-
-              <Button
-                asChild
-                size="sm"
-                className="mb-6 h-10 w-full rounded-xl bg-foreground font-semibold text-background shadow-sm hover:bg-foreground/90"
-              >
-                <Link href="/register?plan=pro">
-                  {t("pricingPage.proCta")}
-                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
-                </Link>
-              </Button>
-
-              <ul className="flex flex-col gap-2.5">
-                {[
-                  t("pricingPage.proF1"),
-                  t("pricingPage.proF2"),
-                  t("pricingPage.proF3"),
-                  t("pricingPage.proF4"),
-                  t("pricingPage.proF5"),
-                  t("pricingPage.proF6"),
-                  t("pricingPage.proF7"),
-                ].map((f) => (
-                  <li key={f} className="flex items-center gap-2.5">
-                    <CheckCircle2
-                      className="h-4 w-4 shrink-0 text-primary"
-                      aria-hidden
-                    />
-                    <span className="text-xs text-foreground/80">{f}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Business plan */}
-            <div className="flex flex-col rounded-2xl border border-border bg-card p-6 shadow-sm">
-              <div className="mb-5">
-                <h2 className="text-lg font-bold text-foreground">
-                  {t("pricingPage.businessName")}
-                </h2>
-                <div className="mt-3 flex items-baseline gap-1.5 flex-wrap">
-                  <span className="text-4xl font-black text-foreground">
-                    {isAnnual
-                      ? formatWithSymbol("business_annual")
-                      : formatWithSymbol("business_monthly")}
-                  </span>
-                  <span className="text-sm font-medium text-muted-foreground">
-                    {isAnnual
-                      ? t("pricingPage.businessPeriod").replace("mois", "an")
-                      : t("pricingPage.businessPeriod")}
-                  </span>
-                </div>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {t("pricingPage.businessDesc")}
-                </p>
-              </div>
-
-              <Button
-                asChild
-                size="sm"
-                className="mb-6 h-10 w-full rounded-xl bg-foreground font-semibold text-background shadow-sm hover:bg-foreground/90"
-              >
-                <Link href="/register?plan=business">
-                  {t("pricingPage.businessCta")}
-                  <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
-                </Link>
-              </Button>
-
-              <ul className="flex flex-col gap-2.5">
-                {[
-                  t("pricingPage.businessF1"),
-                  t("pricingPage.businessF2"),
-                  t("pricingPage.businessF3"),
-                  t("pricingPage.businessF4"),
-                  t("pricingPage.businessF5"),
-                  t("pricingPage.businessF6"),
-                  t("pricingPage.businessF7"),
-                ].map((f) => (
-                  <li key={f} className="flex items-center gap-2.5">
-                    <CheckCircle2
-                      className="h-4 w-4 shrink-0 text-primary"
-                      aria-hidden
-                    />
-                    <span className="text-xs text-foreground/80">{f}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <p className="mt-8 text-center text-sm text-muted-foreground/60">
-            {t("pricingPage.footer")}
-          </p>
         </div>
       </section>
 
-      {/* Comparison table */}
+      {/* ── Universal guarantees ────────────────────────────────────── */}
       <section className="bg-background py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
-          <h2 className="mb-10 text-center text-2xl font-extrabold text-foreground">
-            {t("pricingPage.comparison")}
+        <div className="mx-auto max-w-5xl px-4 sm:px-6">
+          <h2 className="mb-12 text-center text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+            {t("pricing.universal.title") || "Ce qui s'applique à tous les packs"}
           </h2>
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+            {universalItems.map(({ icon: Icon, title, desc }) => (
+              <div key={title} className="flex gap-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                  <Icon className="h-5 w-5 text-primary" aria-hidden />
+                </div>
+                <div>
+                  <h3 className="font-bold text-foreground">{title}</h3>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-          <div className="overflow-x-auto rounded-2xl border border-border">
+      {/* ── Summary table ───────────────────────────────────────────── */}
+      <section className="bg-muted py-16">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6">
+          <h2 className="mb-8 text-center text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+            {t("pricing.table.title") || "Récapitulatif"}
+          </h2>
+          <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-sm">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border bg-muted">
-                  <th className="px-4 py-4 text-left font-semibold text-muted-foreground">
-                    {t("pricingPage.featureLabel")}
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="px-4 py-3 text-left font-semibold text-foreground">
+                    {t("pricing.table.pack") || "Pack"}
                   </th>
-                  <th className="px-4 py-4 text-center font-semibold text-muted-foreground">
-                    {t("pricingPage.freeName")}
+                  <th className="px-4 py-3 text-center font-semibold text-foreground">
+                    {t("pricing.table.credits") || "Crédits"}
                   </th>
-                  <th className="bg-brand/10 px-4 py-4 text-center font-semibold text-foreground">
-                    {t("pricingPage.earlyBirdName")}
+                  <th className="px-4 py-3 text-center font-semibold text-foreground">
+                    {t("pricing.table.price") || "Prix"}
                   </th>
-                  <th className="px-4 py-4 text-center font-semibold text-muted-foreground">
-                    {t("pricingPage.proName")}
+                  <th className="px-4 py-3 text-center font-semibold text-foreground">
+                    {t("pricing.table.perInvoice") || "Prix / facture"}
                   </th>
-                  <th className="px-4 py-4 text-center font-semibold text-muted-foreground">
-                    {t("pricingPage.businessName")}
+                  <th className="hidden px-4 py-3 text-center font-semibold text-foreground sm:table-cell">
+                    {t("pricing.table.fcfa") || "FCFA approx."}
                   </th>
                 </tr>
               </thead>
               <tbody>
-                {planFeatures.map((feature, index) => (
+                {TABLE_ROWS.map((row) => (
                   <tr
-                    key={feature.labelKey}
-                    className={`border-b border-border/60 ${index % 2 === 0 ? "bg-card" : "bg-muted/30"}`}
+                    key={row.slug}
+                    className={cn(
+                      "border-b border-border last:border-0",
+                      row.isPopular && "bg-primary/5",
+                    )}
                   >
-                    <td className="px-4 py-3.5">
-                      <div className="flex items-center gap-2.5">
-                        <feature.icon
-                          className="h-4 w-4 text-muted-foreground"
-                          aria-hidden
-                        />
-                        <span className="font-medium text-foreground/80">
-                          {t(feature.labelKey)}
+                    <td className="px-4 py-3 font-semibold text-foreground capitalize">
+                      {getPackName(row.slug)}
+                      {row.isPopular && (
+                        <span className="ml-2 rounded-full bg-primary/15 px-2 py-0.5 text-xs font-bold text-primary">
+                          ★
                         </span>
-                      </div>
+                      )}
                     </td>
-                    <td className="px-4 py-3.5 text-center">
-                      <ComparisonCell
-                        value={feature.free}
-                        notIncluded={t("pricingPage.notIncluded")}
-                        included={t("pricingPage.included")}
-                      />
+                    <td className="px-4 py-3 text-center text-foreground/80">{row.credits}</td>
+                    <td className="px-4 py-3 text-center font-semibold text-foreground">
+                      {isXof && row.slug !== "free" ? row.priceXof : row.priceUsd}
                     </td>
-                    <td className="bg-brand/5 px-4 py-3.5 text-center">
-                      <ComparisonCell
-                        value={feature.earlyBird}
-                        isHighlighted
-                        notIncluded={t("pricingPage.notIncluded")}
-                        included={t("pricingPage.included")}
-                      />
-                    </td>
-                    <td className="px-4 py-3.5 text-center">
-                      <ComparisonCell
-                        value={feature.pro}
-                        notIncluded={t("pricingPage.notIncluded")}
-                        included={t("pricingPage.included")}
-                      />
-                    </td>
-                    <td className="px-4 py-3.5 text-center">
-                      <ComparisonCell
-                        value={feature.business}
-                        notIncluded={t("pricingPage.notIncluded")}
-                        included={t("pricingPage.included")}
-                      />
+                    <td className="px-4 py-3 text-center text-foreground/80">{row.perInvoice}</td>
+                    <td className="hidden px-4 py-3 text-center text-muted-foreground sm:table-cell">
+                      {row.fcfa !== "—" ? `${row.fcfa} FCFA` : "—"}
                     </td>
                   </tr>
                 ))}
@@ -494,87 +354,46 @@ export function PricingContent() {
         </div>
       </section>
 
-      {/* FAQ teaser */}
+      {/* ── FAQ teaser ──────────────────────────────────────────────── */}
       <section className="border-t border-border bg-muted py-16">
         <div className="mx-auto max-w-xl px-4 text-center sm:px-6">
           <h2 className="text-2xl font-bold text-foreground">
-            {t("pricingPage.questionsTitle")}
+            {t("pricingPage.questionsTitle") || "Des questions sur nos tarifs ?"}
           </h2>
           <p className="mt-3 text-muted-foreground">
-            {t("pricingPage.questionsSubtitle")}
+            {t("pricingPage.questionsSubtitle") || "Consultez notre FAQ ou contactez-nous directement."}
           </p>
           <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
             <Button
               asChild
               className="rounded-xl bg-brand px-6 font-semibold text-brand-foreground hover:bg-brand/90"
             >
-              <Link href="/#faq">{t("pricingPage.faqBtn")}</Link>
+              <Link href="/#faq">{t("pricingPage.faqBtn") || "Voir la FAQ"}</Link>
             </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="rounded-xl px-6 font-semibold"
-            >
+            <Button asChild variant="outline" className="rounded-xl px-6 font-semibold">
               <Link href="mailto:contact@billo.regiskiki.me">
-                {t("pricingPage.contactBtn")}
+                {t("pricingPage.contactBtn") || "Nous contacter"}
               </Link>
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
+      {/* ── Footer ──────────────────────────────────────────────────── */}
       <footer className="border-t border-border bg-background py-8">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <Link
-              href="/"
-              className="flex items-center gap-2"
-              aria-label="Billo - Accueil"
-            >
+            <Link href="/" className="flex items-center gap-2" aria-label="Billo - Accueil">
               <BilloLogoMark className="h-8 w-8" size={32} />
               <span className="font-bold text-brand">Billo</span>
             </Link>
             <p className="text-sm text-muted-foreground/60">
               &copy; {new Date().getFullYear()} Billo &middot;{" "}
-              {t("pricingPage.footerRights")}
+              {t("pricingPage.footerRights") || "Tous droits réservés"}
             </p>
           </div>
         </div>
       </footer>
     </div>
-  );
-}
-
-function ComparisonCell({
-  value,
-  isHighlighted = false,
-  notIncluded,
-  included,
-}: {
-  value: boolean | string;
-  isHighlighted?: boolean;
-  notIncluded: string;
-  included: string;
-}) {
-  if (value === false)
-    return (
-      <span className="text-muted-foreground/30" aria-label={notIncluded}>
-        &mdash;
-      </span>
-    );
-  if (value === true)
-    return (
-      <CheckCircle2
-        className="mx-auto h-5 w-5 text-primary"
-        aria-label={included}
-      />
-    );
-  return (
-    <span
-      className={`font-semibold ${isHighlighted ? "text-foreground" : "text-foreground/80"}`}
-    >
-      {value}
-    </span>
   );
 }

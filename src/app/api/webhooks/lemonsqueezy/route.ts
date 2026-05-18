@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createHmac, timingSafeEqual } from "crypto";
 import { env } from "@/lib/env";
 import { lemonsqueezyWebhookSchema } from "@/lib/api/schemas";
-import { createHmac, timingSafeEqual } from "crypto";
+import { getPackAdmin } from "@/lib/credits/packs";
+import { grantCredits } from "@/lib/credits/grant";
 
 function verifyLemonSqueezySignature(rawBody: string, signature: string): boolean {
   const secret = env.LEMONSQUEEZY_WEBHOOK_SECRET;
@@ -19,11 +20,31 @@ function verifyLemonSqueezySignature(rawBody: string, signature: string): boolea
   }
 }
 
+/** Maps a LemonSqueezy variant ID (as string) to a credit pack slug. */
+function buildVariantToPackSlug(): Record<string, string> {
+  const map: Record<string, string> = {};
+
+  const starterVariantId = env.LEMONSQUEEZY_VARIANT_STARTER_USD;
+  const populaireVariantId = env.LEMONSQUEEZY_VARIANT_POPULAIRE_USD;
+  const proVariantId = env.LEMONSQUEEZY_VARIANT_PRO_USD;
+
+  if (starterVariantId) map[starterVariantId] = "starter";
+  if (populaireVariantId) map[populaireVariantId] = "populaire";
+  if (proVariantId) map[proVariantId] = "pro";
+
+  return map;
+}
+
 export async function POST(request: NextRequest) {
   const rawBody = await request.text();
   const signature = request.headers.get("x-signature") ?? "";
 
   if (!verifyLemonSqueezySignature(rawBody, signature)) {
+    if (!process.env.LEMONSQUEEZY_WEBHOOK_SECRET) {
+      console.error(
+        "[LS Webhook] LEMONSQUEEZY_WEBHOOK_SECRET is not configured — all webhooks will be rejected.",
+      );
+    }
     return NextResponse.json({ error: "Requête invalide" }, { status: 400 });
   }
 
@@ -36,108 +57,101 @@ export async function POST(request: NextRequest) {
 
   const payloadResult = lemonsqueezyWebhookSchema.safeParse(parsedJson);
   if (!payloadResult.success) {
-    console.error("Invalid Lemon Squeezy webhook payload:", payloadResult.error.flatten());
+    console.error("[LS Webhook] Invalid payload:", payloadResult.error.flatten());
     return NextResponse.json({ error: "Payload invalide." }, { status: 400 });
   }
 
   const { meta, data } = payloadResult.data;
   const eventName = meta.event_name;
+  const dataId = String(data.id);
+
+  // Ignore all subscription lifecycle events — this app no longer uses subscriptions
+  const isSubscriptionEvent = eventName.startsWith("subscription_");
+  if (isSubscriptionEvent || eventName === "order_refunded") {
+    console.warn(`[LS Webhook] Ignoring legacy event: ${eventName} (id=${dataId})`);
+    return NextResponse.json({ received: true });
+  }
+
+  if (eventName !== "order_created") {
+    // Unknown event — acknowledge without processing
+    return NextResponse.json({ received: true });
+  }
+
+  // order_created — credit pack purchase.
+  // Verify the order status is "paid" before granting credits.
+  // LemonSqueezy fires order_created for all orders including pending ones.
+  const orderStatus = data.attributes?.status;
+  if (orderStatus !== "paid") {
+    console.warn(`[LS Webhook] order_created with status="${orderStatus ?? "unknown"}" — skipping (id=${dataId})`);
+    return NextResponse.json({ received: true });
+  }
 
   const userId = meta.custom_data?.user_id;
-  const planName = meta.custom_data?.plan_name;
-
-  if (!userId || !planName) {
-    console.error("Missing custom_data in Lemon Squeezy webhook:", eventName);
+  if (!userId) {
+    console.error("[LS Webhook] Missing user_id in custom_data", { eventName, dataId });
     return NextResponse.json({ received: true });
   }
 
-  const admin = createAdminClient();
+  // Resolve pack slug: prefer explicit pack_slug in custom_data, fall back to variant mapping
+  let packSlug = meta.custom_data?.pack_slug;
 
-  if (eventName === "order_created" || eventName === "subscription_created") {
-    const { data: planRow, error: planError } = await admin
-      .from("plans")
-      .select("id")
-      .eq("name", planName)
-      .eq("is_active", true)
-      .maybeSingle();
+  if (!packSlug) {
+    const variantId = data.attributes?.first_order_item?.variant_id;
+    if (variantId !== undefined) {
+      const variantMap = buildVariantToPackSlug();
+      packSlug = variantMap[String(variantId)];
+    }
+  }
 
-    if (planError || !planRow) {
-      console.error("Lemon Squeezy webhook: plan not found", planName, planError);
+  if (!packSlug) {
+    console.error("[LS Webhook] Could not resolve pack slug for order", { dataId, attributes: data.attributes });
+    return NextResponse.json({ received: true });
+  }
+
+  const pack = await getPackAdmin(packSlug);
+  if (!pack) {
+    console.error("[LS Webhook] Pack not found", { packSlug, dataId });
+    // Return 500 so LemonSqueezy retries — pack not found is unexpected.
+    return NextResponse.json(
+      { error: "Pack introuvable — réessai attendu" },
+      { status: 500 },
+    );
+  }
+
+  const creditsToGrant = pack.creditsAmount + pack.bonusCredits;
+
+  try {
+    await grantCredits({
+      userId,
+      amount: creditsToGrant,
+      kind: "purchase",
+      packId: pack.id,
+      paymentProvider: "lemonsqueezy",
+      paymentReference: dataId,
+      metadata: { pack_slug: packSlug },
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    // UNIQUE constraint violation → already processed, idempotent, acknowledge
+    if (
+      message.includes("unique") ||
+      message.includes("duplicate") ||
+      message.includes("already") ||
+      message.includes("23505")
+    ) {
       return NextResponse.json({ received: true });
     }
-
-    const subscriptionId = String(data.id);
-    const periodStart = new Date();
-    const periodEnd = new Date(periodStart);
-
-    // Annual plans have 12-month periods, monthly plans have 1-month periods
-    const isAnnual = planName.includes("annual");
-    if (isAnnual) {
-      periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-    } else {
-      periodEnd.setMonth(periodEnd.getMonth() + 1);
-    }
-
-    const { data: existingSubscription } = await admin
-      .from("subscriptions")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("status", "active")
-      .maybeSingle();
-
-    if (existingSubscription) {
-      const { error: updateError } = await admin
-        .from("subscriptions")
-        .update({
-          plan_id: planRow.id,
-          payment_provider: "lemonsqueezy",
-          payment_reference: subscriptionId,
-          current_period_start: periodStart.toISOString(),
-          current_period_end: periodEnd.toISOString(),
-          status: "active",
-        })
-        .eq("id", existingSubscription.id);
-
-      if (updateError) {
-        console.error("Failed to update subscription for LS event:", updateError);
-      }
-    } else {
-      const { error: insertError } = await admin.from("subscriptions").insert({
-        user_id: userId,
-        plan_id: planRow.id,
-        status: "active",
-        payment_provider: "lemonsqueezy",
-        payment_reference: subscriptionId,
-        current_period_start: periodStart.toISOString(),
-        current_period_end: periodEnd.toISOString(),
-      });
-
-      if (insertError) {
-        console.error("Failed to insert subscription for LS event:", insertError);
-      }
-    }
-
-    return NextResponse.json({ received: true });
-  }
-
-  if (eventName === "subscription_updated") {
-    const status = data.attributes?.status;
-    const isCancelled = status === "expired" || status === "cancelled";
-
-    if (isCancelled) {
-      const { error: cancelError } = await admin
-        .from("subscriptions")
-        .update({ status: "cancelled" })
-        .eq("user_id", userId)
-        .eq("payment_provider", "lemonsqueezy")
-        .eq("status", "active");
-
-      if (cancelError) {
-        console.error("Failed to cancel LS subscription:", cancelError);
-      }
-    }
-
-    return NextResponse.json({ received: true });
+    // Real error: return 500 so LemonSqueezy retries the webhook delivery
+    console.error("[LS Webhook] grantCredits failed — will retry", {
+      userId,
+      dataId,
+      packSlug,
+      error: message,
+    });
+    return NextResponse.json(
+      { error: "Erreur interne — réessai attendu" },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({ received: true });

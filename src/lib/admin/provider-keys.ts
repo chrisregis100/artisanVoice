@@ -6,6 +6,7 @@ import { getSecretsEncryptionKey } from "@/lib/admin/secrets-settings";
 
 export const ADMIN_SECRET_KEY_OPENAI = "secret_openai_api_key";
 export const ADMIN_SECRET_KEY_GEMINI = "secret_gemini_api_key";
+export const ADMIN_SECRET_KEY_AFRI = "secret_afri_api_key";
 
 interface StoredSecretV1 {
   v: 1;
@@ -50,14 +51,26 @@ export async function decryptStoredApiKey(
 }
 
 export async function getServerApiKeyForProvider(
-  provider: "openai" | "gemini",
+  provider: "openai" | "gemini" | "afri",
 ): Promise<string | undefined> {
-  const settingKey =
-    provider === "gemini" ? ADMIN_SECRET_KEY_GEMINI : ADMIN_SECRET_KEY_OPENAI;
-  const row = await getSecretKeyRow(settingKey);
+  if (provider === "gemini") {
+    const row = await getSecretKeyRow(ADMIN_SECRET_KEY_GEMINI);
+    const fromDb = await decryptStoredApiKey(row);
+    if (fromDb) return fromDb;
+    return env.GEMINI_API_KEY;
+  }
+
+  if (provider === "afri") {
+    const row = await getSecretKeyRow(ADMIN_SECRET_KEY_AFRI);
+    const fromDb = await decryptStoredApiKey(row);
+    if (fromDb) return fromDb;
+    return env.AFRI_API_KEY;
+  }
+
+  const row = await getSecretKeyRow(ADMIN_SECRET_KEY_OPENAI);
   const fromDb = await decryptStoredApiKey(row);
   if (fromDb) return fromDb;
-  return provider === "gemini" ? env.GEMINI_API_KEY : env.OPENAI_API_KEY;
+  return env.OPENAI_API_KEY;
 }
 
 export function maskFromStored(row: StoredSecretV1 | null): string {

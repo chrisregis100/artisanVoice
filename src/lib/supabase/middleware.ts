@@ -48,6 +48,7 @@ export const updateSession = async (request: NextRequest) => {
     "/subscribe",
     "/admin",
     "/panel",
+    "/paywall",
   ];
   const isProtectedRoute = protectedPrefixes.some((prefix) =>
     pathname.startsWith(prefix),

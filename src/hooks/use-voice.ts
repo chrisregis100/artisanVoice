@@ -35,9 +35,10 @@ const FinalizeDocumentSchema = z.object({
 // ---------------------------------------------------------------------------
 
 /** Input sample rate per provider (output playback is always 24 kHz). */
-const PROVIDER_SAMPLE_RATE: Record<"openai" | "gemini", number> = {
+const PROVIDER_SAMPLE_RATE: Record<"openai" | "gemini" | "afri", number> = {
   openai: 24000,
   gemini: 16000,
+  afri: 24000,
 };
 
 /** Path to the AudioWorklet module (served from /public). */
@@ -293,7 +294,7 @@ export function useVoice(): UseVoiceReturn {
     }
 
     const { provider, url, token } = (await response.json()) as {
-      provider: "openai" | "gemini";
+      provider: "openai" | "gemini" | "afri";
       url: string;
       token: string;
       model: string;
@@ -344,6 +345,10 @@ export function useVoice(): UseVoiceReturn {
       const geminiClient = new GeminiRealtimeClient(clientConfig);
       await geminiClient.connect(url);
       client = geminiClient;
+    } else if (provider === "afri") {
+      const afriClient = new RealtimeClient(clientConfig);
+      await afriClient.connect(token, url);
+      client = afriClient;
     } else {
       const openaiClient = new RealtimeClient(clientConfig);
       await openaiClient.connect(token, url);

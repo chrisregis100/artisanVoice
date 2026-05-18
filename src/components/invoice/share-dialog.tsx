@@ -26,7 +26,7 @@ import { MessageCircle, Download, Share2, Loader2, Phone } from "lucide-react";
 interface ShareDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Identifiant du document courant (store) — sert au décompte quota / déduplication mensuelle */
+  /** Identifiant du document courant (store) — utilisé pour la persistance Supabase. */
   documentId: string;
   customerName: string;
   customerPhone?: string;
@@ -69,11 +69,6 @@ export function ShareDialog({
   const [customerPhone, setCustomerPhone] = useState(initialPhone || "");
   const [error, setError] = useState<string | null>(null);
 
-  const QUOTA_ERROR: Record<"quota_exceeded" | "no_subscription", string> = {
-    quota_exceeded: t("dashboard.share.quotaExceeded"),
-    no_subscription: t("dashboard.share.noSubscription"),
-  };
-
   const shareParams = {
     customerName,
     customerAddress,
@@ -90,125 +85,68 @@ export function ShareDialog({
     customerPhone,
   };
 
-  const formatShareError = (err: unknown, context: "pdf" | "whatsapp") => {
-    console.error("Share error:", err);
-    return context === "pdf"
-      ? t("dashboard.share.pdfShareError")
-      : t("dashboard.share.whatsappShareError");
+  const persistAfterShare = async () => {
+    if (!userId) return;
+    try {
+      const sentAtMs = Date.now();
+      await upsertInvoiceToSupabase({
+        userId,
+        invoiceId: documentId,
+        customerName,
+        items,
+        total,
+        type,
+        status: "sent",
+        sentAtIso: new Date(sentAtMs).toISOString(),
+      });
+      const existingLocal = await db.invoices.get(documentId);
+      await putSyncedInvoiceMirror({
+        id: documentId,
+        userId,
+        customerName,
+        customerPhone: customerPhone || "",
+        items,
+        total,
+        type,
+        status: "sent",
+        sentAt: sentAtMs,
+        syncStatus: "synced",
+        createdAt: existingLocal?.createdAt ?? sentAtMs,
+        updatedAt: sentAtMs,
+      });
+    } catch (persistErr) {
+      console.error("Persist invoice after export failed:", persistErr);
+    }
   };
 
-  const runWithUsageGate = async (
-    shareAction: () => Promise<void>,
-    errorContext: "pdf" | "whatsapp",
-  ) => {
+  const handleShare = async (method: ShareMethod) => {
     setIsSharing(true);
     setError(null);
-
     try {
-      const preRes = await fetch("/api/subscription/document-export", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phase: "precheck", documentId }),
-      });
-      const preData = (await preRes.json()) as {
-        canExport?: boolean;
-        duplicate?: boolean;
-        reason?: "no_subscription" | "quota_exceeded";
-      };
-
-      if (!preRes.ok) {
-        setError(t("dashboard.share.checkQuotaError"));
-        return;
-      }
-
-      if (!preData.canExport) {
-        const reason = preData.reason;
-        setError(
-          reason && reason in QUOTA_ERROR
-            ? QUOTA_ERROR[reason]
-            : QUOTA_ERROR.quota_exceeded,
-        );
-        return;
-      }
-
-      const duplicate = preData.duplicate === true;
-
-      await shareAction();
-
-      if (userId) {
-        try {
-          const sentAtMs = Date.now();
-          await upsertInvoiceToSupabase({
-            userId,
-            invoiceId: documentId,
-            customerName,
-            items,
-            total,
-            type,
-            status: "sent",
-            sentAtIso: new Date(sentAtMs).toISOString(),
-          });
-          const existingLocal = await db.invoices.get(documentId);
-          await putSyncedInvoiceMirror({
-            id: documentId,
-            userId,
-            customerName,
-            customerPhone: customerPhone || "",
-            items,
-            total,
-            type,
-            status: "sent",
-            sentAt: sentAtMs,
-            syncStatus: "synced",
-            createdAt: existingLocal?.createdAt ?? sentAtMs,
-            updatedAt: sentAtMs,
-          });
-        } catch (persistErr) {
-          console.error("Persist invoice after export failed:", persistErr);
-        }
-      }
-
-      if (!duplicate) {
-        const commitRes = await fetch("/api/subscription/document-export", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phase: "commit", documentId }),
-        });
-        const commitData = (await commitRes.json()) as {
-          outcome?: string;
-          error?: string;
-        };
-
-        if (commitRes.status === 403) {
-          setError(t("dashboard.share.quotaReached"));
-          return;
-        }
-
-        if (!commitRes.ok) {
-          console.error("commit document export failed:", commitData);
-          setError(t("dashboard.share.commitError"));
-          return;
-        }
-      }
-
+      await shareWithPDF(shareParams, method);
+      await persistAfterShare();
       onOpenChange(false);
     } catch (err) {
-      setError(formatShareError(err, errorContext));
+      console.error("Share error:", err);
+      setError(t("dashboard.share.pdfShareError"));
     } finally {
       setIsSharing(false);
     }
   };
 
-  const handleShare = async (method: ShareMethod) => {
-    await runWithUsageGate(async () => {
-      await shareWithPDF(shareParams, method);
-    }, "pdf");
-  };
-
   const handleWhatsAppOnly = async () => {
-    await runWithUsageGate(async () => {
+    setIsSharing(true);
+    setError(null);
+    try {
       await shareViaWhatsApp(shareParams, customerPhone);
-    }, "whatsapp");
+      await persistAfterShare();
+      onOpenChange(false);
+    } catch (err) {
+      console.error("Share error:", err);
+      setError(t("dashboard.share.whatsappShareError"));
+    } finally {
+      setIsSharing(false);
+    }
   };
 
   const documentTitle =
@@ -263,7 +201,7 @@ export function ShareDialog({
           {/* Share buttons */}
           <div className="grid gap-3">
             <Button
-              onClick={() => handleShare("whatsapp")}
+              onClick={() => void handleShare("whatsapp")}
               disabled={isSharing}
               aria-busy={isSharing}
               className="w-full justify-start h-12 bg-green-600 hover:bg-green-700 text-white dark:bg-green-600/90 dark:hover:bg-green-700/90"
@@ -277,7 +215,7 @@ export function ShareDialog({
             </Button>
 
             <Button
-              onClick={handleWhatsAppOnly}
+              onClick={() => void handleWhatsAppOnly()}
               disabled={isSharing}
               aria-busy={isSharing}
               variant="outline"
@@ -293,7 +231,7 @@ export function ShareDialog({
 
             {canShareFiles() && (
               <Button
-                onClick={() => handleShare("native")}
+                onClick={() => void handleShare("native")}
                 disabled={isSharing}
                 aria-busy={isSharing}
                 variant="outline"
@@ -309,7 +247,7 @@ export function ShareDialog({
             )}
 
             <Button
-              onClick={() => handleShare("download")}
+              onClick={() => void handleShare("download")}
               disabled={isSharing}
               aria-busy={isSharing}
               variant="secondary"

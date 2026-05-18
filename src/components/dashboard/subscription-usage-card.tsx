@@ -118,8 +118,8 @@ export function SubscriptionUsageCard({
 
   const planLabel =
     data.plan?.displayName ?? t("dashboard.subscription.noPlan");
-  const limit = data.usage.limit;
-  const count = data.usage.count;
+  const limit = data.usage?.limit ?? null;
+  const count = data.usage?.count ?? 0;
   const isUnlimited = limit === null;
   const ratio =
     !isUnlimited && limit > 0 ? Math.min(100, (count / limit) * 100) : 0;
@@ -145,7 +145,7 @@ export function SubscriptionUsageCard({
       )
     : null;
 
-  const isPro = data.plan?.name === "pro";
+  const isPro = data.plan?.name ? !data.plan.name.startsWith("free") : false;
 
   const handleConfirmCancelPro = async () => {
     setIsCancelling(true);

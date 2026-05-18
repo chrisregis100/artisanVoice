@@ -35,6 +35,11 @@ export const adminApiKeyUpdateSchema = z
     }
   });
 
+/**
+ * @deprecated L'endpoint /api/subscription/create renvoie désormais 410 (Gone).
+ * Le système de paiement est basé sur les packs de crédits (`/api/credits/packs`).
+ * Ce schéma est conservé pour éviter de casser d'éventuels imports existants.
+ */
 // subscription/create POST
 export const subscriptionCreateSchema = z.object({
   planName: z.enum([
@@ -65,16 +70,31 @@ export const subscriptionCreateSchema = z.object({
     "business_annual_usd",
   ]),
   provider: z.enum(["fedapay", "lemonsqueezy"]).optional(),
+  currency: z.enum(["XOF", "EUR", "USD"]).optional(),
 });
 
 // webhooks/lemonsqueezy POST
 export const lemonsqueezyWebhookSchema = z.object({
   meta: z.object({
-    event_name: z.string(),
+    event_name: z.enum([
+      "order_created",
+      "order_refunded",
+      "subscription_created",
+      "subscription_updated",
+      "subscription_cancelled",
+      "subscription_expired",
+      "subscription_resumed",
+      "subscription_paused",
+      "subscription_unpaused",
+      "subscription_payment_success",
+      "subscription_payment_failed",
+      "subscription_payment_recovered",
+    ]),
     custom_data: z
       .object({
         user_id: z.string().optional(),
         plan_name: z.string().optional(),
+        pack_slug: z.string().optional(),
       })
       .optional(),
   }),
@@ -84,6 +104,15 @@ export const lemonsqueezyWebhookSchema = z.object({
       .object({
         status: z.string().optional(),
         order_id: z.union([z.string(), z.number()]).optional(),
+        renews_at: z.string().nullable().optional(),
+        ends_at: z.string().nullable().optional(),
+        created_at: z.string().optional(),
+        first_order_item: z
+          .object({
+            variant_id: z.number().optional(),
+            product_id: z.number().optional(),
+          })
+          .optional(),
       })
       .optional(),
   }),
@@ -91,6 +120,12 @@ export const lemonsqueezyWebhookSchema = z.object({
 
 // subscription/document-export POST
 export const documentExportSchema = z.object({
+  documentId: z.string().min(1),
+  phase: z.enum(["precheck", "commit"]),
+});
+
+// credits/charge POST
+export const creditChargeSchema = z.object({
   documentId: z.string().min(1),
   phase: z.enum(["precheck", "commit"]),
 });
@@ -128,22 +163,29 @@ export const flutterwaveWebhookSchema = z.object({
 });
 
 // webhooks/fedapay POST
+// klass and reference are present in most FedaPay payloads but may be omitted in
+// some environments / API versions — keep them optional so schema validation never
+// silently rejects a valid webhook.
 export const fedapayWebhookSchema = z.object({
   name: z.string(),
-  object: z.string(),
+  object: z.string().optional(),
   data: z.object({
     object: z.object({
       id: z.number(),
-      klass: z.string(),
-      reference: z.string(),
+      klass: z.string().optional(),
+      reference: z.string().optional(),
       amount: z.number(),
       status: z.string(),
       metadata: z
         .object({
           user_id: z.string().optional(),
           plan_id: z.string().optional(),
+          pack_id: z.string().optional(),
+          pack_slug: z.string().optional(),
+          kind: z.string().optional(),
         })
-        .nullable(),
+        .nullable()
+        .optional(),
       customer: z
         .object({
           id: z.number(),
@@ -161,6 +203,7 @@ export type AdminSettingKeyValue = z.infer<typeof adminSettingKeyValueSchema>;
 export type AdminApiKeyUpdate = z.infer<typeof adminApiKeyUpdateSchema>;
 export type SubscriptionCreateBody = z.infer<typeof subscriptionCreateSchema>;
 export type DocumentExportBody = z.infer<typeof documentExportSchema>;
+export type CreditChargeBody = z.infer<typeof creditChargeSchema>;
 export type FlutterwaveWebhookPayload = z.infer<typeof flutterwaveWebhookSchema>;
 export type FedapayWebhookPayload = z.infer<typeof fedapayWebhookSchema>;
 export type LemonsqueezyWebhookPayload = z.infer<typeof lemonsqueezyWebhookSchema>;
