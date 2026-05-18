@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Sparkles, Eye, Download, Loader2 } from "lucide-react";
+import { DeleteInvoiceButton } from "@/components/invoice/delete-invoice-button";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { InvoicePreview } from "@/components/invoice/invoice-preview";
@@ -181,6 +182,14 @@ export function EditInvoiceClient({ invoice }: EditInvoiceClientProps) {
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            <DeleteInvoiceButton
+              invoiceId={invoice.id}
+              invoiceStatus={invoice.status as "draft" | "sent" | "paid"}
+              documentType={invoice.type as "quote" | "invoice"}
+              customerName={invoice.customer_name}
+              redirectAfterDelete
+              variant="default"
+            />
             {voiceWasUsed && (
               <div className="hidden items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 sm:flex">
                 <Sparkles className="h-3.5 w-3.5" />

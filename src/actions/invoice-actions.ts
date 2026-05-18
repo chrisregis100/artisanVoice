@@ -172,3 +172,52 @@ export async function updateInvoiceAction(
 
   return { success: true };
 }
+
+const DeleteInvoiceSchema = z.object({
+  invoiceId: z.string().uuid(),
+});
+
+export type DeleteInvoiceResult =
+  | { success: true }
+  | { error: "VALIDATION_ERROR" | "UNAUTHORIZED" | "NOT_FOUND" | "DOCUMENT_PAID" | "SERVER_ERROR" };
+
+export async function deleteInvoiceAction(
+  input: unknown,
+): Promise<DeleteInvoiceResult> {
+  const parsed = DeleteInvoiceSchema.safeParse(input);
+  if (!parsed.success) return { error: "VALIDATION_ERROR" };
+
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return { error: "UNAUTHORIZED" };
+
+  const { data: existing } = await supabase
+    .from("invoices")
+    .select("id, status, user_id")
+    .eq("id", parsed.data.invoiceId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!existing) return { error: "NOT_FOUND" };
+  if (existing.status === "paid") return { error: "DOCUMENT_PAID" };
+
+  // Delete items first — FK may not have ON DELETE CASCADE
+  await supabase
+    .from("invoice_items")
+    .delete()
+    .eq("invoice_id", parsed.data.invoiceId);
+
+  const { error: deleteError } = await supabase
+    .from("invoices")
+    .delete()
+    .eq("id", parsed.data.invoiceId)
+    .eq("user_id", user.id);
+
+  if (deleteError) return { error: "SERVER_ERROR" };
+
+  revalidatePath("/invoices");
+  return { success: true };
+}

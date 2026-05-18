@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { CheckCircle, ChevronRight, FileText, Send } from "lucide-react";
+import { DeleteInvoiceButton } from "@/components/invoice/delete-invoice-button";
 
 type Invoice = Database["public"]["Tables"]["invoices"]["Row"];
 
@@ -106,10 +107,17 @@ export default async function InvoicesPage() {
                             </span>
                           </div>
                         </div>
-                        <div className="flex items-center gap-4 pl-4">
+                        <div className="flex items-center gap-2 pl-4">
                           <p className="font-semibold text-xl">
                             {formatCurrency(invoice.total)}
                           </p>
+                          <DeleteInvoiceButton
+                            invoiceId={invoice.id}
+                            invoiceStatus={invoice.status as "draft" | "sent" | "paid"}
+                            documentType={invoice.type as "quote" | "invoice"}
+                            customerName={invoice.customer_name}
+                            variant="icon"
+                          />
                           <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
                         </div>
                       </div>
