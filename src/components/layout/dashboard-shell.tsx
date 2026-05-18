@@ -17,12 +17,14 @@ interface DashboardShellProps {
   children: React.ReactNode;
   businessName?: string;
   userEmail?: string | null;
+  isAdmin?: boolean;
 }
 
 export function DashboardShell({
   children,
   businessName,
   userEmail,
+  isAdmin,
 }: DashboardShellProps) {
   const pathname = usePathname();
   const { t } = useLanguage();
@@ -116,6 +118,7 @@ export function DashboardShell({
           businessName={businessName}
           isExpanded={true}
           onToggle={() => setIsMobileMenuOpen(false)}
+          isAdmin={isAdmin}
         />
       </aside>
 
@@ -151,6 +154,7 @@ export function DashboardShell({
           businessName={businessName}
           isExpanded={isDesktopExpanded}
           onToggle={() => setIsDesktopExpanded(!isDesktopExpanded)}
+          isAdmin={isAdmin}
         />
       </aside>
 

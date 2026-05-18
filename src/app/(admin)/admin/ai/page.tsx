@@ -9,7 +9,7 @@ import { useAdminDashboard } from "@/hooks/use-admin-dashboard";
 
 export default function AdminAiPage() {
   const { data, isLoading, refetch } = useAdminDashboard();
-  const [activeProvider, setActiveProvider] = useState<"openai" | "gemini">("openai");
+  const [activeProvider, setActiveProvider] = useState<"openai" | "gemini" | "afri">("openai");
   const [isSaving, setIsSaving] = useState(false);
 
   const syncProviderFromSettings = useCallback(() => {
@@ -23,6 +23,7 @@ export default function AdminAiPage() {
     ) {
       const v = (providerSetting.value as { provider: string }).provider;
       if (v === "gemini") setActiveProvider("gemini");
+      else if (v === "afri") setActiveProvider("afri");
       else setActiveProvider("openai");
     }
   }, [data?.settings]);
@@ -93,12 +94,11 @@ export default function AdminAiPage() {
             Moteur vocal
           </CardTitle>
           <CardDescription>
-            OpenAI Realtime ou Gemini Live — une clé valide est requise pour le fournisseur
-            actif.
+            OpenAI Realtime, Gemini Live ou Build with AFRI — une clé valide est requise pour le fournisseur actif.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-3">
             <button
               type="button"
               onClick={() => setActiveProvider("openai")}
@@ -128,11 +128,31 @@ export default function AdminAiPage() {
               ].join(" ")}
               aria-pressed={activeProvider === "gemini"}
             >
-              <span className="font-semibold">Google Gemini 2.0 Flash Live</span>
+              <span className="font-semibold">Google Gemini 3.1 Flash Live</span>
               <span className="text-sm text-muted-foreground">
                 Modèle vocal Google multimodal
               </span>
               {activeProvider === "gemini" ? (
+                <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-primary" />
+              ) : null}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveProvider("afri")}
+              className={[
+                "relative flex flex-col items-start gap-1 rounded-lg border p-4 text-left transition-colors",
+                activeProvider === "afri"
+                  ? "border-primary bg-primary/5 ring-1 ring-primary"
+                  : "border-border hover:border-primary/50",
+              ].join(" ")}
+              aria-pressed={activeProvider === "afri"}
+            >
+              <span className="font-semibold">Build with AFRI</span>
+              <span className="text-sm text-muted-foreground">
+                Gateway multi-modèles (GPT, Claude, Kimi)
+              </span>
+              {activeProvider === "afri" ? (
                 <span className="absolute right-3 top-3 h-2 w-2 rounded-full bg-primary" />
               ) : null}
             </button>
@@ -161,6 +181,15 @@ export default function AdminAiPage() {
                   </span>
                 </div>
                 <code className="mt-1 block text-xs font-mono">{serverKeys.gemini.mask}</code>
+              </li>
+              <li className="rounded-md border border-border/60 bg-background/50 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="font-medium text-foreground">AFRI</span>
+                  <span className="text-xs text-muted-foreground">
+                    {sourceLabel(serverKeys.afri?.source ?? "")}
+                  </span>
+                </div>
+                <code className="mt-1 block text-xs font-mono">{serverKeys.afri?.mask ?? "Non configurée"}</code>
               </li>
             </ul>
           </div>

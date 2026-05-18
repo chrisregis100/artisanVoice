@@ -7,6 +7,8 @@ const serverSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   OPENAI_API_KEY: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
+  AFRI_API_KEY: z.string().regex(/^sk-afri-/).optional(),
+  AFRI_BASE_URL: z.string().url().optional(),
   // Flutterwave : optionnels tant que le fournisseur est désactivé (voir lib/payment/flutterwave.ts).
   // Sans clés, l’init de paiement et le webhook Flutterwave ne doivent pas être utilisés.
   FLUTTERWAVE_PUBLIC_KEY: z.string().optional(),
@@ -18,19 +20,21 @@ const serverSchema = z.object({
   LEMONSQUEEZY_API_KEY: z.string().optional(),
   LEMONSQUEEZY_STORE_ID: z.string().optional(),
   LEMONSQUEEZY_WEBHOOK_SECRET: z.string().optional(),
-  LEMONSQUEEZY_VARIANT_EARLY_BIRD_EUR: z.string().optional(),
-  LEMONSQUEEZY_VARIANT_EARLY_BIRD_USD: z.string().optional(),
-  LEMONSQUEEZY_VARIANT_PRO_MONTHLY_EUR: z.string().optional(),
-  LEMONSQUEEZY_VARIANT_PRO_MONTHLY_USD: z.string().optional(),
-  LEMONSQUEEZY_VARIANT_PRO_ANNUAL_EUR: z.string().optional(),
-  LEMONSQUEEZY_VARIANT_PRO_ANNUAL_USD: z.string().optional(),
-  LEMONSQUEEZY_VARIANT_BUSINESS_MONTHLY_EUR: z.string().optional(),
-  LEMONSQUEEZY_VARIANT_BUSINESS_MONTHLY_USD: z.string().optional(),
-  LEMONSQUEEZY_VARIANT_BUSINESS_ANNUAL_EUR: z.string().optional(),
-  LEMONSQUEEZY_VARIANT_BUSINESS_ANNUAL_USD: z.string().optional(),
+  LEMONSQUEEZY_VARIANT_STARTER_USD: z.string().optional(),
+  LEMONSQUEEZY_VARIANT_POPULAIRE_USD: z.string().optional(),
+  LEMONSQUEEZY_VARIANT_PRO_USD: z.string().optional(),
   ADMIN_EMAIL: z.string().email(),
   /** Base64, 32 bytes — encrypts API keys stored via the admin UI (`openssl rand -base64 32`). */
   ADMIN_SECRETS_ENCRYPTION_KEY: z.string().optional(),
+  /**
+   * WebSocket base URL for OpenAI Realtime voice sessions.
+   * Uses wss:// scheme — z.string() is used instead of z.url() because Zod's url()
+   * validator rejects wss:// protocol.
+   * Defaults to wss://api.openai.com/v1/realtime
+   */
+  OPENAI_REALTIME_URL: z.string().optional(),
+  /** Model identifier for OpenAI Realtime voice sessions. Defaults to gpt-4o-realtime-preview-2024-12-17 */
+  OPENAI_REALTIME_MODEL: z.string().optional(),
 });
 
 const clientSchema = z.object({

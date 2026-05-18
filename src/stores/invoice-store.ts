@@ -50,6 +50,15 @@ interface InvoiceActions {
   setError: (error: string | null) => void;
   requestFinalize: (sendVia?: "whatsapp" | "sms" | "email") => void;
   reset: () => void;
+  loadInvoice: (data: {
+    id: string;
+    customerName: string;
+    customerPhone?: string;
+    customerAddress: string;
+    documentDate: string;
+    items: InvoiceItem[];
+    type: DocumentType;
+  }) => void;
 }
 
 function buildInitialInvoiceState(): InvoiceState {
@@ -194,4 +203,17 @@ export const useInvoiceStore = create<InvoiceState & InvoiceActions>((set) => ({
     set({ finalizeSignal: { sendVia, ts: Date.now() } }),
 
   reset: () => set({ ...buildInitialInvoiceState() }),
+
+  loadInvoice: (data) =>
+    set({
+      ...buildInitialInvoiceState(),
+      id: data.id,
+      customerName: data.customerName,
+      customerPhone: data.customerPhone ?? "",
+      customerAddress: data.customerAddress,
+      documentDate: data.documentDate,
+      items: data.items,
+      total: calculateTotal(data.items),
+      type: data.type,
+    }),
 }));

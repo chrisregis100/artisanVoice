@@ -15,35 +15,44 @@ import {
   FolderOpen,
   ChevronRight,
   ChevronLeft,
+  Shield,
 } from "lucide-react";
 import { BilloLogoMark } from "@/components/brand/billo-logo";
 
-export function useNavItems() {
+export function useNavItems({ isAdmin }: { isAdmin?: boolean } = {}) {
   const { t } = useLanguage();
-  return [
+  const items = [
     { href: "/dashboard", labelKey: "dashboard.nav.home", icon: Home },
     { href: "/customers", labelKey: "dashboard.nav.customers", icon: Users },
     { href: "/invoices", labelKey: "dashboard.nav.documents", icon: FolderOpen },
     { href: "/settings", labelKey: "dashboard.nav.settings", icon: Settings },
   ];
+
+  if (isAdmin) {
+    items.push({ href: "/admin", labelKey: "dashboard.nav.admin", icon: Shield });
+  }
+
+  return items;
 }
 
 interface SidebarNavProps {
   businessName?: string;
   isExpanded: boolean;
   onToggle: () => void;
+  isAdmin?: boolean;
 }
 
 export function SidebarNav({
   businessName,
   isExpanded,
   onToggle,
+  isAdmin,
 }: SidebarNavProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useLanguage();
 
-  const navLinks = useNavItems();
+  const navLinks = useNavItems({ isAdmin });
 
   const handleSignOut = async () => {
     const supabase = createClient();

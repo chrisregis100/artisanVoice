@@ -37,6 +37,7 @@ export interface AdminData {
   serverKeys: {
     openai: ServerKeyInfo;
     gemini: ServerKeyInfo;
+    afri?: ServerKeyInfo;
   };
 }
 

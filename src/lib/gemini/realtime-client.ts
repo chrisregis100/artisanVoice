@@ -1,4 +1,5 @@
 import { geminiVoiceFunctions, systemPrompt } from "./functions";
+import { GEMINI_LIVE_MODEL } from "./config";
 
 export interface GeminiRealtimeConfig {
   onUserTranscript: (text: string) => void;
@@ -14,24 +15,24 @@ export interface GeminiRealtimeConfig {
 
 interface GeminiMessage {
   setupComplete?: Record<string, unknown>;
-  server_content?: {
-    model_turn?: {
+  serverContent?: {
+    modelTurn?: {
       parts: Array<{
         text?: string;
-        inline_data?: { data: string; mime_type: string };
+        inlineData?: { data: string; mimeType: string };
       }>;
     };
-    turn_complete?: boolean;
+    turnComplete?: boolean;
     interrupted?: boolean;
   };
-  tool_call?: {
-    function_calls: Array<{
+  toolCall?: {
+    functionCalls: Array<{
       id: string;
       name: string;
       args: Record<string, unknown>;
     }>;
   };
-  input_transcription?: {
+  inputTranscription?: {
     text?: string;
   };
 }
@@ -80,9 +81,20 @@ export class GeminiRealtimeClient {
         this.setupComplete = false;
         this.config.onConnectionChange(false);
 
-        // Clear pending initial-connect promise if still waiting
-        this.setupResolver = null;
-        this.setupRejecter = null;
+        // If setup never completed, reject the pending connect() promise so
+        // the caller (useVoice / startListening) gets a real error and can
+        // show a toast instead of hanging silently.
+        if (this.setupRejecter) {
+          const reason = event.reason
+            ? `${event.reason} (code ${event.code})`
+            : `WebSocket fermé avant initialisation Gemini (code ${event.code})`;
+          console.error(
+            `[Gemini] WebSocket closed before setup completed: code=${event.code} reason="${event.reason}"`,
+          );
+          this.setupRejecter(new Error(reason));
+          this.setupResolver = null;
+          this.setupRejecter = null;
+        }
 
         if (
           this.shouldReconnect &&
@@ -98,8 +110,9 @@ export class GeminiRealtimeClient {
         }
       };
 
-      this.ws.onerror = () => {
-        this.config.onError("Erreur de connexion Gemini");
+      this.ws.onerror = (event) => {
+        console.error("[Gemini] WebSocket error", event);
+        this.config.onError("Erreur de connexion WebSocket Gemini");
         const err = new Error("Gemini WebSocket connection failed");
         if (this.setupRejecter) {
           this.setupRejecter(err);
@@ -126,23 +139,23 @@ export class GeminiRealtimeClient {
   private sendSetup(): void {
     this.send({
       setup: {
-        model: "models/gemini-2.0-flash-live-001",
-        generation_config: {
-          response_modalities: ["AUDIO"],
-          speech_config: {
-            voice_config: {
-              prebuilt_voice_config: {
-                voice_name: "Aoede",
+        model: GEMINI_LIVE_MODEL,
+        generationConfig: {
+          responseModalities: ["AUDIO"],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: {
+                voiceName: "Aoede",
               },
             },
           },
         },
-        system_instruction: {
+        systemInstruction: {
           parts: [{ text: systemPrompt }],
         },
         tools: [
           {
-            function_declarations: geminiVoiceFunctions,
+            functionDeclarations: geminiVoiceFunctions,
           },
         ],
       },
@@ -168,39 +181,39 @@ export class GeminiRealtimeClient {
       return;
     }
 
-    if (message.server_content) {
-      const { model_turn, turn_complete, interrupted } = message.server_content;
+    if (message.serverContent) {
+      const { modelTurn, turnComplete, interrupted } = message.serverContent;
 
       if (interrupted) {
         this.config.onSpeechStarted?.();
       }
 
-      if (model_turn?.parts) {
-        for (const part of model_turn.parts) {
+      if (modelTurn?.parts) {
+        for (const part of modelTurn.parts) {
           if (part.text) {
             this.config.onAssistantTranscriptDelta(part.text);
           }
-          if (part.inline_data?.data) {
-            const audioData = this.base64ToArrayBuffer(part.inline_data.data);
+          if (part.inlineData?.data) {
+            const audioData = this.base64ToArrayBuffer(part.inlineData.data);
             this.config.onAudioResponse(audioData);
           }
         }
       }
 
-      if (turn_complete) {
+      if (turnComplete) {
         this.config.onResponseDone?.();
       }
     }
 
-    if (message.tool_call?.function_calls) {
-      for (const call of message.tool_call.function_calls) {
+    if (message.toolCall?.functionCalls) {
+      for (const call of message.toolCall.functionCalls) {
         this.config.onFunctionCall(call.name, call.args ?? {});
         this.sendToolResponse(call.id, { success: true });
       }
     }
 
-    if (message.input_transcription?.text) {
-      this.config.onUserTranscript(message.input_transcription.text);
+    if (message.inputTranscription?.text) {
+      this.config.onUserTranscript(message.inputTranscription.text);
     }
   }
 
@@ -210,11 +223,11 @@ export class GeminiRealtimeClient {
 
     const base64Audio = this.arrayBufferToBase64(audioData);
     this.send({
-      realtime_input: {
-        media_chunks: [
+      realtimeInput: {
+        mediaChunks: [
           {
             data: base64Audio,
-            mime_type: "audio/pcm;rate=16000",
+            mimeType: "audio/pcm;rate=16000",
           },
         ],
       },
@@ -227,8 +240,8 @@ export class GeminiRealtimeClient {
 
     // Gemini uses server-side VAD; signal end of user turn
     this.send({
-      realtime_input: {
-        audio_stream_end: true,
+      realtimeInput: {
+        audioStreamEnd: true,
       },
     });
   }
@@ -244,8 +257,8 @@ export class GeminiRealtimeClient {
 
   private sendToolResponse(callId: string, result: unknown): void {
     this.send({
-      tool_response: {
-        function_responses: [
+      toolResponse: {
+        functionResponses: [
           {
             id: callId,
             response: result,

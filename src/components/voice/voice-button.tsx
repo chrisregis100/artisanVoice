@@ -12,7 +12,8 @@ import {
   useSubscriptionStatus,
   type SubscriptionStatusPayload,
 } from "@/hooks/use-subscription-status";
-import { QuotaExceededModal } from "@/components/pricing/quota-exceeded-modal";
+import { useWallet } from "@/hooks/use-wallet";
+import { InsufficientCreditsModal } from "@/components/credits/insufficient-credits-modal";
 
 function isApiKeyError(error: string): boolean {
   const lower = error.toLowerCase();
@@ -43,11 +44,16 @@ function getErrorDescription(error: string, t: (key: string, vars?: Record<strin
   return error;
 }
 
-export function VoiceButton() {
+interface VoiceButtonProps {
+  onVoiceStart?: () => void;
+}
+
+export function VoiceButton({ onVoiceStart }: VoiceButtonProps = {}) {
   const { t } = useLanguage();
   const { isListening, isProcessing, isConnected, error } = useInvoiceStore();
   const { startListening, stopListening, interruptAssistant } = useVoice();
   const { data: subscriptionData } = useSubscriptionStatus();
+  const { balance, hasPurchased } = useWallet();
   const [isQuotaModalOpen, setIsQuotaModalOpen] = useState(false);
 
   const connectionLabel = useMemo(
@@ -97,8 +103,8 @@ export function VoiceButton() {
 
     // Layer 1: Immediate check from cached subscription data.
     // If limit is null the plan is unlimited — skip quota check entirely.
-    const cachedLimit = subscriptionData?.usage.limit ?? null;
-    const cachedCount = subscriptionData?.usage.count ?? 0;
+    const cachedLimit = subscriptionData?.usage?.limit ?? null;
+    const cachedCount = subscriptionData?.usage?.count ?? 0;
     if (cachedLimit !== null && cachedCount >= cachedLimit) {
       setIsQuotaModalOpen(true);
       return;
@@ -109,10 +115,9 @@ export function VoiceButton() {
       const res = await fetch("/api/subscription/status");
       if (res.ok) {
         const fresh = (await res.json()) as SubscriptionStatusPayload;
-        if (
-          fresh.usage.limit !== null &&
-          fresh.usage.count >= fresh.usage.limit
-        ) {
+        const freshLimit = fresh.usage?.limit ?? null;
+        const freshCount = fresh.usage?.count ?? 0;
+        if (freshLimit !== null && freshCount >= freshLimit) {
           setIsQuotaModalOpen(true);
           return;
         }
@@ -122,6 +127,7 @@ export function VoiceButton() {
     }
 
     startListening();
+    onVoiceStart?.();
   }, [
     isListening,
     isProcessing,
@@ -129,6 +135,7 @@ export function VoiceButton() {
     startListening,
     stopListening,
     subscriptionData,
+    onVoiceStart,
   ]);
 
   const handleKeyDown = useCallback(
@@ -143,9 +150,11 @@ export function VoiceButton() {
 
   return (
     <div className="flex flex-col items-center pb-2">
-      <QuotaExceededModal
+      <InsufficientCreditsModal
         open={isQuotaModalOpen}
-        onClose={() => setIsQuotaModalOpen(false)}
+        onOpenChange={(open) => setIsQuotaModalOpen(open)}
+        currentBalance={balance}
+        hasPurchased={hasPurchased}
       />
       {errorText && (
         <div

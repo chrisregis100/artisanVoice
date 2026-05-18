@@ -184,7 +184,23 @@
       "perMonth": "/ month",
       "perYear": "/ year",
       "lifetime": "lifetime",
-      "annualSaving": "2 months free"
+      "annualSaving": "2 months free",
+      "title": "Simple pricing",
+      "subtitle": "Pay only when you invoice",
+      "free": "Free",
+      "freeDesc": "3 credits offered at registration",
+      "freeFeature1": "AI voice assistant",
+      "freeFeature2": "Professional PDF invoices",
+      "freeFeature3": "No credit card required",
+      "freeCta": "Start for free",
+      "credits": "credits",
+      "bonus": "bonus",
+      "perInvoice": "per invoice",
+      "buy": "Buy",
+      "popular": "Most popular",
+      "noExpiry": "Credits never expire",
+      "stackable": "Stack across packs",
+      "noSubscription": "No subscription, no auto-renewal"
     },
     "faq": {
       "badge": "FAQ",
@@ -477,6 +493,7 @@
       "customers": "Clients",
       "documents": "Documents",
       "settings": "Settings",
+      "admin": "Admin",
       "help": "Help",
       "logout": "Log out",
       "openMenu": "Open menu",
@@ -675,6 +692,96 @@
       "pricing": "Pricing",
       "faq": "FAQ",
       "login": "Log in"
+    }
+  },
+  "paywall": {
+    "badge": "Trial ended",
+    "title": "Your free trial has ended",
+    "subtitle": "You've used your 3 free credits. Choose a pack to continue creating your professional documents.",
+    "popular": "Popular",
+    "cta": "Choose this pack",
+    "singlePayment": "One-time payment · No subscription · Credits never expire",
+    "featureVoice": "Voice assistant for your invoices",
+    "featureExport": "Professional PDF export",
+    "featureNoExpiry": "Credits never expire"
+  },
+  "pricing": {
+    "badge": "Pricing",
+    "hero": {
+      "title": "You only pay when you invoice. No subscription. No automatic renewal. Credits never expire.",
+      "subtitle": "Buy a credit pack, use them whenever you want. Your credits never disappear."
+    },
+    "free": {
+      "name": "FREE",
+      "subtitle": "Discover risk-free",
+      "credits": "3 credits offered at registration — one time only",
+      "descShort": "As soon as you create your Billo account, you receive 3 credits. No credit card required.",
+      "desc": "As soon as you create your Billo account, you receive 3 credits. No time-limited trial, no credit card required. Use your credits whenever you want, at your own pace.",
+      "detail": "3 credits let you generate 3 complete invoices — enough to test the voice assistant on real projects, see how Billo understands your voice, and get a professional PDF ready to send.",
+      "note": "These credits are offered only once. Once used up, choose the pack that matches your volume.",
+      "footer": "No credit card. No expiration date. No surprises.",
+      "cta": "Start for free"
+    },
+    "starter": {
+      "name": "STARTER PACK",
+      "subtitle": "For low volumes",
+      "priceLabel": "$4 — 10 credits, no expiration",
+      "descShort": "You invoice occasionally — two or three clients a month, no more.",
+      "desc": "You invoice occasionally — two or three clients a month, no more. The Starter pack is made for you. 10 credits for $4, that's $0.40 per generated invoice.",
+      "detail": "Buy when you need it. Your credits never disappear — they wait for you until you need them. No automatic renewal, no subscription running in the background during quieter months.",
+      "fcfa": "FCFA equivalent: approximately 2,400 FCFA."
+    },
+    "populaire": {
+      "name": "POPULAR PACK",
+      "subtitle": "For active freelancers",
+      "badge": "MOST POPULAR",
+      "priceLabel": "$9 — 30 credits, no expiration",
+      "descShort": "This is the pack chosen by the majority of freelancers who invoice regularly.",
+      "desc": "This is the pack chosen by the majority of freelancers who invoice regularly. 30 credits for $9, that's $0.30 per invoice — the best value for standard monthly usage.",
+      "detail": "If you average 8 to 12 invoices per month, this pack covers a full month and then some. And if you have a slow month, your remaining credits are still there the following month.",
+      "comparison": "For comparison: generating these 30 invoices manually on Excel or Canva would take you 4 to 8 hours. With Billo, it's 30 minutes total.",
+      "fcfa": "FCFA equivalent: approximately 5,400 FCFA."
+    },
+    "pro": {
+      "name": "PRO PACK",
+      "subtitle": "For high volumes",
+      "priceLabel": "$24 — 110 credits, no expiration",
+      "descShort": "For consultants, agencies and independents who manage multiple clients and invoice at volume.",
+      "desc": "For consultants, agencies and independents who manage multiple clients simultaneously and generate a high volume of invoices each month. 100 credits bought, 110 received — 10 bonus credits to reward commitment.",
+      "detail": "At $0.22 per invoice, this is the lowest cost per credit available on Billo. For someone generating 30 to 40 invoices per month, this pack covers several months of intensive use in a single purchase.",
+      "fcfa": "FCFA equivalent: approximately 14,400 FCFA."
+    },
+    "universal": {
+      "title": "What applies to all packs",
+      "noExpiry": {
+        "title": "Credits never expire.",
+        "desc": "A credit bought today is still valid in 6 months or 2 years. No pressure to use them, no credits lost at the end of a period."
+      },
+      "stackable": {
+        "title": "Credits stack up.",
+        "desc": "You buy a Starter pack with 2 remaining credits from your previous pack — you end up with 12 credits. Simple."
+      },
+      "regional": {
+        "title": "Price adapts to your region.",
+        "desc": "For users in sub-Saharan Africa, South Asia and other emerging markets, packs are displayed directly in local currency with a rate adjusted for purchasing power parity."
+      },
+      "noSubscription": {
+        "title": "No hidden subscription.",
+        "desc": "You buy a pack, use your credits, buy again when you want. No automatic debit, no surprises on your bank statement."
+      }
+    },
+    "table": {
+      "title": "Summary",
+      "pack": "Pack",
+      "credits": "Credits",
+      "price": "Price",
+      "perInvoice": "Price / invoice",
+      "fcfa": "FCFA approx."
+    },
+    "cta": {
+      "buy": "Buy this pack",
+      "free": "Start for free",
+      "viewDetails": "See full details →"
     }
   }
 }

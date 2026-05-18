@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { useLanguage } from "@/i18n/context";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { WalletBalance } from "@/components/credits/wallet-balance";
 
 interface DashboardHeaderProps {
   userEmail?: string | null;
@@ -58,6 +59,8 @@ export function DashboardHeader({
           <div className="h-2 w-2 rounded-full bg-primary" />
           {t("dashboard.header.connected")}
         </div>
+
+        <WalletBalance />
 
         <LanguageSwitcher variant="minimal" />
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useCurrency } from "./use-currency";
 
 export interface PublicPlanRow {
   name: string;
@@ -13,9 +14,20 @@ export interface PublicPlanRow {
 
 const FALLBACK_PRO_MONTHLY = 5000;
 
+function findPlanByTierInterval(
+  plans: PublicPlanRow[] | undefined | null,
+  tier: string,
+  interval: string,
+  currency: string,
+): PublicPlanRow | undefined {
+  const targetName = `${tier}_${interval}_${currency.toLowerCase()}`;
+  return plans?.find((p) => p.name === targetName);
+}
+
 export function usePublicPlans() {
   const [plans, setPlans] = useState<PublicPlanRow[] | null>(null);
   const [hasError, setHasError] = useState(false);
+  const { currency } = useCurrency();
 
   useEffect(() => {
     let cancelled = false;
@@ -37,15 +49,23 @@ export function usePublicPlans() {
     };
   }, []);
 
-  const proPlan = plans?.find((p) => p.name === "pro");
-  const proMonthlyAmount = proPlan?.price_amount ?? FALLBACK_PRO_MONTHLY;
+  const getPlan = useCallback(
+    (tier: string, interval: string): PublicPlanRow | undefined => {
+      return findPlanByTierInterval(plans, tier, interval, currency);
+    },
+    [plans, currency],
+  );
+
+  const proMonthlyAmount =
+    findPlanByTierInterval(plans, "pro", "monthly", currency)?.price_amount ??
+    FALLBACK_PRO_MONTHLY;
   const isLoading = plans === null && !hasError;
 
   return {
     plans: plans ?? [],
-    proPlan,
     proMonthlyAmount,
     isLoading,
     hasError,
+    getPlan,
   };
 }

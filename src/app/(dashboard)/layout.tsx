@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/layout/dashboard-shell";
 import { SettingsInitializer } from "@/components/settings-initializer";
 import { createClient } from "@/lib/supabase/server";
+import { getPaywallStatus } from "@/lib/credits/wallet";
+import { env } from "@/lib/env";
 
 export const metadata: Metadata = {
   title: { default: "Dashboard", template: "%s | Billo" },
@@ -23,16 +25,10 @@ export default async function DashboardLayout({
     redirect("/login");
   }
 
-  const { data: subscription } = await supabase
-    .from("subscriptions")
-    .select("id, status")
-    .eq("user_id", user.id)
-    .eq("status", "active")
-    .limit(1)
-    .single();
-
-  if (!subscription) {
-    redirect("/subscribe");
+  // Check paywall status - redirect to paywall if trial expired and no purchase
+  const paywallStatus = await getPaywallStatus(user.id);
+  if (paywallStatus.shouldBlock) {
+    redirect("/paywall");
   }
 
   const { data: profile } = await supabase
@@ -60,10 +56,13 @@ export default async function DashboardLayout({
     currency: profile?.currency ?? "XOF",
   };
 
+  const isAdmin = user?.email === env.ADMIN_EMAIL;
+
   return (
     <DashboardShell
       businessName={businessName}
       userEmail={user?.email ?? null}
+      isAdmin={isAdmin}
     >
       <SettingsInitializer settings={dbSettings} />
       {children}

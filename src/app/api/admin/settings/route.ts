@@ -9,6 +9,7 @@ import {
   adminSettingKeyValueSchema,
 } from "@/lib/api/schemas";
 import {
+  ADMIN_SECRET_KEY_AFRI,
   ADMIN_SECRET_KEY_GEMINI,
   ADMIN_SECRET_KEY_OPENAI,
   buildSecretPayload,
@@ -67,56 +68,51 @@ export async function GET(request: NextRequest) {
 
   const [
     settingsResult,
-    plansResult,
     usersResult,
     invoicesResult,
-    subsResult,
+    walletsResult,
     secretKeysResult,
   ] = await Promise.all([
     admin.from("admin_settings").select("*"),
-    admin.from("plans").select("*").order("price_amount"),
     admin.from("users").select("id", { count: "exact", head: true }),
     admin.from("invoices").select("id", { count: "exact", head: true }),
-    admin.from("subscriptions").select("plan_id, status").eq("status", "active"),
+    admin
+      .from("credit_wallets")
+      .select("balance", { count: "exact" }),
     admin
       .from("admin_settings")
       .select("key, value")
-      .in("key", [ADMIN_SECRET_KEY_OPENAI, ADMIN_SECRET_KEY_GEMINI]),
+      .in("key", [ADMIN_SECRET_KEY_OPENAI, ADMIN_SECRET_KEY_GEMINI, ADMIN_SECRET_KEY_AFRI]),
   ]);
 
   const settings = settingsResult.data ?? [];
-  const plans = plansResult.data ?? [];
   const totalUsers = usersResult.count ?? 0;
   const totalInvoices = invoicesResult.count ?? 0;
-  const activeSubs = subsResult.data ?? [];
-
-  const proSubs = activeSubs.filter((s) => {
-    const plan = plans.find((p) => p.id === s.plan_id);
-    return plan && plan.price_amount > 0;
-  });
-  const freeSubs = activeSubs.length - proSubs.length;
-  const monthlyRevenue = proSubs.reduce((acc, s) => {
-    const plan = plans.find((p) => p.id === s.plan_id);
-    return acc + (plan?.price_amount ?? 0);
-  }, 0);
+  const wallets = walletsResult.data ?? [];
+  const walletsWithCredits = wallets.filter((w) => w.balance > 0).length;
+  const totalCreditsBalance = wallets.reduce((acc, w) => acc + w.balance, 0);
 
   const secretRows = secretKeysResult.data ?? [];
   const openaiSecret = secretRows.find((r) => r.key === ADMIN_SECRET_KEY_OPENAI);
   const geminiSecret = secretRows.find((r) => r.key === ADMIN_SECRET_KEY_GEMINI);
+  const afriSecret = secretRows.find((r) => r.key === ADMIN_SECRET_KEY_AFRI);
 
   return NextResponse.json({
     settings,
-    plans,
+    plans: [],
     stats: {
       totalUsers,
       totalInvoices,
-      freeSubscriptions: freeSubs,
-      proSubscriptions: proSubs.length,
-      monthlyRevenue,
+      freeSubscriptions: 0,
+      proSubscriptions: 0,
+      monthlyRevenue: 0,
+      walletsWithCredits,
+      totalCreditsBalance,
     },
     serverKeys: {
       openai: resolveServerKeyInfo(openaiSecret?.value, env.OPENAI_API_KEY),
       gemini: resolveServerKeyInfo(geminiSecret?.value, env.GEMINI_API_KEY),
+      afri: resolveServerKeyInfo(afriSecret?.value, env.AFRI_API_KEY),
     },
   });
 }
@@ -136,16 +132,13 @@ export async function PUT(request: NextRequest) {
   // that regular users must not be able to write to. Access is gated behind requireAdmin() above.
   const admin = createAdminClient();
 
-  // Handle plan updates: { type: "plan", id: string, updates: { price_amount?, invoice_limit? } }
+  // Plan updates are no longer supported — plans replaced by credit packs
   const planResult = adminPlanUpdateSchema.safeParse(rawBody);
   if (planResult.success) {
-    const { id, updates } = planResult.data;
-    const { error } = await admin.from("plans").update(updates).eq("id", id);
-    if (error) {
-      console.error("Plan update error:", error);
-      return NextResponse.json({ error: "Erreur lors de la mise à jour." }, { status: 500 });
-    }
-    return NextResponse.json({ ok: true });
+    return NextResponse.json(
+      { error: "La gestion des plans a été remplacée par les packs de crédits." },
+      { status: 410 },
+    );
   }
 
   const apiKeyResult = adminApiKeyUpdateSchema.safeParse(rawBody);

@@ -11,6 +11,7 @@ import {
   Menu,
   Package,
   Settings,
+  Users,
   X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -23,6 +24,7 @@ interface AdminShellProps {
 
 const navItems = [
   { href: "/admin", label: "Vue d'ensemble", icon: LayoutDashboard },
+  { href: "/admin/users", label: "Utilisateurs", icon: Users },
   { href: "/admin/ai", label: "Fournisseur IA", icon: Bot },
   { href: "/admin/plans", label: "Plans tarifaires", icon: Package },
   { href: "/admin/keys", label: "Clés API", icon: Key },
