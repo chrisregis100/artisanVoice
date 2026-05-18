@@ -1,40 +1,31 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Sparkles, Eye, Download, Loader2 } from "lucide-react";
 import { DeleteInvoiceButton } from "@/components/invoice/delete-invoice-button";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { InvoicePreview } from "@/components/invoice/invoice-preview";
 import { PaidBlockMessage } from "@/components/invoice/paid-block-message";
-import { SentWarningDialog } from "@/components/invoice/sent-warning-dialog";
 import { PreviewModal } from "@/components/invoice/preview-modal";
+import { SentWarningDialog } from "@/components/invoice/sent-warning-dialog";
+import { Button } from "@/components/ui/button";
 import { VoiceButton } from "@/components/voice/voice-button";
 import { VoiceConversation } from "@/components/voice/voice-conversation";
 import { useInvoiceEdit } from "@/hooks/use-invoice-edit";
+import type { InvoiceWithItems } from "@/lib/invoices/get-invoice";
+import { downloadPDF, generateFilename, generatePDF } from "@/lib/utils/pdf";
 import { useInvoiceStore } from "@/stores/invoice-store";
 import { useSettingsStore } from "@/stores/settings-store";
-import {
-  generatePDF,
-  downloadPDF,
-  generateFilename,
-} from "@/lib/utils/pdf";
-import type { InvoiceWithItems } from "@/lib/invoices/get-invoice";
-import type { InvoiceItem, GeneratePDFParams } from "@/types";
+import type { GeneratePDFParams, InvoiceItem } from "@/types";
+import { ArrowLeft, Download, Eye, Loader2, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { useCallback, useState } from "react";
+import { toast } from "sonner";
 
 interface EditInvoiceClientProps {
   invoice: InvoiceWithItems;
 }
 
 export function EditInvoiceClient({ invoice }: EditInvoiceClientProps) {
-  const {
-    voiceWasUsed,
-    editSessionId,
-    isSaving,
-    markVoiceUsed,
-    handleSave,
-  } = useInvoiceEdit({ invoice });
+  const { voiceWasUsed, editSessionId, isSaving, markVoiceUsed, handleSave } =
+    useInvoiceEdit({ invoice });
 
   const [sentWarningOpen, setSentWarningOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -75,21 +66,21 @@ export function EditInvoiceClient({ invoice }: EditInvoiceClientProps) {
     (name: string) => {
       setCustomer(name, customerPhone);
     },
-    [setCustomer, customerPhone]
+    [setCustomer, customerPhone],
   );
 
   const handleItemUpdate = useCallback(
     (id: string, updates: Partial<InvoiceItem>) => {
       updateItem(id, updates);
     },
-    [updateItem]
+    [updateItem],
   );
 
   const handleItemRemove = useCallback(
     (index: number) => {
       removeItem(index);
     },
-    [removeItem]
+    [removeItem],
   );
 
   const handleAddArticle = useCallback(() => {
@@ -186,14 +177,13 @@ export function EditInvoiceClient({ invoice }: EditInvoiceClientProps) {
               invoiceId={invoice.id}
               invoiceStatus={invoice.status as "draft" | "sent" | "paid"}
               documentType={invoice.type as "quote" | "invoice"}
-              customerName={invoice.customer_name}
+              customerName={invoice.customerName || ""}
               redirectAfterDelete
               variant="default"
             />
             {voiceWasUsed && (
               <div className="hidden items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 sm:flex">
-                <Sparkles className="h-3.5 w-3.5" />
-                1 crédit sera déduit
+                <Sparkles className="h-3.5 w-3.5" />1 crédit sera déduit
               </div>
             )}
             <Button
@@ -287,8 +277,7 @@ export function EditInvoiceClient({ invoice }: EditInvoiceClientProps) {
         <div className="flex items-center justify-between gap-3">
           {voiceWasUsed && (
             <div className="flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
-              <Sparkles className="h-3.5 w-3.5" />
-              1 crédit
+              <Sparkles className="h-3.5 w-3.5" />1 crédit
             </div>
           )}
           <div className="flex-1" />

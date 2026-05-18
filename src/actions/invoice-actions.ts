@@ -1,9 +1,9 @@
 "use server";
 
-import { z } from "zod";
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { calculateTotal } from "@/lib/utils";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 const InvoiceItemSchema = z.object({
   id: z.string().uuid(),
@@ -43,7 +43,6 @@ export async function updateInvoiceAction(
   let items: unknown[] = [];
   if (typeof itemsJson === "string") {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const parsed = JSON.parse(itemsJson) as unknown;
       if (Array.isArray(parsed)) {
         items = parsed;
