@@ -2,18 +2,25 @@
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { ArrowLeft, Sparkles, Eye, Download, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { InvoicePreview } from "@/components/invoice/invoice-preview";
 import { PaidBlockMessage } from "@/components/invoice/paid-block-message";
 import { SentWarningDialog } from "@/components/invoice/sent-warning-dialog";
+import { PreviewModal } from "@/components/invoice/preview-modal";
 import { VoiceButton } from "@/components/voice/voice-button";
 import { VoiceConversation } from "@/components/voice/voice-conversation";
 import { useInvoiceEdit } from "@/hooks/use-invoice-edit";
 import { useInvoiceStore } from "@/stores/invoice-store";
 import { useSettingsStore } from "@/stores/settings-store";
+import {
+  generatePDF,
+  downloadPDF,
+  generateFilename,
+} from "@/lib/utils/pdf";
 import type { InvoiceWithItems } from "@/lib/invoices/get-invoice";
-import type { InvoiceItem } from "@/types";
+import type { InvoiceItem, GeneratePDFParams } from "@/types";
 
 interface EditInvoiceClientProps {
   invoice: InvoiceWithItems;
@@ -29,6 +36,8 @@ export function EditInvoiceClient({ invoice }: EditInvoiceClientProps) {
   } = useInvoiceEdit({ invoice });
 
   const [sentWarningOpen, setSentWarningOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const {
     id: documentId,
@@ -99,6 +108,51 @@ export function EditInvoiceClient({ invoice }: EditInvoiceClientProps) {
     void handleSave();
   }, [handleSave]);
 
+  const handleDownloadPDF = useCallback(async () => {
+    if (items.length === 0) return;
+
+    setIsDownloading(true);
+    try {
+      const params: GeneratePDFParams = {
+        customerName,
+        customerPhone,
+        customerAddress,
+        items,
+        total,
+        type,
+        businessName: businessName || "Mon Entreprise",
+        businessPhone,
+        businessAddress,
+        documentDate,
+        quotePrefix: quotePrefix || "DV-",
+        invoicePrefix: invoicePrefix || "FAC-",
+        vatRatePercent: vatRatePercent ?? 20,
+      };
+
+      const blob = await generatePDF(params);
+      const filename = generateFilename(type, customerName);
+      downloadPDF(blob, filename);
+    } catch {
+      toast.error("Erreur lors de la génération du PDF");
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [
+    items,
+    customerName,
+    customerPhone,
+    customerAddress,
+    total,
+    type,
+    businessName,
+    businessPhone,
+    businessAddress,
+    documentDate,
+    quotePrefix,
+    invoicePrefix,
+    vatRatePercent,
+  ]);
+
   // Block editing if document is paid
   if (invoice.status === "paid") {
     return <PaidBlockMessage />;
@@ -126,13 +180,37 @@ export function EditInvoiceClient({ invoice }: EditInvoiceClientProps) {
             </h1>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {voiceWasUsed && (
               <div className="hidden items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 sm:flex">
                 <Sparkles className="h-3.5 w-3.5" />
                 1 crédit sera déduit
               </div>
             )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsPreviewOpen(true)}
+              disabled={items.length === 0}
+              className="gap-1.5"
+            >
+              <Eye className="h-4 w-4" />
+              <span className="hidden sm:inline">Aperçu</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadPDF}
+              disabled={isDownloading || items.length === 0}
+              className="gap-1.5"
+            >
+              {isDownloading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4" />
+              )}
+              <span className="hidden sm:inline">Télécharger</span>
+            </Button>
             <Button
               onClick={handleSaveClick}
               disabled={isSaving || items.length === 0}
@@ -213,6 +291,25 @@ export function EditInvoiceClient({ invoice }: EditInvoiceClientProps) {
         open={sentWarningOpen}
         onConfirm={handleConfirmSave}
         onCancel={() => setSentWarningOpen(false)}
+      />
+
+      <PreviewModal
+        open={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+        onShare={handleDownloadPDF}
+        customerName={customerName}
+        customerPhone={customerPhone}
+        customerAddress={customerAddress}
+        documentDate={documentDate}
+        items={items}
+        total={total}
+        type={type}
+        businessName={businessName || "Mon Entreprise"}
+        businessPhone={businessPhone}
+        businessAddress={businessAddress}
+        quotePrefix={quotePrefix || "DV-"}
+        invoicePrefix={invoicePrefix || "FAC-"}
+        vatRatePercent={vatRatePercent ?? 20}
       />
     </div>
   );
