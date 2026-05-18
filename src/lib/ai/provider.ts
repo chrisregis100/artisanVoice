@@ -5,6 +5,8 @@ import {
   systemPrompt as geminiSystemPrompt,
 } from "@/lib/gemini/functions";
 import { AFRI_BASE_URL, AFRI_ENDPOINTS, AFRI_MODELS } from "@/lib/ai/afri/config";
+import { env } from "@/lib/env";
+import { GEMINI_LIVE_MODEL, GEMINI_LIVE_WS_BASE_URL } from "@/lib/gemini/config";
 
 export interface AIRealtimeProvider {
   name: "openai" | "gemini" | "afri";
@@ -19,7 +21,9 @@ class OpenAIProvider implements AIRealtimeProvider {
   async createSession(
     apiKey: string
   ): Promise<{ url: string; token: string; model: string }> {
-    const model = "gpt-4o-realtime-preview-2024-12-17";
+    const baseUrl = env.OPENAI_REALTIME_URL ?? "wss://api.openai.com/v1/realtime";
+    const model = env.OPENAI_REALTIME_MODEL ?? "gpt-4o-realtime-preview-2024-12-17";
+    const url = `${baseUrl}?model=${encodeURIComponent(model)}`;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30_000);
@@ -53,7 +57,7 @@ class OpenAIProvider implements AIRealtimeProvider {
 
     const data = await response.json();
     return {
-      url: `wss://api.openai.com/v1/realtime?model=${model}`,
+      url,
       token: data.client_secret?.value ?? "",
       model,
     };
@@ -74,8 +78,8 @@ class GeminiProvider implements AIRealtimeProvider {
   async createSession(
     apiKey: string
   ): Promise<{ url: string; token: string; model: string }> {
-    const model = "models/gemini-2.0-flash-live-001";
-    const url = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${apiKey}`;
+    const model = GEMINI_LIVE_MODEL;
+    const url = `${GEMINI_LIVE_WS_BASE_URL}?key=${apiKey}`;
     return { url, token: "", model };
   }
 
@@ -91,6 +95,11 @@ class GeminiProvider implements AIRealtimeProvider {
 class AfriProvider implements AIRealtimeProvider {
   readonly name = "afri" as const;
 
+  /**
+   * NOTE: Realtime sessions are currently forced to OpenAI — this method is not called
+   * from the /api/realtime/session route. It is reserved for future use (e.g. a
+   * server-side WebSocket proxy that could relay traffic through the Afri gateway).
+   */
   async createSession(
     apiKey: string
   ): Promise<{ url: string; token: string; model: string }> {
@@ -123,11 +132,15 @@ class AfriProvider implements AIRealtimeProvider {
     }
 
     const data = await response.json();
+    // Gateway returns { wsUrl, apiKey, ... }; also accept OpenAI-shaped { url, token, client_secret }
     const url =
-      typeof data.url === "string" && data.url
-        ? data.url
-        : `wss://build.lewisnote.com/v1/realtime?model=${AFRI_MODELS.realtime}`;
-    const token = typeof data.token === "string" ? data.token : (data.client_secret?.value ?? "");
+      (typeof data.wsUrl === "string" && data.wsUrl) ||
+      (typeof data.url === "string" && data.url) ||
+      `wss://build.lewisnote.com/v1/realtime?model=${AFRI_MODELS.realtime}`;
+    const token =
+      (typeof data.apiKey === "string" && data.apiKey) ||
+      (typeof data.token === "string" && data.token) ||
+      (typeof data.client_secret?.value === "string" ? data.client_secret.value : "");
 
     return { url, token, model: AFRI_MODELS.realtime };
   }

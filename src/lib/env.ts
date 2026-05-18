@@ -26,6 +26,15 @@ const serverSchema = z.object({
   ADMIN_EMAIL: z.string().email(),
   /** Base64, 32 bytes — encrypts API keys stored via the admin UI (`openssl rand -base64 32`). */
   ADMIN_SECRETS_ENCRYPTION_KEY: z.string().optional(),
+  /**
+   * WebSocket base URL for OpenAI Realtime voice sessions.
+   * Uses wss:// scheme — z.string() is used instead of z.url() because Zod's url()
+   * validator rejects wss:// protocol.
+   * Defaults to wss://api.openai.com/v1/realtime
+   */
+  OPENAI_REALTIME_URL: z.string().optional(),
+  /** Model identifier for OpenAI Realtime voice sessions. Defaults to gpt-4o-realtime-preview-2024-12-17 */
+  OPENAI_REALTIME_MODEL: z.string().optional(),
 });
 
 const clientSchema = z.object({

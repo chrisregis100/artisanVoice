@@ -40,9 +40,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           code: "MISSING_API_KEY",
-          error: "Clé API non configurée sur le serveur. Contactez l'administrateur.",
+          error: `Voice requires an API key for provider "${provider.name}". Configure it in admin settings or .env`,
         },
-        { status: 500 }
+        { status: 503 }
       );
     }
 

@@ -128,7 +128,7 @@ export default function AdminAiPage() {
               ].join(" ")}
               aria-pressed={activeProvider === "gemini"}
             >
-              <span className="font-semibold">Google Gemini 2.0 Flash Live</span>
+              <span className="font-semibold">Google Gemini 3.1 Flash Live</span>
               <span className="text-sm text-muted-foreground">
                 Modèle vocal Google multimodal
               </span>
