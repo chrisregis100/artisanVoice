@@ -44,7 +44,11 @@ function getErrorDescription(error: string, t: (key: string, vars?: Record<strin
   return error;
 }
 
-export function VoiceButton() {
+interface VoiceButtonProps {
+  onVoiceStart?: () => void;
+}
+
+export function VoiceButton({ onVoiceStart }: VoiceButtonProps = {}) {
   const { t } = useLanguage();
   const { isListening, isProcessing, isConnected, error } = useInvoiceStore();
   const { startListening, stopListening, interruptAssistant } = useVoice();
@@ -123,6 +127,7 @@ export function VoiceButton() {
     }
 
     startListening();
+    onVoiceStart?.();
   }, [
     isListening,
     isProcessing,
@@ -130,6 +135,7 @@ export function VoiceButton() {
     startListening,
     stopListening,
     subscriptionData,
+    onVoiceStart,
   ]);
 
   const handleKeyDown = useCallback(

@@ -1,8 +1,9 @@
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { CheckCircle, FileText, Send } from "lucide-react";
+import { CheckCircle, ChevronRight, FileText, Send } from "lucide-react";
 
 type Invoice = Database["public"]["Tables"]["invoices"]["Row"];
 
@@ -78,39 +79,43 @@ export default async function InvoicesPage() {
                 statusColors[invoice.status as keyof typeof statusColors];
 
               return (
-                <Card
+                <Link
                   key={invoice.id}
-                  className="cursor-pointer rounded-xl border shadow-sm transition-shadow hover:shadow-md"
+                  href={`/invoices/${invoice.id}`}
+                  className="block"
                 >
-                  <CardContent className="p-5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3">
-                          <span className="font-semibold text-lg truncate">
-                            {invoice.customer_name || "Sans nom"}
-                          </span>
-                          <span className="text-xs font-medium px-2 py-1 rounded bg-primary text-primary-foreground">
-                            {invoice.type === "quote" ? "Devis" : "Facture"}
-                          </span>
+                  <Card className="cursor-pointer rounded-xl border shadow-sm transition-shadow hover:shadow-md">
+                    <CardContent className="p-5">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3">
+                            <span className="font-semibold text-lg truncate">
+                              {invoice.customer_name || "Sans nom"}
+                            </span>
+                            <span className="text-xs font-medium px-2 py-1 rounded bg-primary text-primary-foreground">
+                              {invoice.type === "quote" ? "Devis" : "Facture"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                            <span>{formatDate(invoice.created_at)}</span>
+                            <span
+                              className={`flex items-center gap-1.5 font-medium ${statusColor}`}
+                            >
+                              <StatusIcon className="h-4 w-4" />
+                              {statusLabel}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                          <span>{formatDate(invoice.created_at)}</span>
-                          <span
-                            className={`flex items-center gap-1.5 font-medium ${statusColor}`}
-                          >
-                            <StatusIcon className="h-4 w-4" />
-                            {statusLabel}
-                          </span>
+                        <div className="flex items-center gap-4 pl-4">
+                          <p className="font-semibold text-xl">
+                            {formatCurrency(invoice.total)}
+                          </p>
+                          <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground" />
                         </div>
                       </div>
-                      <div className="text-right pl-4">
-                        <p className="font-semibold text-xl">
-                          {formatCurrency(invoice.total)}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </Link>
               );
             })}
           </div>
