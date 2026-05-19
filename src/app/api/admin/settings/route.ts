@@ -9,7 +9,6 @@ import {
   adminSettingKeyValueSchema,
 } from "@/lib/api/schemas";
 import {
-  ADMIN_SECRET_KEY_AFRI,
   ADMIN_SECRET_KEY_GEMINI,
   ADMIN_SECRET_KEY_OPENAI,
   buildSecretPayload,
@@ -82,7 +81,7 @@ export async function GET(request: NextRequest) {
     admin
       .from("admin_settings")
       .select("key, value")
-      .in("key", [ADMIN_SECRET_KEY_OPENAI, ADMIN_SECRET_KEY_GEMINI, ADMIN_SECRET_KEY_AFRI]),
+      .in("key", [ADMIN_SECRET_KEY_OPENAI, ADMIN_SECRET_KEY_GEMINI]),
   ]);
 
   const settings = settingsResult.data ?? [];
@@ -95,7 +94,6 @@ export async function GET(request: NextRequest) {
   const secretRows = secretKeysResult.data ?? [];
   const openaiSecret = secretRows.find((r) => r.key === ADMIN_SECRET_KEY_OPENAI);
   const geminiSecret = secretRows.find((r) => r.key === ADMIN_SECRET_KEY_GEMINI);
-  const afriSecret = secretRows.find((r) => r.key === ADMIN_SECRET_KEY_AFRI);
 
   return NextResponse.json({
     settings,
@@ -112,7 +110,6 @@ export async function GET(request: NextRequest) {
     serverKeys: {
       openai: resolveServerKeyInfo(openaiSecret?.value, env.OPENAI_API_KEY),
       gemini: resolveServerKeyInfo(geminiSecret?.value, env.GEMINI_API_KEY),
-      afri: resolveServerKeyInfo(afriSecret?.value, env.AFRI_API_KEY),
     },
   });
 }

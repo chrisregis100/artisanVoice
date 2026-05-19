@@ -13,7 +13,7 @@ const csp = [
   "img-src 'self' data: blob: https: https://*.lemonsqueezy.com",
   "font-src 'self'",
   // api.flutterwave.com retiré tant que Flutterwave est désactivé (voir lib/payment/flutterwave.ts).
-  `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://api.fedapay.com https://api.lemonsqueezy.com https://api.openai.com wss://api.openai.com https://generativelanguage.googleapis.com wss://generativelanguage.googleapis.com https://build.lewisnote.com wss://build.lewisnote.com https://*.cognitiveservices.azure.com wss://*.cognitiveservices.azure.com`,
+  `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://api.fedapay.com https://api.lemonsqueezy.com https://api.openai.com wss://api.openai.com https://generativelanguage.googleapis.com wss://generativelanguage.googleapis.com https://*.cognitiveservices.azure.com wss://*.cognitiveservices.azure.com`,
   "frame-src 'self' https://*.lemonsqueezy.com",
   "object-src 'none'",
   "base-uri 'self'",
