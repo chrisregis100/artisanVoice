@@ -21,7 +21,7 @@ class OpenAIProvider implements AIRealtimeProvider {
     apiKey: string
   ): Promise<{ url: string; token: string; model: string }> {
     const baseUrl = env.OPENAI_REALTIME_URL ?? "wss://api.openai.com/v1/realtime";
-    const model = env.OPENAI_REALTIME_MODEL ?? "gpt-4o-realtime-preview-2024-12-17";
+    const model = env.OPENAI_REALTIME_MODEL ?? "gpt-realtime-2";
     const url = `${baseUrl}?model=${encodeURIComponent(model)}`;
 
     const controller = new AbortController();
@@ -29,14 +29,22 @@ class OpenAIProvider implements AIRealtimeProvider {
 
     let response: Response;
     try {
-      response = await fetch("https://api.openai.com/v1/realtime/sessions", {
+      response = await fetch("https://api.openai.com/v1/realtime/client_secrets", {
         signal: controller.signal,
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ model, voice: "alloy" }),
+        body: JSON.stringify({
+          session: {
+            type: "realtime",
+            model,
+            audio: {
+              output: { voice: "alloy" },
+            },
+          },
+        }),
       });
     } catch (error) {
       clearTimeout(timeoutId);
@@ -49,12 +57,21 @@ class OpenAIProvider implements AIRealtimeProvider {
 
     if (!response.ok) {
       const status = response.status;
+      let errorBody: unknown;
+      try {
+        errorBody = await response.json();
+      } catch {
+        errorBody = await response.text().catch(() => "(unreadable)");
+      }
+      console.error(`OpenAI Realtime client_secrets error: HTTP ${status}`, JSON.stringify(errorBody));
       if (status === 401) throw new Error("INVALID_API_KEY");
       if (status === 429) throw new Error("QUOTA_EXCEEDED");
-      throw new Error("SESSION_ERROR");
+      throw new Error(`SESSION_ERROR: HTTP ${status}`);
     }
 
-    const data = await response.json();
+    const data = await response.json() as {
+      client_secret?: { value: string; expires_at: number };
+    };
     return {
       url,
       token: data.client_secret?.value ?? "",

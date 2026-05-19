@@ -50,12 +50,11 @@ export class RealtimeClient {
 
   private openWebSocket(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const url = this.wsUrl ?? `wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17`;
+      const url = this.wsUrl ?? `wss://api.openai.com/v1/realtime?model=gpt-realtime-2`;
 
       this.ws = new WebSocket(url, [
         "realtime",
         `openai-insecure-api-key.${this.token}`,
-        "openai-beta.realtime-v1",
       ]);
 
       this.ws.onopen = () => {
@@ -106,19 +105,24 @@ export class RealtimeClient {
     this.send({
       type: "session.update",
       session: {
+        type: "realtime",
         modalities: ["text", "audio"],
         instructions: systemPrompt,
-        voice: "alloy",
-        input_audio_format: "pcm16",
-        output_audio_format: "pcm16",
-        input_audio_transcription: {
-          model: "whisper-1",
-        },
-        turn_detection: {
-          type: "server_vad",
-          threshold: 0.5,
-          prefix_padding_ms: 300,
-          silence_duration_ms: 500,
+        audio: {
+          input: {
+            transcription: {
+              model: "whisper-1",
+            },
+            turn_detection: {
+              type: "server_vad",
+              threshold: 0.5,
+              prefix_padding_ms: 300,
+              silence_duration_ms: 500,
+            },
+          },
+          output: {
+            voice: "alloy",
+          },
         },
         tools: voiceFunctions.map((fn) => ({
           type: "function",
@@ -158,7 +162,7 @@ export class RealtimeClient {
         break;
       }
 
-      case "response.audio_transcript.delta": {
+      case "response.output_audio_transcript.delta": {
         const delta = message.delta;
         if (typeof delta === "string" && delta) {
           this.config.onAssistantTranscriptDelta(delta);
@@ -166,7 +170,7 @@ export class RealtimeClient {
         break;
       }
 
-      case "response.audio.delta": {
+      case "response.output_audio.delta": {
         const delta = message.delta;
         if (typeof delta === "string" && delta) {
           const audioData = this.base64ToArrayBuffer(delta);

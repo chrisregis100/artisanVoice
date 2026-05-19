@@ -402,16 +402,24 @@ export function useVoice(): UseVoiceReturn {
       });
       mediaStreamRef.current = stream;
 
-      recordCtxRef.current = new AudioContext({ sampleRate });
+      const ctx = new AudioContext({ sampleRate });
+      recordCtxRef.current = ctx;
 
-      // Load the AudioWorklet module (browser caches after first load)
-      await recordCtxRef.current.audioWorklet.addModule(WORKLET_PATH);
+      // Load the AudioWorklet module (browser caches after first load).
+      // Use the local `ctx` reference throughout — after the await, a
+      // concurrent startListening call may have replaced recordCtxRef.current
+      // with a different (or null) context, causing either a null-deref or a
+      // "pcm16-processor not defined" error on the wrong AudioContext.
+      await ctx.audioWorklet.addModule(WORKLET_PATH);
 
-      const source = recordCtxRef.current.createMediaStreamSource(stream);
-      const workletNode = new AudioWorkletNode(
-        recordCtxRef.current,
-        "pcm16-processor",
-      );
+      // If a concurrent call already superseded us, bail out cleanly.
+      if (recordCtxRef.current !== ctx) {
+        if (ctx.state !== "closed") await ctx.close();
+        return;
+      }
+
+      const source = ctx.createMediaStreamSource(stream);
+      const workletNode = new AudioWorkletNode(ctx, "pcm16-processor");
       workletNodeRef.current = workletNode;
 
       workletNode.port.onmessage = (event: MessageEvent<ArrayBuffer>) => {
