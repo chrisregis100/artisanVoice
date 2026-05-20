@@ -31,6 +31,12 @@ export class RealtimeClient {
   private isSessionConfigured = false;
   /** True between `response.created` and `response.done`/`response.cancelled`. */
   private isResponseActive = false;
+  /**
+   * Buffered function-call output waiting to be flushed after `response.done`.
+   * The Realtime API requires sending `conversation.item.create` (function_call_output)
+   * and then `response.create` only after the previous response has fully completed.
+   */
+  private pendingFunctionOutputs: Array<{ callId: string; result: unknown }> = [];
 
   private token = "";
   private wsUrl?: string;
@@ -50,7 +56,7 @@ export class RealtimeClient {
 
   private openWebSocket(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const url = this.wsUrl ?? `wss://api.openai.com/v1/realtime?model=gpt-realtime-2`;
+      const url = this.wsUrl ?? `wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17`;
 
       this.ws = new WebSocket(url, [
         "realtime",
@@ -108,21 +114,17 @@ export class RealtimeClient {
         type: "realtime",
         modalities: ["text", "audio"],
         instructions: systemPrompt,
-        audio: {
-          input: {
-            transcription: {
-              model: "whisper-1",
-            },
-            turn_detection: {
-              type: "server_vad",
-              threshold: 0.5,
-              prefix_padding_ms: 300,
-              silence_duration_ms: 500,
-            },
-          },
-          output: {
-            voice: "alloy",
-          },
+        voice: "alloy",
+        input_audio_format: "pcm16",
+        output_audio_format: "pcm16",
+        input_audio_transcription: {
+          model: "whisper-1",
+        },
+        turn_detection: {
+          type: "server_vad",
+          threshold: 0.5,
+          prefix_padding_ms: 300,
+          silence_duration_ms: 500,
         },
         tools: voiceFunctions.map((fn) => ({
           type: "function",
@@ -200,8 +202,12 @@ export class RealtimeClient {
 
         this.config.onFunctionCall(name, args);
 
+        // Buffer the output — we flush it in response.done so that
+        // conversation.item.create + response.create are sent only after the
+        // current response has fully closed. Sending response.create while
+        // isResponseActive is true would be rejected by the server.
         if (typeof callId === "string") {
-          this.sendFunctionResult(callId, { success: true });
+          this.pendingFunctionOutputs.push({ callId, result: { success: true } });
         }
         break;
       }
@@ -218,6 +224,14 @@ export class RealtimeClient {
       case "response.done":
         this.isResponseActive = false;
         this.config.onResponseDone?.();
+        // Flush any buffered function-call outputs now that the response has
+        // fully closed. sendFunctionResult will also send response.create.
+        if (this.pendingFunctionOutputs.length > 0) {
+          const pending = this.pendingFunctionOutputs.splice(0);
+          for (const { callId, result } of pending) {
+            this.sendFunctionResult(callId, result);
+          }
+        }
         break;
 
       case "input_audio_buffer.speech_started":
@@ -323,6 +337,7 @@ export class RealtimeClient {
     }
     this.isSessionConfigured = false;
     this.isResponseActive = false;
+    this.pendingFunctionOutputs = [];
   }
 
   get isConnected(): boolean {

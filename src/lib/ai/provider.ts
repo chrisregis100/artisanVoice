@@ -1,15 +1,22 @@
-import { createAdminClient } from "@/lib/supabase/admin";
-import { voiceFunctions, systemPrompt as openaiSystemPrompt } from "@/lib/openai/functions";
 import {
-  geminiVoiceFunctions,
+  GEMINI_LIVE_MODEL,
+  GEMINI_LIVE_WS_BASE_URL,
+} from "@/lib/gemini/config";
+import {
   systemPrompt as geminiSystemPrompt,
+  geminiVoiceFunctions,
 } from "@/lib/gemini/functions";
-import { env } from "@/lib/env";
-import { GEMINI_LIVE_MODEL, GEMINI_LIVE_WS_BASE_URL } from "@/lib/gemini/config";
+import {
+  systemPrompt as openaiSystemPrompt,
+  voiceFunctions,
+} from "@/lib/openai/functions";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export interface AIRealtimeProvider {
   name: "openai" | "gemini";
-  createSession(apiKey: string): Promise<{ url: string; token: string; model: string }>;
+  createSession(
+    apiKey: string,
+  ): Promise<{ url: string; token: string; model: string }>;
   getSystemPrompt(): string;
   getTools(): unknown[];
 }
@@ -18,10 +25,10 @@ class OpenAIProvider implements AIRealtimeProvider {
   readonly name = "openai" as const;
 
   async createSession(
-    apiKey: string
+    apiKey: string,
   ): Promise<{ url: string; token: string; model: string }> {
-    const baseUrl = env.OPENAI_REALTIME_URL ?? "wss://api.openai.com/v1/realtime";
-    const model = env.OPENAI_REALTIME_MODEL ?? "gpt-realtime-2";
+    const baseUrl = "wss://api.openai.com/v1/realtime";
+    const model = "gpt-realtime-2";
     const url = `${baseUrl}?model=${encodeURIComponent(model)}`;
 
     const controller = new AbortController();
@@ -29,23 +36,28 @@ class OpenAIProvider implements AIRealtimeProvider {
 
     let response: Response;
     try {
-      response = await fetch("https://api.openai.com/v1/realtime/client_secrets", {
-        signal: controller.signal,
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          session: {
-            type: "realtime",
-            model,
-            audio: {
-              output: { voice: "alloy" },
-            },
+      response = await fetch(
+        "https://api.openai.com/v1/realtime/client_secrets",
+        {
+          signal: controller.signal,
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
           },
-        }),
-      });
+          body: JSON.stringify({
+            session: {
+              type: "realtime",
+              model,
+              instructions: openaiSystemPrompt,
+              tools: voiceFunctions.map((fn) => ({
+                type: "function" as const,
+                ...fn,
+              })),
+            },
+          }),
+        },
+      );
     } catch (error) {
       clearTimeout(timeoutId);
       if (error instanceof Error && error.name === "AbortError") {
@@ -57,25 +69,43 @@ class OpenAIProvider implements AIRealtimeProvider {
 
     if (!response.ok) {
       const status = response.status;
-      let errorBody: unknown;
+      let openaiMessage = "";
       try {
-        errorBody = await response.json();
+        const errorBody = (await response.json()) as {
+          error?: { message?: string };
+        };
+        openaiMessage = errorBody?.error?.message ?? "";
       } catch {
-        errorBody = await response.text().catch(() => "(unreadable)");
+        openaiMessage = await response.text().catch(() => "");
       }
-      console.error(`OpenAI Realtime client_secrets error: HTTP ${status}`, JSON.stringify(errorBody));
+      console.error(
+        `OpenAI Realtime client_secrets error: HTTP ${status}`,
+        openaiMessage,
+      );
       if (status === 401) throw new Error("INVALID_API_KEY");
       if (status === 429) throw new Error("QUOTA_EXCEEDED");
-      throw new Error(`SESSION_ERROR: HTTP ${status}`);
+      throw new Error(`SESSION_ERROR:${status}:${openaiMessage}`);
     }
 
-    const data = await response.json() as {
-      client_secret?: { value: string; expires_at: number };
+    // POST /v1/realtime/client_secrets returns { value, expires_at, session }
+    // (not the old /v1/realtime/sessions format which had client_secret.value)
+    const data = (await response.json()) as {
+      value?: string;
+      expires_at?: number;
+      session?: { model?: string };
     };
+
+    const token = data.value ?? "";
+    if (!token) {
+      throw new Error(
+        "SESSION_ERROR:200:empty ephemeral token returned by OpenAI",
+      );
+    }
+
     return {
       url,
-      token: data.client_secret?.value ?? "",
-      model,
+      token,
+      model: data.session?.model ?? model,
     };
   }
 
@@ -92,7 +122,7 @@ class GeminiProvider implements AIRealtimeProvider {
   readonly name = "gemini" as const;
 
   async createSession(
-    apiKey: string
+    apiKey: string,
   ): Promise<{ url: string; token: string; model: string }> {
     const model = GEMINI_LIVE_MODEL;
     const url = `${GEMINI_LIVE_WS_BASE_URL}?key=${apiKey}`;
@@ -135,7 +165,10 @@ export async function getActiveProvider(): Promise<AIRealtimeProvider> {
       return getAIProvider(providerValue);
     }
   } catch (error) {
-    console.error("Failed to load AI provider from database, falling back to default:", error);
+    console.error(
+      "Failed to load AI provider from database, falling back to default:",
+      error,
+    );
   }
 
   return new OpenAIProvider();

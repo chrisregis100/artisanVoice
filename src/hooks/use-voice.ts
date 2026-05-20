@@ -30,6 +30,13 @@ const FinalizeDocumentSchema = z.object({
   send_via: z.enum(["whatsapp", "sms", "email"]).optional(),
 });
 
+const UpdateItemSchema = z.object({
+  item_index: z.number().int(),
+  description: z.string().optional(),
+  quantity: z.number().positive().optional(),
+  unit_price: z.number().nonnegative().optional(),
+});
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
@@ -99,6 +106,7 @@ export function useVoice(): UseVoiceReturn {
     addItem,
     removeItem,
     setCustomer,
+    updateItem,
     reset,
     requestFinalize,
   } = useInvoiceStore();
@@ -237,6 +245,29 @@ export function useVoice(): UseVoiceReturn {
           reset();
           break;
 
+        case "update_item": {
+          const parsed = UpdateItemSchema.safeParse(args);
+          if (!parsed.success) {
+            console.error("update_item: invalid args", parsed.error.flatten());
+            return;
+          }
+          const { item_index, description, quantity, unit_price } = parsed.data;
+          const items = useInvoiceStore.getState().items;
+          const actualIndex =
+            item_index < 0 ? items.length + item_index : item_index;
+          const target = items[actualIndex];
+          if (!target) {
+            console.warn("update_item: no item at index", item_index);
+            return;
+          }
+          updateItem(target.id, {
+            ...(description !== undefined && { description }),
+            ...(quantity !== undefined && { quantity }),
+            ...(unit_price !== undefined && { unitPrice: unit_price }),
+          });
+          break;
+        }
+
         case "finalize_document": {
           const parsed = FinalizeDocumentSchema.safeParse(args);
           requestFinalize(parsed.success ? parsed.data.send_via : undefined);
@@ -247,7 +278,7 @@ export function useVoice(): UseVoiceReturn {
           console.warn("useVoice: unknown function call:", name);
       }
     },
-    [addItem, removeItem, setCustomer, reset, requestFinalize],
+    [addItem, removeItem, setCustomer, updateItem, reset, requestFinalize],
   );
 
   // -------------------------------------------------------------------------
