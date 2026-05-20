@@ -52,7 +52,7 @@ export function VoiceButton({ onVoiceStart }: VoiceButtonProps = {}) {
   const { isListening, isProcessing, isConnected, error } = useInvoiceStore();
   const { startListening, stopListening, interruptAssistant } = useVoice();
   const { data: subscriptionData } = useSubscriptionStatus();
-  const { balance, hasPurchased } = useWallet();
+  const { balance, hasPurchased, isLoading: isWalletLoading } = useWallet();
   const [isQuotaModalOpen, setIsQuotaModalOpen] = useState(false);
 
   const connectionLabel = useMemo(
@@ -92,6 +92,13 @@ export function VoiceButton({ onVoiceStart }: VoiceButtonProps = {}) {
       return;
     }
 
+    // Guard: wallet credits. Only block when data is confirmed loaded and balance
+    // is depleted — fail open while still loading to avoid false positives.
+    if (!isWalletLoading && balance <= 0) {
+      setIsQuotaModalOpen(true);
+      return;
+    }
+
     // Layer 1: Immediate check from cached subscription data.
     // If limit is null the plan is unlimited — skip quota check entirely.
     const cachedLimit = subscriptionData?.usage?.limit ?? null;
@@ -127,6 +134,8 @@ export function VoiceButton({ onVoiceStart }: VoiceButtonProps = {}) {
     stopListening,
     subscriptionData,
     onVoiceStart,
+    balance,
+    isWalletLoading,
   ]);
 
   const handleKeyDown = useCallback(

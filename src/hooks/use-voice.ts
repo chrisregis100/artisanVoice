@@ -95,6 +95,8 @@ export function useVoice(): UseVoiceReturn {
   const currentSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const inputSampleRateRef = useRef<number>(24000);
   const processingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Set to true when finalize_document fires so onResponseDone can disconnect cleanly. */
+  const stopAfterFinalizeRef = useRef(false);
 
   const {
     setListening,
@@ -198,6 +200,30 @@ export function useVoice(): UseVoiceReturn {
   }, [setProcessing]);
 
   // -------------------------------------------------------------------------
+  // Cleanup helpers
+  // -------------------------------------------------------------------------
+
+  /** Tears down the microphone capture pipeline (worklet + stream + context). */
+  const cleanupRecording = useCallback(async () => {
+    if (workletNodeRef.current) {
+      workletNodeRef.current.port.close();
+      workletNodeRef.current.disconnect();
+      workletNodeRef.current = null;
+    }
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+    }
+    if (
+      recordCtxRef.current &&
+      recordCtxRef.current.state !== "closed"
+    ) {
+      await recordCtxRef.current.close();
+      recordCtxRef.current = null;
+    }
+  }, []);
+
+  // -------------------------------------------------------------------------
   // Function-call handler (Zod-validated)
   // -------------------------------------------------------------------------
 
@@ -271,6 +297,23 @@ export function useVoice(): UseVoiceReturn {
         case "finalize_document": {
           const parsed = FinalizeDocumentSchema.safeParse(args);
           requestFinalize(parsed.success ? parsed.data.send_via : undefined);
+          // Stop the mic immediately and wait for the AI's final utterance before
+          // fully disconnecting. onResponseDone will close the WS connection.
+          stopAfterFinalizeRef.current = true;
+          setListening(false);
+          setProcessing(true);
+          void cleanupRecording();
+          // Fallback: if onResponseDone never fires (network loss), auto-disconnect
+          if (processingTimerRef.current) clearTimeout(processingTimerRef.current);
+          processingTimerRef.current = setTimeout(() => {
+            processingTimerRef.current = null;
+            setProcessing(false);
+            if (stopAfterFinalizeRef.current) {
+              stopAfterFinalizeRef.current = false;
+              clientRef.current?.disconnect();
+              clientRef.current = null;
+            }
+          }, PROCESSING_FALLBACK_MS);
           break;
         }
 
@@ -278,32 +321,8 @@ export function useVoice(): UseVoiceReturn {
           console.warn("useVoice: unknown function call:", name);
       }
     },
-    [addItem, removeItem, setCustomer, updateItem, reset, requestFinalize],
+    [addItem, removeItem, setCustomer, updateItem, reset, requestFinalize, cleanupRecording, setListening, setProcessing],
   );
-
-  // -------------------------------------------------------------------------
-  // Cleanup helpers
-  // -------------------------------------------------------------------------
-
-  /** Tears down the microphone capture pipeline (worklet + stream + context). */
-  const cleanupRecording = useCallback(async () => {
-    if (workletNodeRef.current) {
-      workletNodeRef.current.port.close();
-      workletNodeRef.current.disconnect();
-      workletNodeRef.current = null;
-    }
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
-      mediaStreamRef.current = null;
-    }
-    if (
-      recordCtxRef.current &&
-      recordCtxRef.current.state !== "closed"
-    ) {
-      await recordCtxRef.current.close();
-      recordCtxRef.current = null;
-    }
-  }, []);
 
   // -------------------------------------------------------------------------
   // Client initialisation
@@ -359,6 +378,14 @@ export function useVoice(): UseVoiceReturn {
           processingTimerRef.current = null;
         }
         setProcessing(false);
+
+        // finalize_document was called earlier — fully disconnect now that the
+        // AI has finished its closing utterance, so the button returns to idle.
+        if (stopAfterFinalizeRef.current) {
+          stopAfterFinalizeRef.current = false;
+          clientRef.current?.disconnect();
+          clientRef.current = null;
+        }
       },
       onSpeechStarted: () => {
         // Server-VAD detected the user speaking again — barge in by stopping
