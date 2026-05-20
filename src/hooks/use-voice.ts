@@ -520,6 +520,15 @@ export function useVoice(): UseVoiceReturn {
     setListening(false);
     setProcessing(true);
 
+    // Explicitly commit buffered audio so the provider processes it immediately
+    // rather than waiting for server-side VAD to detect sufficient silence.
+    // Wrapped in try/catch so a disconnected client never throws here.
+    try {
+      clientRef.current?.commitAudio();
+    } catch {
+      // client already disconnected — safe to ignore
+    }
+
     // Disconnect microphone pipeline synchronously-ish
     await cleanupRecording();
 
