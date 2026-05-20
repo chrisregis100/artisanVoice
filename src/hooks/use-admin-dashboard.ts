@@ -20,9 +20,13 @@ export interface AdminSetting {
 export interface Stats {
   totalUsers: number;
   totalInvoices: number;
-  freeSubscriptions: number;
-  proSubscriptions: number;
-  monthlyRevenue: number;
+  monthlyRevenueXof: number;
+  monthlyRevenueUsdCents: number;
+  totalPurchases30d: number;
+  totalCreditsGranted30d: number;
+  activeBuyersCount: number;
+  walletsWithCredits?: number;
+  totalCreditsBalance?: number;
 }
 
 export interface ServerKeyInfo {

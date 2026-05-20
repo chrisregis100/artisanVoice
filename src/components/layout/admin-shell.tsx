@@ -5,7 +5,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowLeft,
+  ArrowLeftRight,
   Bot,
+  CreditCard,
   Key,
   LayoutDashboard,
   Menu,
@@ -25,6 +27,8 @@ interface AdminShellProps {
 const navItems = [
   { href: "/admin", label: "Vue d'ensemble", icon: LayoutDashboard },
   { href: "/admin/users", label: "Utilisateurs", icon: Users },
+  { href: "/admin/transactions", label: "Transactions", icon: ArrowLeftRight },
+  { href: "/admin/payments", label: "Paiements", icon: CreditCard },
   { href: "/admin/ai", label: "Fournisseur IA", icon: Bot },
   { href: "/admin/plans", label: "Plans tarifaires", icon: Package },
   { href: "/admin/keys", label: "Clés API", icon: Key },

@@ -71,6 +71,8 @@ export async function GET(request: NextRequest) {
     invoicesResult,
     walletsResult,
     secretKeysResult,
+    purchasesResult,
+    activeBuyersResult,
   ] = await Promise.all([
     admin.from("admin_settings").select("*"),
     admin.from("users").select("id", { count: "exact", head: true }),
@@ -82,6 +84,17 @@ export async function GET(request: NextRequest) {
       .from("admin_settings")
       .select("key, value")
       .in("key", [ADMIN_SECRET_KEY_OPENAI, ADMIN_SECRET_KEY_GEMINI]),
+    // Purchases for the last 30 days
+    admin
+      .from("credit_transactions")
+      .select("pack_id, payment_provider, created_at")
+      .eq("kind", "purchase")
+      .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+    // Active buyers
+    admin
+      .from("credit_wallets")
+      .select("user_id", { count: "exact", head: true })
+      .eq("has_purchased", true),
   ]);
 
   const settings = settingsResult.data ?? [];
@@ -90,6 +103,35 @@ export async function GET(request: NextRequest) {
   const wallets = walletsResult.data ?? [];
   const walletsWithCredits = wallets.filter((w) => w.balance > 0).length;
   const totalCreditsBalance = wallets.reduce((acc, w) => acc + w.balance, 0);
+  const activeBuyersCount = activeBuyersResult.count ?? 0;
+
+  // Compute monthly revenue from purchases + credit_packs prices
+  const purchaseRows = purchasesResult.data ?? [];
+  const packIds = [...new Set(purchaseRows.map((r) => r.pack_id).filter(Boolean) as string[])];
+  const packsData = packIds.length > 0
+    ? await admin.from("credit_packs").select("id, price_xof, price_usd_cents, credits_amount, bonus_credits").in("id", packIds)
+    : { data: [] };
+
+  type PackPrice = { id: string; price_xof: number; price_usd_cents: number; credits_amount: number; bonus_credits: number };
+  const packPriceMap = new Map<string, PackPrice>();
+  for (const p of (packsData.data ?? []) as PackPrice[]) {
+    packPriceMap.set(p.id, p);
+  }
+
+  let monthlyRevenueXof = 0;
+  let monthlyRevenueUsdCents = 0;
+  const totalPurchases30d = purchaseRows.length;
+  let totalCreditsGranted30d = 0;
+
+  for (const row of purchaseRows) {
+    const pack = row.pack_id ? packPriceMap.get(row.pack_id) : null;
+    if (row.payment_provider === "fedapay") {
+      monthlyRevenueXof += pack?.price_xof ?? 0;
+    } else if (row.payment_provider === "lemonsqueezy") {
+      monthlyRevenueUsdCents += pack?.price_usd_cents ?? 0;
+    }
+    totalCreditsGranted30d += (pack?.credits_amount ?? 0) + (pack?.bonus_credits ?? 0);
+  }
 
   const secretRows = secretKeysResult.data ?? [];
   const openaiSecret = secretRows.find((r) => r.key === ADMIN_SECRET_KEY_OPENAI);
@@ -101,9 +143,11 @@ export async function GET(request: NextRequest) {
     stats: {
       totalUsers,
       totalInvoices,
-      freeSubscriptions: 0,
-      proSubscriptions: 0,
-      monthlyRevenue: 0,
+      monthlyRevenueXof,
+      monthlyRevenueUsdCents,
+      totalPurchases30d,
+      totalCreditsGranted30d,
+      activeBuyersCount,
       walletsWithCredits,
       totalCreditsBalance,
     },
