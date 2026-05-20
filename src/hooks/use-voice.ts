@@ -496,10 +496,6 @@ export function useVoice(): UseVoiceReturn {
     // Disconnect microphone pipeline synchronously-ish
     await cleanupRecording();
 
-    if (clientRef.current?.isConnected) {
-      clientRef.current.commitAudio();
-    }
-
     // Fallback: clear spinner if onResponseDone never fires (e.g. network loss)
     if (processingTimerRef.current) {
       clearTimeout(processingTimerRef.current);

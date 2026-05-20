@@ -42,6 +42,8 @@ export class RealtimeClient {
   private wsUrl?: string;
   private retryCount = 0;
   private shouldReconnect = false;
+  /** Accumulated PCM16 audio duration since last commit, in ms (PCM16 mono 24kHz = byteLength / 48). */
+  private audioBufferDurationMs = 0;
 
   constructor(config: RealtimeConfig) {
     this.config = config;
@@ -112,19 +114,23 @@ export class RealtimeClient {
       type: "session.update",
       session: {
         type: "realtime",
-        modalities: ["text", "audio"],
+        output_modalities: ["audio"],
         instructions: systemPrompt,
-        voice: "alloy",
-        input_audio_format: "pcm16",
-        output_audio_format: "pcm16",
-        input_audio_transcription: {
-          model: "whisper-1",
-        },
-        turn_detection: {
-          type: "server_vad",
-          threshold: 0.5,
-          prefix_padding_ms: 300,
-          silence_duration_ms: 500,
+        audio: {
+          input: {
+            format: { type: "audio/pcm", rate: 24000 },
+            turn_detection: {
+              type: "server_vad",
+              threshold: 0.5,
+              prefix_padding_ms: 300,
+              silence_duration_ms: 500,
+            },
+            transcription: { model: "whisper-1" },
+          },
+          output: {
+            format: { type: "audio/pcm", rate: 24000 },
+            voice: "alloy",
+          },
         },
         tools: voiceFunctions.map((fn) => ({
           type: "function",
@@ -235,7 +241,12 @@ export class RealtimeClient {
         break;
 
       case "input_audio_buffer.speech_started":
+        this.audioBufferDurationMs = 0;
         this.config.onSpeechStarted?.();
+        break;
+
+      case "input_audio_buffer.cleared":
+        this.audioBufferDurationMs = 0;
         break;
 
       case "error": {
@@ -262,6 +273,7 @@ export class RealtimeClient {
   sendAudio(audioData: ArrayBuffer): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
 
+    this.audioBufferDurationMs += audioData.byteLength / 48;
     const base64Audio = this.arrayBufferToBase64(audioData);
     this.send({ type: "input_audio_buffer.append", audio: base64Audio });
   }
@@ -269,6 +281,15 @@ export class RealtimeClient {
   commitAudio(): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
 
+    // OpenAI Realtime API requires ≥100ms of audio per manual commit
+    if (this.audioBufferDurationMs < 100) {
+      console.debug(
+        `commitAudio: skipped — buffer has ${this.audioBufferDurationMs.toFixed(1)}ms (< 100ms required)`,
+      );
+      return;
+    }
+
+    this.audioBufferDurationMs = 0;
     this.send({ type: "input_audio_buffer.commit" });
     // Server-VAD may have already auto-created a response; only ask for one
     // if none is currently in flight to avoid the
@@ -338,6 +359,7 @@ export class RealtimeClient {
     this.isSessionConfigured = false;
     this.isResponseActive = false;
     this.pendingFunctionOutputs = [];
+    this.audioBufferDurationMs = 0;
   }
 
   get isConnected(): boolean {

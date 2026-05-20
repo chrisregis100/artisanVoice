@@ -50,6 +50,23 @@ class OpenAIProvider implements AIRealtimeProvider {
               type: "realtime",
               model,
               instructions: openaiSystemPrompt,
+              output_modalities: ["audio"],
+              audio: {
+                input: {
+                  format: { type: "audio/pcm", rate: 24000 },
+                  turn_detection: {
+                    type: "server_vad",
+                    threshold: 0.5,
+                    prefix_padding_ms: 300,
+                    silence_duration_ms: 500,
+                  },
+                  transcription: { model: "whisper-1" },
+                },
+                output: {
+                  format: { type: "audio/pcm", rate: 24000 },
+                  voice: "alloy",
+                },
+              },
               tools: voiceFunctions.map((fn) => ({
                 type: "function" as const,
                 ...fn,
