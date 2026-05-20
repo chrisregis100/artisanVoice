@@ -7,8 +7,6 @@ const serverSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   OPENAI_API_KEY: z.string().optional(),
   GEMINI_API_KEY: z.string().optional(),
-  AFRI_API_KEY: z.string().regex(/^sk-afri-/).optional(),
-  AFRI_BASE_URL: z.string().url().optional(),
   // Flutterwave : optionnels tant que le fournisseur est désactivé (voir lib/payment/flutterwave.ts).
   // Sans clés, l’init de paiement et le webhook Flutterwave ne doivent pas être utilisés.
   FLUTTERWAVE_PUBLIC_KEY: z.string().optional(),

@@ -176,7 +176,7 @@ export const fedapayWebhookSchema = z.object({
       reference: z.string().optional(),
       amount: z.number(),
       status: z.string(),
-      metadata: z
+      custom_metadata: z
         .object({
           user_id: z.string().optional(),
           plan_id: z.string().optional(),

@@ -22,6 +22,7 @@ import { upsertInvoiceToSupabase } from "@/lib/invoices/persist-client";
 import { useLanguage } from "@/i18n/context";
 import type { InvoiceItem } from "@/types";
 import { MessageCircle, Download, Share2, Loader2, Phone } from "lucide-react";
+import { toast } from "sonner";
 
 interface ShareDialogProps {
   open: boolean;
@@ -67,7 +68,6 @@ export function ShareDialog({
   const { t } = useLanguage();
   const [isSharing, setIsSharing] = useState(false);
   const [customerPhone, setCustomerPhone] = useState(initialPhone || "");
-  const [error, setError] = useState<string | null>(null);
 
   const shareParams = {
     customerName,
@@ -121,14 +121,13 @@ export function ShareDialog({
 
   const handleShare = async (method: ShareMethod) => {
     setIsSharing(true);
-    setError(null);
     try {
       await shareWithPDF(shareParams, method);
       await persistAfterShare();
       onOpenChange(false);
     } catch (err) {
       console.error("Share error:", err);
-      setError(t("dashboard.share.pdfShareError"));
+      toast.error(t("dashboard.share.pdfShareError"));
     } finally {
       setIsSharing(false);
     }
@@ -136,14 +135,13 @@ export function ShareDialog({
 
   const handleWhatsAppOnly = async () => {
     setIsSharing(true);
-    setError(null);
     try {
       await shareViaWhatsApp(shareParams, customerPhone);
       await persistAfterShare();
       onOpenChange(false);
     } catch (err) {
       console.error("Share error:", err);
-      setError(t("dashboard.share.whatsappShareError"));
+      toast.error(t("dashboard.share.whatsappShareError"));
     } finally {
       setIsSharing(false);
     }
@@ -187,16 +185,6 @@ export function ShareDialog({
               disabled={isSharing}
             />
           </div>
-
-          {error && (
-            <p
-              role="alert"
-              aria-live="assertive"
-              className="text-sm text-destructive text-left rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2"
-            >
-              {error}
-            </p>
-          )}
 
           {/* Share buttons */}
           <div className="grid gap-3">

@@ -6,7 +6,6 @@ import { getSecretsEncryptionKey } from "@/lib/admin/secrets-settings";
 
 export const ADMIN_SECRET_KEY_OPENAI = "secret_openai_api_key";
 export const ADMIN_SECRET_KEY_GEMINI = "secret_gemini_api_key";
-export const ADMIN_SECRET_KEY_AFRI = "secret_afri_api_key";
 
 interface StoredSecretV1 {
   v: 1;
@@ -51,20 +50,13 @@ export async function decryptStoredApiKey(
 }
 
 export async function getServerApiKeyForProvider(
-  provider: "openai" | "gemini" | "afri",
+  provider: "openai" | "gemini",
 ): Promise<string | undefined> {
   if (provider === "gemini") {
     const row = await getSecretKeyRow(ADMIN_SECRET_KEY_GEMINI);
     const fromDb = await decryptStoredApiKey(row);
     if (fromDb) return fromDb;
     return env.GEMINI_API_KEY;
-  }
-
-  if (provider === "afri") {
-    const row = await getSecretKeyRow(ADMIN_SECRET_KEY_AFRI);
-    const fromDb = await decryptStoredApiKey(row);
-    if (fromDb) return fromDb;
-    return env.AFRI_API_KEY;
   }
 
   const row = await getSecretKeyRow(ADMIN_SECRET_KEY_OPENAI);

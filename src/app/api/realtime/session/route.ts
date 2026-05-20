@@ -74,6 +74,22 @@ export async function POST(request: NextRequest) {
           { status: 429 }
         );
       }
+      // SESSION_ERROR:statusCode:openaiMessage
+      if (error.message.startsWith("SESSION_ERROR:")) {
+        const [, rawStatus, ...msgParts] = error.message.split(":");
+        const upstreamStatus = Number(rawStatus) || 0;
+        const openaiDetail = msgParts.join(":").trim();
+        console.error("OpenAI session error:", upstreamStatus, openaiDetail);
+        return NextResponse.json(
+          {
+            code: "SESSION_ERROR",
+            error: openaiDetail
+              ? `Erreur OpenAI (HTTP ${upstreamStatus}): ${openaiDetail}`
+              : `Impossible de créer la session OpenAI (HTTP ${upstreamStatus}).`,
+          },
+          { status: 502 }
+        );
+      }
     }
     console.error("Session creation error:", error);
     return NextResponse.json(

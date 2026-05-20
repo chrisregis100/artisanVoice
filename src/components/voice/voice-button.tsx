@@ -1,8 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useEffect, useState } from "react";
-import Link from "next/link";
-import { Mic, MicOff, Square, AlertCircle } from "lucide-react";
+import { Mic, MicOff, Square } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/i18n/context";
@@ -53,7 +52,7 @@ export function VoiceButton({ onVoiceStart }: VoiceButtonProps = {}) {
   const { isListening, isProcessing, isConnected, error } = useInvoiceStore();
   const { startListening, stopListening, interruptAssistant } = useVoice();
   const { data: subscriptionData } = useSubscriptionStatus();
-  const { balance, hasPurchased } = useWallet();
+  const { balance, hasPurchased, isLoading: isWalletLoading } = useWallet();
   const [isQuotaModalOpen, setIsQuotaModalOpen] = useState(false);
 
   const connectionLabel = useMemo(
@@ -64,15 +63,7 @@ export function VoiceButton({ onVoiceStart }: VoiceButtonProps = {}) {
     [isConnected, t]
   );
 
-  const errorText = error ? getErrorDescription(error, t) : null;
-  const showApiKeyLink = error ? isApiKeyError(error) : false;
-
-  const errorParts = errorText?.split(" — ");
-  const errorTitle = errorParts?.[0] ?? "";
-  const errorDetail =
-    errorParts && errorParts.length > 1 ? errorParts.slice(1).join(" — ") : null;
-
-  // Show toast notification for errors (complements inline alert)
+  // Show toast notification for errors
   useEffect(() => {
     if (error) {
       toast.error(t("dashboard.voice.errorTitle"), {
@@ -98,6 +89,13 @@ export function VoiceButton({ onVoiceStart }: VoiceButtonProps = {}) {
     if (isProcessing) {
       // AI is still talking — clicking the mic stops it (barge-in).
       interruptAssistant();
+      return;
+    }
+
+    // Guard: wallet credits. Only block when data is confirmed loaded and balance
+    // is depleted — fail open while still loading to avoid false positives.
+    if (!isWalletLoading && balance <= 0) {
+      setIsQuotaModalOpen(true);
       return;
     }
 
@@ -136,6 +134,8 @@ export function VoiceButton({ onVoiceStart }: VoiceButtonProps = {}) {
     stopListening,
     subscriptionData,
     onVoiceStart,
+    balance,
+    isWalletLoading,
   ]);
 
   const handleKeyDown = useCallback(
@@ -156,41 +156,6 @@ export function VoiceButton({ onVoiceStart }: VoiceButtonProps = {}) {
         currentBalance={balance}
         hasPurchased={hasPurchased}
       />
-      {errorText && (
-        <div
-          className="mb-6 w-full max-w-md px-1"
-          role="alert"
-          aria-live="assertive"
-        >
-          <div className="flex items-start gap-3 rounded-lg border border-destructive/30 bg-destructive/10 pl-3 pr-4 py-3 shadow-sm ring-1 ring-destructive/10 border-l-4 border-l-destructive">
-            <div
-              className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-destructive/15"
-              aria-hidden="true"
-            >
-              <AlertCircle className="h-4 w-4 text-destructive" />
-            </div>
-            <div className="flex-1 min-w-0 pt-0.5 space-y-1.5">
-              <p className="text-sm font-semibold text-destructive leading-snug">
-                {errorTitle}
-              </p>
-              {errorDetail && (
-                <p className="text-sm text-foreground/85 leading-snug">
-                  {errorDetail}
-                </p>
-              )}
-              {showApiKeyLink && (
-                <Link
-                  href="/settings"
-                  className="inline-flex items-center text-sm font-medium text-primary underline underline-offset-2 hover:text-primary/80 focus:outline-none focus:ring-2 focus:ring-primary/40 rounded-sm"
-                >
-                  {t("dashboard.voice.goToSettings")}
-                </Link>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="relative">
         {isListening && (
           <>

@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ received: true });
   }
 
-  const txMeta = transaction.metadata ?? {};
+  const txMeta = transaction.custom_metadata ?? {};
   const userId = txMeta.user_id;
   const packSlug = txMeta.pack_slug;
   const kind = txMeta.kind;

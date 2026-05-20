@@ -67,7 +67,7 @@ interface FedaPayFullTransactionResponse {
     amount: number;
     currency_id: number;
     reference: string;
-    metadata: {
+    custom_metadata: {
       user_id?: string;
       plan_id?: string;
       pack_id?: string;
@@ -130,7 +130,7 @@ export const initiateFedaPayPayment = async (
     amount: params.amount,
     currency: { iso: params.currency },
     callback_url: params.redirectUrl,
-    metadata: {
+    custom_metadata: {
       user_id: params.userId,
       plan_id: params.planId,
     },
@@ -198,7 +198,7 @@ export const initiateFedaPayPackPurchase = async (
     amount: pack.priceXof,
     currency: { iso: "XOF" },
     callback_url: params.redirectUrl,
-    metadata: {
+    custom_metadata: {
       user_id: params.userId,
       pack_id: pack.id,
       pack_slug: params.packSlug,
@@ -324,7 +324,7 @@ export const fetchFedaPayTransaction = async (
     status: tx.status,
     amount: tx.amount,
     reference: tx.reference,
-    metadata: tx.metadata ?? null,
+    metadata: tx.custom_metadata ?? null,
   };
 };
 

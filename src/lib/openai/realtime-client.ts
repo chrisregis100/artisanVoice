@@ -31,11 +31,19 @@ export class RealtimeClient {
   private isSessionConfigured = false;
   /** True between `response.created` and `response.done`/`response.cancelled`. */
   private isResponseActive = false;
+  /**
+   * Buffered function-call output waiting to be flushed after `response.done`.
+   * The Realtime API requires sending `conversation.item.create` (function_call_output)
+   * and then `response.create` only after the previous response has fully completed.
+   */
+  private pendingFunctionOutputs: Array<{ callId: string; result: unknown }> = [];
 
   private token = "";
   private wsUrl?: string;
   private retryCount = 0;
   private shouldReconnect = false;
+  /** Accumulated PCM16 audio duration since last commit, in ms (PCM16 mono 24kHz = byteLength / 48). */
+  private audioBufferDurationMs = 0;
 
   constructor(config: RealtimeConfig) {
     this.config = config;
@@ -55,7 +63,6 @@ export class RealtimeClient {
       this.ws = new WebSocket(url, [
         "realtime",
         `openai-insecure-api-key.${this.token}`,
-        "openai-beta.realtime-v1",
       ]);
 
       this.ws.onopen = () => {
@@ -106,19 +113,24 @@ export class RealtimeClient {
     this.send({
       type: "session.update",
       session: {
-        modalities: ["text", "audio"],
+        type: "realtime",
+        output_modalities: ["audio"],
         instructions: systemPrompt,
-        voice: "alloy",
-        input_audio_format: "pcm16",
-        output_audio_format: "pcm16",
-        input_audio_transcription: {
-          model: "whisper-1",
-        },
-        turn_detection: {
-          type: "server_vad",
-          threshold: 0.5,
-          prefix_padding_ms: 300,
-          silence_duration_ms: 500,
+        audio: {
+          input: {
+            format: { type: "audio/pcm", rate: 24000 },
+            turn_detection: {
+              type: "server_vad",
+              threshold: 0.5,
+              prefix_padding_ms: 300,
+              silence_duration_ms: 500,
+            },
+            transcription: { model: "whisper-1" },
+          },
+          output: {
+            format: { type: "audio/pcm", rate: 24000 },
+            voice: "alloy",
+          },
         },
         tools: voiceFunctions.map((fn) => ({
           type: "function",
@@ -158,7 +170,7 @@ export class RealtimeClient {
         break;
       }
 
-      case "response.audio_transcript.delta": {
+      case "response.output_audio_transcript.delta": {
         const delta = message.delta;
         if (typeof delta === "string" && delta) {
           this.config.onAssistantTranscriptDelta(delta);
@@ -166,7 +178,7 @@ export class RealtimeClient {
         break;
       }
 
-      case "response.audio.delta": {
+      case "response.output_audio.delta": {
         const delta = message.delta;
         if (typeof delta === "string" && delta) {
           const audioData = this.base64ToArrayBuffer(delta);
@@ -196,8 +208,12 @@ export class RealtimeClient {
 
         this.config.onFunctionCall(name, args);
 
+        // Buffer the output — we flush it in response.done so that
+        // conversation.item.create + response.create are sent only after the
+        // current response has fully closed. Sending response.create while
+        // isResponseActive is true would be rejected by the server.
         if (typeof callId === "string") {
-          this.sendFunctionResult(callId, { success: true });
+          this.pendingFunctionOutputs.push({ callId, result: { success: true } });
         }
         break;
       }
@@ -214,10 +230,23 @@ export class RealtimeClient {
       case "response.done":
         this.isResponseActive = false;
         this.config.onResponseDone?.();
+        // Flush any buffered function-call outputs now that the response has
+        // fully closed. sendFunctionResult will also send response.create.
+        if (this.pendingFunctionOutputs.length > 0) {
+          const pending = this.pendingFunctionOutputs.splice(0);
+          for (const { callId, result } of pending) {
+            this.sendFunctionResult(callId, result);
+          }
+        }
         break;
 
       case "input_audio_buffer.speech_started":
+        this.audioBufferDurationMs = 0;
         this.config.onSpeechStarted?.();
+        break;
+
+      case "input_audio_buffer.cleared":
+        this.audioBufferDurationMs = 0;
         break;
 
       case "error": {
@@ -244,6 +273,7 @@ export class RealtimeClient {
   sendAudio(audioData: ArrayBuffer): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
 
+    this.audioBufferDurationMs += audioData.byteLength / 48;
     const base64Audio = this.arrayBufferToBase64(audioData);
     this.send({ type: "input_audio_buffer.append", audio: base64Audio });
   }
@@ -251,6 +281,15 @@ export class RealtimeClient {
   commitAudio(): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
 
+    // OpenAI Realtime API requires ≥100ms of audio per manual commit
+    if (this.audioBufferDurationMs < 100) {
+      console.debug(
+        `commitAudio: skipped — buffer has ${this.audioBufferDurationMs.toFixed(1)}ms (< 100ms required)`,
+      );
+      return;
+    }
+
+    this.audioBufferDurationMs = 0;
     this.send({ type: "input_audio_buffer.commit" });
     // Server-VAD may have already auto-created a response; only ask for one
     // if none is currently in flight to avoid the
@@ -319,6 +358,8 @@ export class RealtimeClient {
     }
     this.isSessionConfigured = false;
     this.isResponseActive = false;
+    this.pendingFunctionOutputs = [];
+    this.audioBufferDurationMs = 0;
   }
 
   get isConnected(): boolean {

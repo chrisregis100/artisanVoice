@@ -30,15 +30,21 @@ const FinalizeDocumentSchema = z.object({
   send_via: z.enum(["whatsapp", "sms", "email"]).optional(),
 });
 
+const UpdateItemSchema = z.object({
+  item_index: z.number().int(),
+  description: z.string().optional(),
+  quantity: z.number().positive().optional(),
+  unit_price: z.number().nonnegative().optional(),
+});
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
 /** Input sample rate per provider (output playback is always 24 kHz). */
-const PROVIDER_SAMPLE_RATE: Record<"openai" | "gemini" | "afri", number> = {
+const PROVIDER_SAMPLE_RATE: Record<"openai" | "gemini", number> = {
   openai: 24000,
   gemini: 16000,
-  afri: 24000,
 };
 
 /** Path to the AudioWorklet module (served from /public). */
@@ -89,6 +95,8 @@ export function useVoice(): UseVoiceReturn {
   const currentSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const inputSampleRateRef = useRef<number>(24000);
   const processingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Set to true when finalize_document fires so onResponseDone can disconnect cleanly. */
+  const stopAfterFinalizeRef = useRef(false);
 
   const {
     setListening,
@@ -100,6 +108,7 @@ export function useVoice(): UseVoiceReturn {
     addItem,
     removeItem,
     setCustomer,
+    updateItem,
     reset,
     requestFinalize,
   } = useInvoiceStore();
@@ -191,6 +200,30 @@ export function useVoice(): UseVoiceReturn {
   }, [setProcessing]);
 
   // -------------------------------------------------------------------------
+  // Cleanup helpers
+  // -------------------------------------------------------------------------
+
+  /** Tears down the microphone capture pipeline (worklet + stream + context). */
+  const cleanupRecording = useCallback(async () => {
+    if (workletNodeRef.current) {
+      workletNodeRef.current.port.close();
+      workletNodeRef.current.disconnect();
+      workletNodeRef.current = null;
+    }
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
+      mediaStreamRef.current = null;
+    }
+    if (
+      recordCtxRef.current &&
+      recordCtxRef.current.state !== "closed"
+    ) {
+      await recordCtxRef.current.close();
+      recordCtxRef.current = null;
+    }
+  }, []);
+
+  // -------------------------------------------------------------------------
   // Function-call handler (Zod-validated)
   // -------------------------------------------------------------------------
 
@@ -238,9 +271,49 @@ export function useVoice(): UseVoiceReturn {
           reset();
           break;
 
+        case "update_item": {
+          const parsed = UpdateItemSchema.safeParse(args);
+          if (!parsed.success) {
+            console.error("update_item: invalid args", parsed.error.flatten());
+            return;
+          }
+          const { item_index, description, quantity, unit_price } = parsed.data;
+          const items = useInvoiceStore.getState().items;
+          const actualIndex =
+            item_index < 0 ? items.length + item_index : item_index;
+          const target = items[actualIndex];
+          if (!target) {
+            console.warn("update_item: no item at index", item_index);
+            return;
+          }
+          updateItem(target.id, {
+            ...(description !== undefined && { description }),
+            ...(quantity !== undefined && { quantity }),
+            ...(unit_price !== undefined && { unitPrice: unit_price }),
+          });
+          break;
+        }
+
         case "finalize_document": {
           const parsed = FinalizeDocumentSchema.safeParse(args);
           requestFinalize(parsed.success ? parsed.data.send_via : undefined);
+          // Stop the mic immediately and wait for the AI's final utterance before
+          // fully disconnecting. onResponseDone will close the WS connection.
+          stopAfterFinalizeRef.current = true;
+          setListening(false);
+          setProcessing(true);
+          void cleanupRecording();
+          // Fallback: if onResponseDone never fires (network loss), auto-disconnect
+          if (processingTimerRef.current) clearTimeout(processingTimerRef.current);
+          processingTimerRef.current = setTimeout(() => {
+            processingTimerRef.current = null;
+            setProcessing(false);
+            if (stopAfterFinalizeRef.current) {
+              stopAfterFinalizeRef.current = false;
+              clientRef.current?.disconnect();
+              clientRef.current = null;
+            }
+          }, PROCESSING_FALLBACK_MS);
           break;
         }
 
@@ -248,32 +321,8 @@ export function useVoice(): UseVoiceReturn {
           console.warn("useVoice: unknown function call:", name);
       }
     },
-    [addItem, removeItem, setCustomer, reset, requestFinalize],
+    [addItem, removeItem, setCustomer, updateItem, reset, requestFinalize, cleanupRecording, setListening, setProcessing],
   );
-
-  // -------------------------------------------------------------------------
-  // Cleanup helpers
-  // -------------------------------------------------------------------------
-
-  /** Tears down the microphone capture pipeline (worklet + stream + context). */
-  const cleanupRecording = useCallback(async () => {
-    if (workletNodeRef.current) {
-      workletNodeRef.current.port.close();
-      workletNodeRef.current.disconnect();
-      workletNodeRef.current = null;
-    }
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach((t) => t.stop());
-      mediaStreamRef.current = null;
-    }
-    if (
-      recordCtxRef.current &&
-      recordCtxRef.current.state !== "closed"
-    ) {
-      await recordCtxRef.current.close();
-      recordCtxRef.current = null;
-    }
-  }, []);
 
   // -------------------------------------------------------------------------
   // Client initialisation
@@ -294,7 +343,7 @@ export function useVoice(): UseVoiceReturn {
     }
 
     const { provider, url, token } = (await response.json()) as {
-      provider: "openai" | "gemini" | "afri";
+      provider: "openai" | "gemini";
       url: string;
       token: string;
       model: string;
@@ -329,6 +378,14 @@ export function useVoice(): UseVoiceReturn {
           processingTimerRef.current = null;
         }
         setProcessing(false);
+
+        // finalize_document was called earlier — fully disconnect now that the
+        // AI has finished its closing utterance, so the button returns to idle.
+        if (stopAfterFinalizeRef.current) {
+          stopAfterFinalizeRef.current = false;
+          clientRef.current?.disconnect();
+          clientRef.current = null;
+        }
       },
       onSpeechStarted: () => {
         // Server-VAD detected the user speaking again — barge in by stopping
@@ -345,10 +402,6 @@ export function useVoice(): UseVoiceReturn {
       const geminiClient = new GeminiRealtimeClient(clientConfig);
       await geminiClient.connect(url);
       client = geminiClient;
-    } else if (provider === "afri") {
-      const afriClient = new RealtimeClient(clientConfig);
-      await afriClient.connect(token, url);
-      client = afriClient;
     } else {
       const openaiClient = new RealtimeClient(clientConfig);
       await openaiClient.connect(token, url);
@@ -407,16 +460,24 @@ export function useVoice(): UseVoiceReturn {
       });
       mediaStreamRef.current = stream;
 
-      recordCtxRef.current = new AudioContext({ sampleRate });
+      const ctx = new AudioContext({ sampleRate });
+      recordCtxRef.current = ctx;
 
-      // Load the AudioWorklet module (browser caches after first load)
-      await recordCtxRef.current.audioWorklet.addModule(WORKLET_PATH);
+      // Load the AudioWorklet module (browser caches after first load).
+      // Use the local `ctx` reference throughout — after the await, a
+      // concurrent startListening call may have replaced recordCtxRef.current
+      // with a different (or null) context, causing either a null-deref or a
+      // "pcm16-processor not defined" error on the wrong AudioContext.
+      await ctx.audioWorklet.addModule(WORKLET_PATH);
 
-      const source = recordCtxRef.current.createMediaStreamSource(stream);
-      const workletNode = new AudioWorkletNode(
-        recordCtxRef.current,
-        "pcm16-processor",
-      );
+      // If a concurrent call already superseded us, bail out cleanly.
+      if (recordCtxRef.current !== ctx) {
+        if (ctx.state !== "closed") await ctx.close();
+        return;
+      }
+
+      const source = ctx.createMediaStreamSource(stream);
+      const workletNode = new AudioWorkletNode(ctx, "pcm16-processor");
       workletNodeRef.current = workletNode;
 
       workletNode.port.onmessage = (event: MessageEvent<ArrayBuffer>) => {
@@ -461,10 +522,6 @@ export function useVoice(): UseVoiceReturn {
 
     // Disconnect microphone pipeline synchronously-ish
     await cleanupRecording();
-
-    if (clientRef.current?.isConnected) {
-      clientRef.current.commitAudio();
-    }
 
     // Fallback: clear spinner if onResponseDone never fires (e.g. network loss)
     if (processingTimerRef.current) {
